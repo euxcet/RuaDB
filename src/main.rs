@@ -9,7 +9,35 @@ pub mod tok;
 
 pub mod sql;
 
+pub mod utils;
+
+use std::io;
+use std::io::prelude::*;
+
+
+
+fn initalize() {
+    println!("Connected to server.");
+}
+
+fn print_prompt() {
+    print!("rua > ");
+    io::stdout().flush().ok().expect("Could not flush stdout.");
+}
 
 fn main() {
-    sql::parse();
+    initalize();
+
+
+
+    loop {
+        print_prompt();
+        let mut sql = String::new();
+        io::stdin().read_line(&mut sql).expect("Failed to read line.");
+        if sql.trim() == "exit" {
+            println!("bye!");
+            break;
+        }
+        sql::parse(&sql);
+    }
 }

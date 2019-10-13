@@ -45,6 +45,7 @@ Stmt: Stmt = {
     Attach,
     Begin,
     Commit,
+    CreateDatabase,
     CreateIndex,
     CreateTable,
     CreateTrigger,
@@ -52,6 +53,7 @@ Stmt: Stmt = {
     CreateVirtualTable,
     Delete,
     Detach,
+    DropDatabase,
     DropIndex,
     DropTable,
     DropTrigger,
@@ -63,6 +65,8 @@ Stmt: Stmt = {
     Rollback,
     Savepoint,
     Select => Stmt::Select(<>),
+    ShowDatabase,
+    UseDatabase,
     Update,
     Vacuum,
 };
@@ -100,8 +104,29 @@ Savepoint: Stmt =
 Release: Stmt =
     "release" "savepoint"? <SavepointName> => Stmt::Release(<>);
 
-///////////////////// The CREATE TABLE statement ////////////////////////////
 DatabaseName = Name;
+CreateDatabase: Stmt =
+    "create" "database" <db_name:DatabaseName> => Stmt::CreateDatabase {
+        db_name: db_name
+    };
+
+DropDatabase: Stmt =
+    "drop" "database" <db_name:DatabaseName> => Stmt::DropDatabase {
+        db_name: db_name
+    };
+
+UseDatabase: Stmt =
+    "use" "database" <db_name:DatabaseName> => Stmt::UseDatabase {
+        db_name: db_name
+    };
+
+ShowDatabase: Stmt = {
+    "show" "database" <db_name:DatabaseName> => Stmt::ShowDatabase {
+        db_name: db_name
+    }
+}
+
+///////////////////// The CREATE TABLE statement ////////////////////////////
 #[inline]
 TableName = Name;
 
@@ -938,6 +963,7 @@ extern {
         "savepoint" => Tok::Savepoint,
         "select" => Tok::Select,
         "set" => Tok::Set,
+        "show" => Tok::Show,
         "table" => Tok::Table,
         "temp" => Tok::Temp,
         "then" => Tok::Then,
@@ -947,6 +973,7 @@ extern {
         "union" => Tok::Union,
         "unique" => Tok::Unique,
         "update" => Tok::Update,
+        "use" => Tok::Use,
         "using" => Tok::Using,
         "vacuum" => Tok::Vacuum,
         "values" => Tok::Values,

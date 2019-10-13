@@ -31,6 +31,9 @@ pub enum Stmt {
         columns: Vec<SortedColumn>,
         where_clause: Option<Expr>,
     },
+    CreateDatabase {
+        db_name: Name,
+    },
     CreateTable {
         temporary: bool, // TODO distinction between TEMP and TEMPORARY
         if_not_exists: bool,
@@ -71,6 +74,9 @@ pub enum Stmt {
     },
     // db name
     Detach(Expr), // TODO distinction between DETACH and DETACH DATABASE
+    DropDatabase {
+        db_name: Name,
+    },
     DropIndex {
         if_exists: bool,
         idx_name: QualifiedName,
@@ -105,9 +111,15 @@ pub enum Stmt {
         tx_name: Option<Name>,
         savepoint_name: Option<Name>, // TODO distinction between TO and TO SAVEPOINT
     },
+    ShowDatabase {
+        db_name: Name,
+    },
     // savepoint name
     Savepoint(Name),
     Select(Select),
+    UseDatabase {
+        db_name: Name,
+    },
     Update {
         with: Option<With>,
         or_conflict: Option<ResolveType>,
