@@ -3,13 +3,13 @@
 // #[macro_use]
 extern crate lalrpop_util;
 
-pub mod parser;
-pub mod ast;
-pub mod tok;
-
-pub mod sql;
-
-pub mod utils;
+// pub mod parser;
+// pub mod ast;
+// pub mod tok;
+// pub mod sql;
+// pub mod utils;
+pub mod db;
+pub mod index;
 
 use std::io;
 use std::io::prelude::*;
@@ -28,8 +28,7 @@ fn print_prompt() {
 fn main() {
     initalize();
 
-
-
+    /*
     loop {
         print_prompt();
         let mut sql = String::new();
@@ -40,4 +39,5 @@ fn main() {
         }
         sql::parse(&sql);
     }
+    */
 }
