@@ -7,8 +7,6 @@ use std::str::CharIndices;
 use self::ErrorCode::*;
 use self::Tok::*;
 
-#[cfg(test)]
-mod test;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Error {
