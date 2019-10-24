@@ -1,11 +1,14 @@
 use std;
 use std::ptr;
 use std::alloc::{alloc, Layout};
+use std::collections::HashSet;
+
 
 use super::find_replace::FindReplace;
 use super::super::utils::hashmap::Hashmap;
 use super::super::fileio::file_manager::FileManager;
 use super::super::pagedef::*;
+use super::super::super::pagedef::*;
 
 // use crate::filesystem::utils::hashmap::Hashmap;
 // use crate::filesystem::bufmanager::find_replace::FindReplace;
@@ -14,7 +17,7 @@ use super::super::pagedef::*;
 
 pub struct BufPageManager {
     last: i32,
-    file_manager: FileManager,
+    pub file_manager: FileManager,
     hash: Hashmap,
     replace: FindReplace,
     dirty: [bool; CAP],
@@ -73,6 +76,15 @@ impl BufPageManager {
             _ => {
                 self.access(index);
                 (self.addr[index as usize], index)
+            }
+        }
+    }
+
+    pub fn write_back_file(&mut self, file_id: i32, page_id_list: &HashSet<i32>) {
+        for page_id in page_id_list {
+            let index = self.hash.find_index(file_id, *page_id);
+            if index != -1 {
+                self.write_back(index);
             }
         }
     }
@@ -149,7 +161,6 @@ impl BufPageManager {
     }
 }
 
-#[test]
 fn test_file_system() {
     let mut bpm = BufPageManager::new();
     bpm.file_manager.create_file("d:/Rua/testfile.txt");
