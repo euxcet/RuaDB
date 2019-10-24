@@ -9,7 +9,10 @@ enum BTreeNodeType {
     Leaf,
 }
 
-static mut btree_node_id: i32 = 0;
+pub struct BTree<Tk: PartialOrd + Copy, Td> {
+    root: Box<BTreeNode<Tk, Td>>,
+    btree_node_id: i32,
+}
 
 struct BTreeNode<Tk: PartialOrd + Copy, Td> {
     ty: BTreeNodeType,
@@ -17,11 +20,8 @@ struct BTreeNode<Tk: PartialOrd + Copy, Td> {
     data: Vec<Td>,
     son: Vec<Box<BTreeNode<Tk, Td>>>,
     father: *mut BTreeNode<Tk, Td>,
+    btree: *mut BTree<Tk, Td>,
     id: i32,
-}
-
-pub struct BTree<Tk: PartialOrd + Copy, Td> {
-    root: Box<BTreeNode<Tk, Td>>,
 }
 
 
@@ -55,16 +55,29 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
         return None;
     }
 
-    pub fn new() -> Self {
+    pub fn new(btree: *mut BTree<Tk, Td>, id: i32) -> Self {
+        BTreeNode {
+            ty: BTreeNodeType::Leaf,
+            key: Vec::new(),
+            data: Vec::new(),
+            son: Vec::new(),
+            father: ptr::null_mut(),
+            id: id,
+            btree: btree,
+        }
+    }
+
+    pub fn new_node(&mut self) -> Self {
         unsafe {
-            btree_node_id += 1;
+            (*self.btree).btree_node_id += 1;
             BTreeNode {
                 ty: BTreeNodeType::Leaf,
                 key: Vec::new(),
                 data: Vec::new(),
                 son: Vec::new(),
                 father: ptr::null_mut(),
-                id: btree_node_id,
+                id: (*self.btree).btree_node_id,
+                btree: self.btree,
             }
         }
     }
@@ -73,7 +86,7 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
         let mid = self.key.len() / 2;
         match self.ty {
             BTreeNodeType::Leaf => {
-                let mut new_node = Box::new(BTreeNode::new());
+                let mut new_node = Box::new(self.new_node());
                 let mid_key = self.key[mid];
 
                 new_node.key = self.key.split_off(mid);
@@ -90,7 +103,7 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
                 }
             }
             BTreeNodeType::Internal => {
-                let mut new_node = Box::new(BTreeNode::new());
+                let mut new_node = Box::new(self.new_node());
                 new_node.ty = BTreeNodeType::Internal;
                 new_node.key = self.key.split_off(mid + 1);
                 new_node.son = self.son.split_off(mid + 1);
@@ -117,7 +130,8 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
             return;
         }
         if self.father.is_null() { // split root
-            let mut new_node = Box::new(std::mem::replace(self, BTreeNode::new()));
+            let node = self.new_node();
+            let mut new_node = Box::new(std::mem::replace(self, node));
             new_node.father = self;
 
             // TODO: optimize this piece of code
@@ -165,58 +179,6 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
         }
     }
 
-    /*
-    TODO: merge nodes
-    pub fn merge_borrow(&mut self, sibling: Option<*mut BTreeNode>, is_left: bool) -> bool {
-        match sibling {
-            Some(sibling) => {
-                unsafe {
-                    if (*sibling).key.len() > BTREE_NODE_CAPACITY / 2 {
-                        let father = (*sibling).father;
-                        let key = (*sibling).key.remove(0);
-                        for i in 0..(*father).son.len() {
-                            if is_left {
-                                if (*father).son[i].id == (*sibling).id {
-                                    (*father).key[i] = key;
-                                }
-                            }
-                            else {
-                                if (*father).son[i].id == self.id {
-                                    (*father).key[i] = key;
-                                }
-                            }
-                        }
-                        return true;
-                    }
-                }
-            },
-            None => return false
-        }
-        false
-    }
-
-    pub fn merge_with(&mut self, sibling: Option<*mut BTreeNode>, is_left: bool) -> bool {
-        true
-    }
-
-    pub fn merge(&mut self) {
-        if self.key.len() >= BTREE_NODE_CAPACITY / 2 {
-            return;
-        }
-        let left_sibling = self.left_sibling();
-        let right_sibling = self.right_sibling();
-        if self.merge_borrow(left_sibling, true) || self.merge_borrow(right_sibling, false) {
-            return;
-        }
-        if self.merge_with(left_sibling, true) || self.merge_with(right_sibling, false) {
-            unsafe {
-                (*self.father).merge();
-            }
-            return;
-        }
-    }
-    */
-
     pub fn delete_up(&mut self) {
         if self.key.is_empty() && self.son.is_empty() && !self.father.is_null() {
             unsafe {
@@ -240,7 +202,6 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
     }
 
     pub fn delete(&mut self, key: Tk) {
-        // println!("delete {:?} {:?}", self.key, self.data);
         match self.ty {
             BTreeNodeType::Leaf => {
                 for i in 0..self.key.len() {
@@ -286,10 +247,14 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
 }
 
 impl<Tk: PartialOrd + Copy, Td> BTree<Tk, Td> {
-    fn new() -> Self {
-        BTree {
-            root: Box::new(BTreeNode::new()),
-        }
+
+    fn new() -> Box<Self> {
+        let mut btree = Box::new(BTree {
+            root: Box::new(BTreeNode::new(ptr::null_mut(), 0)),
+            btree_node_id: 0,
+        });
+        btree.root.btree = &mut *btree;
+        btree
     }
 
     fn insert_data(&mut self, key: Tk, data: Td) {
@@ -311,7 +276,6 @@ mod btree_tests {
     use rand::prelude::*;
     use rand::SeedableRng;
     use super::BTree;
-    use super::BTreeNode;
     #[test]
     fn test_btree() {
         let mut btree = BTree::new();
@@ -333,7 +297,7 @@ mod btree_tests {
         let mut opt_type: bool;
         let mut pos: usize;
 
-        for i in 0..opt_cnt {
+        for _ in 0..opt_cnt {
             if seedable {
                 opt_type = rng.gen::<bool>();
                 pos = rng.gen::<usize>() % size;
