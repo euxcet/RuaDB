@@ -11,23 +11,23 @@ enum BTreeNodeType {
 
 static mut btree_node_id: i32 = 0;
 
-struct BTreeNode {
+struct BTreeNode<Tk: PartialOrd + Copy, Td> {
     ty: BTreeNodeType,
-    key: Vec<i32>,
-    data: Vec<i32>,
-    son: Vec<Box<BTreeNode>>,
-    father: *mut BTreeNode,
+    key: Vec<Tk>,
+    data: Vec<Td>,
+    son: Vec<Box<BTreeNode<Tk, Td>>>,
+    father: *mut BTreeNode<Tk, Td>,
     id: i32,
 }
 
-pub struct BTree {
-    root: Box<BTreeNode>,
+pub struct BTree<Tk: PartialOrd + Copy, Td> {
+    root: Box<BTreeNode<Tk, Td>>,
 }
 
 
-impl BTreeNode {
+impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
 
-    fn left_sibling(&mut self) -> Option<*mut BTreeNode> {
+    fn left_sibling(&mut self) -> Option<*mut BTreeNode<Tk, Td>> {
         if self.father.is_null() {
             return None;
         }
@@ -41,7 +41,7 @@ impl BTreeNode {
         return None;
     }
 
-    fn right_sibling(&mut self) -> Option<*mut BTreeNode> {
+    fn right_sibling(&mut self) -> Option<*mut BTreeNode<Tk, Td>> {
         if self.father.is_null() {
             return None;
         }
@@ -91,7 +91,6 @@ impl BTreeNode {
             }
             BTreeNodeType::Internal => {
                 let mut new_node = Box::new(BTreeNode::new());
-                let mid_key = self.key[mid];
                 new_node.ty = BTreeNodeType::Internal;
                 new_node.key = self.key.split_off(mid + 1);
                 new_node.son = self.son.split_off(mid + 1);
@@ -99,11 +98,11 @@ impl BTreeNode {
                     new_node.son[i].father = &mut *new_node;
                 }
                 new_node.father = self.father;
-                self.key.pop();
+                let mid_key = self.key.pop();
                 unsafe {
                     for i in 0..=(*self.father).son.len() {
                         if (*self.father).son[i].id == self.id {
-                            (*self.father).key.insert(i, mid_key);
+                            (*self.father).key.insert(i, mid_key.unwrap());
                             (*self.father).son.insert(i + 1, new_node);
                             break;
                         }
@@ -138,7 +137,7 @@ impl BTreeNode {
         }
     }
 
-    pub fn insert(&mut self, key: i32, data: i32) {
+    pub fn insert(&mut self, key: Tk, data: Td) {
         match self.ty {
             BTreeNodeType::Leaf => {
                 for i in 0..=self.key.len() {
@@ -240,7 +239,7 @@ impl BTreeNode {
         }
     }
 
-    pub fn delete(&mut self, key: i32) {
+    pub fn delete(&mut self, key: Tk) {
         // println!("delete {:?} {:?}", self.key, self.data);
         match self.ty {
             BTreeNodeType::Leaf => {
@@ -264,12 +263,12 @@ impl BTreeNode {
         }
     }
 
-    pub fn search(&mut self, key: i32) -> Option<i32> {
+    pub fn search(&mut self, key: Tk) -> Option<&Td> {
         match self.ty {
             BTreeNodeType::Leaf => {
                 for i in 0..self.key.len() {
                     if self.key[i] == key {
-                        return Some(self.data[i]);
+                        return Some(&self.data[i]);
                     }
                 }
                 return None;
@@ -286,29 +285,26 @@ impl BTreeNode {
     }
 }
 
-impl BTree {
+impl<Tk: PartialOrd + Copy, Td> BTree<Tk, Td> {
     fn new() -> Self {
         BTree {
             root: Box::new(BTreeNode::new()),
         }
     }
 
-    fn insert_data(&mut self, key: i32, data: i32) {
+    fn insert_data(&mut self, key: Tk, data: Td) {
         self.root.insert(key, data);
     }
 
-    fn delete_data(&mut self, key: i32) {
+    fn delete_data(&mut self, key: Tk) {
         self.root.delete(key);
     }
 
-    fn search_data(&mut self, key: i32) -> Option<i32> {
+    fn search_data(&mut self, key: Tk) -> Option<&Td> {
         self.root.search(key)
     }
 
 }
-
-// #[cfg(test)]
-
 
 #[cfg(test)]
 mod btree_tests {
@@ -317,7 +313,7 @@ mod btree_tests {
     use super::BTree;
     use super::BTreeNode;
     #[test]
-    fn test_insert() {
+    fn test_btree() {
         let mut btree = BTree::new();
 
         let mut data: Vec<(i32, i32)> = Vec::new();
@@ -358,7 +354,7 @@ mod btree_tests {
             }
             else {
                 if vis[pos] {
-                    assert_eq!(btree.search_data(data[pos].0), Some(data[pos].1));
+                    assert_eq!(btree.search_data(data[pos].0), Some(&data[pos].1));
                 }
                 else {
                     assert_eq!(btree.search_data(data[pos].0), None);

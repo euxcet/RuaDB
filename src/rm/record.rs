@@ -3,7 +3,7 @@ pub enum Data {
     Int(Option<i64>),
     Float(Option<f64>),
     Date(Option<u64>),
-} 
+}
 
 pub const MAX_STRING_LENGTH: usize = 1024;
 

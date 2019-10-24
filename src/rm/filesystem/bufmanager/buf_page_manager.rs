@@ -89,7 +89,7 @@ impl BufPageManager {
         self.dirty[index as usize] = true;
         self.access(index);
     }
-    
+
     pub fn release(&mut self, index: i32) {
         self.dirty[index as usize] = false;
         self.replace.free(index);
@@ -131,7 +131,7 @@ impl BufPageManager {
         let m = MOD as i32;
 
         Self {
-            last: -1, 
+            last: -1,
             file_manager: FileManager::new(),
             addr: [ptr::null_mut(); CAP],
             dirty: [false; CAP],
