@@ -20,15 +20,20 @@ pub struct BufPageManager {
     pub file_manager: FileManager,
     hash: Hashmap,
     replace: FindReplace,
-    dirty: [bool; CAP],
-    addr: [*mut u8; CAP],
+    dirty: Vec<bool>,
+    addr: Vec<*mut u8>, 
 }
 
 impl BufPageManager {
     fn alloc_page_mem() -> *mut u8 {
-        unsafe {
-            alloc(Layout::new::<[u8; PAGE_SIZE as usize]>())
+        let p = unsafe { alloc(Layout::new::<[u8; PAGE_SIZE as usize]>()) };
+
+        let array = unsafe{std::slice::from_raw_parts_mut(p, PAGE_SIZE)};
+        for i in array {
+            *i = 0;
         }
+
+        p
     }
     fn fetch_page(&mut self, type_id: i32, page_id: i32) -> (*mut u8, i32) {
         let index = self.replace.find();
@@ -80,11 +85,11 @@ impl BufPageManager {
         }
     }
 
-    pub fn write_back_file(&mut self, file_id: i32, page_id_list: &HashSet<i32>) {
-        for page_id in page_id_list {
-            let index = self.hash.find_index(file_id, *page_id);
-            if index != -1 {
-                self.write_back(index);
+    pub fn write_back_file(&mut self, file_id: i32, page_id_list: &HashSet<(i32, i32)>) {
+        for (page_id, index) in page_id_list {
+            let hash_index = self.hash.find_index(file_id, *page_id);
+            if *index == hash_index {
+                self.write_back(hash_index);
             }
         }
     }
@@ -145,8 +150,8 @@ impl BufPageManager {
         Self {
             last: -1, 
             file_manager: FileManager::new(),
-            addr: [ptr::null_mut(); CAP],
-            dirty: [false; CAP],
+            addr: vec![ptr::null_mut(); CAP],
+            dirty: vec![false; CAP],
             hash: Hashmap::new(c, m),
             replace: FindReplace::new(c),
         }

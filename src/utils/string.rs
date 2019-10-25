@@ -10,3 +10,7 @@ pub fn copy_bytes(to: &mut [u8], from: &str) {
     let len = cmp::min(to.len(), from.len());
     copy_bytes_check(to, from, len);
 }
+
+pub fn from_bytes(from: &[u8], len: usize) -> String {
+    std::str::from_utf8(&from[..len]).unwrap().to_owned()
+}

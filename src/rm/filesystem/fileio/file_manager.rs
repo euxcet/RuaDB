@@ -79,7 +79,8 @@ impl FileManager {
     pub fn open_file(&mut self, name: &str) -> i32 {
         let file_id = self.fm.find_left_one();
         self.fm.set_bit(file_id, 0);
-        self._open_file(name, file_id);
+        assert!(self._open_file(name, file_id).is_ok());
+        
 
         file_id
     }
