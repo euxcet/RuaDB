@@ -1,6 +1,9 @@
 use std::vec;
 use std::ptr;
 use std::mem;
+use std::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 const BTREE_NODE_CAPACITY: usize = 3;
 
@@ -9,25 +12,40 @@ enum BTreeNodeType {
     Leaf,
 }
 
-pub struct BTree<Tk: PartialOrd + Copy, Td> {
-    root: Box<BTreeNode<Tk, Td>>,
+pub struct BTree<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> {
+    root: Rc<RefCell<BTreeNode<Tk, Td>>>,
     btree_node_id: i32,
 }
 
-struct BTreeNode<Tk: PartialOrd + Copy, Td> {
+struct BTreeNode<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> {
     ty: BTreeNodeType,
     key: Vec<Tk>,
     data: Vec<Td>,
-    son: Vec<Box<BTreeNode<Tk, Td>>>,
-    father: *mut BTreeNode<Tk, Td>,
-    btree: *mut BTree<Tk, Td>,
+    son: Vec<Rc<RefCell<BTreeNode<Tk, Td>>>>,
+    father: Option<Rc<RefCell<BTreeNode<Tk, Td>>>>,
+    btree: Option<Rc<RefCell<BTree<Tk, Td>>>>,
     id: i32,
 }
 
 
-impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
+impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td> {
 
-    fn left_sibling(&mut self) -> Option<*mut BTreeNode<Tk, Td>> {
+    fn left_sibling(&mut self) -> Option<Rc<RefCell<BTreeNode<Tk, Td>>>> {
+        match self.father {
+            Some(ref father) => {
+                let father = father.borrow();
+                let mut sibling = None;
+                for i in 1..father.son.len() {
+                    if father.son[i].borrow().id == self.id {
+                        sibling = Some(father.son[i - 1].clone());
+                    }
+                }
+                sibling
+            }
+            None => None
+        }
+
+        /*
         if self.father.is_null() {
             return None;
         }
@@ -39,9 +57,24 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
             }
         }
         return None;
+        */
     }
 
-    fn right_sibling(&mut self) -> Option<*mut BTreeNode<Tk, Td>> {
+    fn right_sibling(&mut self) -> Option<Rc<RefCell<BTreeNode<Tk, Td>>>> {
+        match self.father {
+            Some(ref father) => {
+                let father = father.borrow();
+                let mut sibling = None;
+                for i in 0..father.son.len() - 1 {
+                    if father.son[i].borrow().id == self.id {
+                        sibling = Some(father.son[i + 1].clone());
+                    }
+                }
+                sibling
+            }
+            None => None
+        }
+        /*
         if self.father.is_null() {
             return None;
         }
@@ -53,36 +86,94 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
             }
         }
         return None;
+        */
     }
 
-    pub fn new(btree: *mut BTree<Tk, Td>, id: i32) -> Self {
+    pub fn new(btree: Option<Rc<RefCell<BTree<Tk, Td>>>>, id: i32) -> Self {
         BTreeNode {
             ty: BTreeNodeType::Leaf,
             key: Vec::new(),
             data: Vec::new(),
             son: Vec::new(),
-            father: ptr::null_mut(),
+            father: None,
             id: id,
             btree: btree,
         }
     }
 
     pub fn new_node(&mut self) -> Self {
-        unsafe {
-            (*self.btree).btree_node_id += 1;
-            BTreeNode {
-                ty: BTreeNodeType::Leaf,
-                key: Vec::new(),
-                data: Vec::new(),
-                son: Vec::new(),
-                father: ptr::null_mut(),
-                id: (*self.btree).btree_node_id,
-                btree: self.btree,
+        match self.btree {
+            Some(ref btree) => {
+                println!("???");
+                btree.borrow_mut().btree_node_id += 1;
+                println!("!!!");
+                BTreeNode {
+                    ty: BTreeNodeType::Leaf,
+                    key: Vec::new(),
+                    data: Vec::new(),
+                    son: Vec::new(),
+                    father: None,
+                    id: btree.borrow_mut().btree_node_id,
+                    btree: self.btree.clone(),
+                }
+            }
+            None => {
+                panic!();
             }
         }
     }
 
     pub fn split_up(&mut self) {
+        let mid = self.key.len() / 2;
+        match self.ty {
+            BTreeNodeType::Leaf => {
+                let new_node = Rc::new(RefCell::new(self.new_node()));
+
+                let mid_key = self.key[mid];
+                new_node.borrow_mut().key = self.key.split_off(mid);
+                new_node.borrow_mut().data = self.data.split_off(mid);
+                new_node.borrow_mut().father = self.father.clone();
+                println!("!!!");
+
+                if let Some(ref father) = self.father {
+                    let mut father = father.borrow_mut();
+                    for i in 0..father.son.len() {
+                        if father.son[i].borrow().id == self.id {
+                            father.key.insert(i, mid_key);
+                            father.son.insert(i + 1, new_node);
+                            break;
+                        }
+                    }
+                    println!("father {:?}", father.key);
+                }
+            }
+            BTreeNodeType::Internal => {
+                let new_node = Rc::new(RefCell::new(self.new_node()));
+                println!("???");
+
+                new_node.borrow_mut().ty = BTreeNodeType::Internal;
+                new_node.borrow_mut().key = self.key.split_off(mid + 1);
+                new_node.borrow_mut().son = self.son.split_off(mid + 1);
+                new_node.borrow_mut().father = self.father.clone();
+
+                for son in &mut new_node.borrow_mut().son {
+                    son.borrow_mut().father = Some(new_node.clone());
+                }
+
+                let mid_key = self.key.pop();
+                if let Some(ref father) = self.father {
+                    let mut father = father.borrow_mut();
+                    for i in 0..father.son.len() {
+                        if father.son[i].borrow().id == self.id {
+                            father.key.insert(i, mid_key.unwrap());
+                            father.son.insert(i + 1, new_node);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        /*
         let mid = self.key.len() / 2;
         match self.ty {
             BTreeNodeType::Leaf => {
@@ -123,30 +214,39 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
                 }
             }
         }
+        */
     }
 
     pub fn split(&mut self) {
         if self.key.len() <= BTREE_NODE_CAPACITY {
             return;
         }
-        if self.father.is_null() { // split root
-            let node = self.new_node();
-            let mut new_node = Box::new(std::mem::replace(self, node));
-            new_node.father = self;
-
-            // TODO: optimize this piece of code
-            for i in 0..new_node.son.len() {
-                new_node.son[i].father = &mut *new_node;
+        let father = self.father.clone();
+        match father {
+            Some(ref father) => {
+                self.split_up();
+                father.borrow_mut().split();
             }
+            None => {
+                println!("split root");
+                println!("!!!");
+                let node = self.new_node();
+                println!("!!!");
+                let new_node = Rc::new(RefCell::new(std::mem::replace(self, node)));
 
-            self.ty = BTreeNodeType::Internal;
-            self.son.push(new_node);
-            self.son[0].split_up();
-        }
-        else {
-            self.split_up();
-            unsafe {
-                (*self.father).split();
+                println!("!!!");
+                if let Some(ref btree) = self.btree {
+                    new_node.borrow_mut().father = Some(btree.borrow().root.clone());
+                }
+                println!("!!!");
+
+                for son in &new_node.borrow_mut().son {
+                    son.borrow_mut().father = Some(new_node.clone());
+                }
+
+                self.ty = BTreeNodeType::Internal;
+                self.son.push(new_node);
+                self.son[0].borrow_mut().split_up();
             }
         }
     }
@@ -171,7 +271,7 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
             BTreeNodeType::Internal => {
                 for i in 0..=self.key.len() {
                     if i == self.key.len() || self.key[i] > key {
-                        self.son[i].insert(key, data);
+                        self.son[i].borrow_mut().insert(key, data);
                         break;
                     }
                 }
@@ -180,6 +280,27 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
     }
 
     pub fn delete_up(&mut self) {
+        if let Some(ref father) = self.father {
+            if self.key.is_empty() && self.son.is_empty() {
+                let mut father = father.borrow_mut();
+                for i in 0..father.son.len() {
+                    if father.son[i].borrow().id == self.id {
+                        if i == 0 {
+                            if !father.key.is_empty() {
+                                father.key.remove(0);
+                            }
+                        }
+                        else {
+                            father.key.remove(i - 1);
+                        }
+                        father.son.remove(i);
+                        break;
+                    }
+                }
+                father.delete_up();
+            }
+        }
+        /*
         if self.key.is_empty() && self.son.is_empty() && !self.father.is_null() {
             unsafe {
                 for i in 0..(*self.father).son.len() {
@@ -199,6 +320,7 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
                 (*self.father).delete_up();
             }
         }
+        */
     }
 
     pub fn delete(&mut self, key: Tk) {
@@ -216,7 +338,7 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
             BTreeNodeType::Internal => {
                 for i in 0..=self.key.len() {
                     if i == self.key.len() || self.key[i] > key {
-                        self.son[i].delete(key);
+                        self.son[i].borrow_mut().delete(key);
                         break;
                     }
                 }
@@ -224,12 +346,13 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
         }
     }
 
-    pub fn search(&mut self, key: Tk) -> Option<&Td> {
+    pub fn search(&self, key: Tk) -> Option<Td> {
+        println!("{:?} {:?} {:?}", self.key, self.data, key);
         match self.ty {
             BTreeNodeType::Leaf => {
                 for i in 0..self.key.len() {
                     if self.key[i] == key {
-                        return Some(&self.data[i]);
+                        return Some(self.data[i]);
                     }
                 }
                 return None;
@@ -237,7 +360,8 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
             BTreeNodeType::Internal => {
                 for i in 0..=self.key.len() {
                     if i == self.key.len() || self.key[i] > key {
-                        return self.son[i].search(key);
+                        let son = self.son[i].borrow();
+                        return son.search(key);
                     }
                 }
                 return None;
@@ -246,27 +370,28 @@ impl<Tk: PartialOrd + Copy, Td> BTreeNode<Tk, Td> {
     }
 }
 
-impl<Tk: PartialOrd + Copy, Td> BTree<Tk, Td> {
+impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTree<Tk, Td> {
 
-    fn new() -> Box<Self> {
-        let mut btree = Box::new(BTree {
-            root: Box::new(BTreeNode::new(ptr::null_mut(), 0)),
+    fn new() -> Rc<RefCell<Self>> {
+        let root = Rc::new(RefCell::new(BTreeNode::new(None, 0)));
+        let btree = Rc::new(RefCell::new(BTree {
+            root: root,
             btree_node_id: 0,
-        });
-        btree.root.btree = &mut *btree;
+        }));
+        btree.borrow_mut().root.borrow_mut().btree = Some(btree.clone());
         btree
     }
 
     fn insert_data(&mut self, key: Tk, data: Td) {
-        self.root.insert(key, data);
+        self.root.borrow_mut().insert(key, data);
     }
 
     fn delete_data(&mut self, key: Tk) {
-        self.root.delete(key);
+        self.root.borrow_mut().delete(key);
     }
 
-    fn search_data(&mut self, key: Tk) -> Option<&Td> {
-        self.root.search(key)
+    fn search_data(&mut self, key: Tk) -> Option<Td> {
+        self.root.borrow().search(key)
     }
 
 }
@@ -283,8 +408,8 @@ mod btree_tests {
         let mut data: Vec<(i32, i32)> = Vec::new();
         let mut vis: Vec<bool> = Vec::new();
 
-        let size: usize = 2000;
-        let opt_cnt: usize = 200000;
+        let size: usize = 20;
+        let opt_cnt: usize = 20;
         let seedable: bool = true;
 
         for i in 0..size {
@@ -308,20 +433,23 @@ mod btree_tests {
             }
             if opt_type {
                 if vis[pos] {
+                    /*
                     btree.delete_data(data[pos].0);
                     vis[pos] = false;
+                    */
                 }
                 else {
-                    btree.insert_data(data[pos].0, data[pos].1);
+                    println!("insert {}", data[pos].0);
+                    btree.borrow_mut().insert_data(data[pos].0, data[pos].1);
                     vis[pos] = true;
                 }
             }
             else {
                 if vis[pos] {
-                    assert_eq!(btree.search_data(data[pos].0), Some(&data[pos].1));
+                    assert_eq!(btree.borrow_mut().search_data(data[pos].0), Some(data[pos].1));
                 }
                 else {
-                    assert_eq!(btree.search_data(data[pos].0), None);
+                    assert_eq!(btree.borrow_mut().search_data(data[pos].0), None);
                 }
             }
         }
