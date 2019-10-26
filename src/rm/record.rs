@@ -111,7 +111,7 @@ pub struct MemColumnInfo {
     pub foreign_table_name_len: u8,
 }
 
-
+#[derive(PartialEq, std::fmt::Debug)]
 pub enum Data {
     Str(String),
     Int(i64),
@@ -139,11 +139,11 @@ pub struct ColumnType {
     pub index: u32,
     pub data_type: Type,
     pub can_be_null: bool,
-    pub is_primary: bool,
     pub has_index: bool,
-    pub default_null: bool,
     pub has_default: bool,
+    pub is_primary: bool,
     pub is_foreign: bool,
+    pub default_null: bool,
     pub foreign_table_name: String,
 }
 
@@ -157,6 +157,7 @@ pub struct Record {
     pub record: Vec<ColumnData>,
 }
 
+#[derive(Debug)]
 pub struct InsertData {
     pub index: u32,
     pub is_null: bool,
@@ -178,11 +179,11 @@ pub unsafe fn convert<'a, T>(data:*mut u8) -> &'a mut T {
 
 #[test]
 fn check_size() {
-    println!("{}", size_of::<RecordPage>());
-    println!("{}", size_of::<PageHeader>());
-    println!("{}", size_of::<MemRecord>());
-    println!("{}", size_of::<MemData>());
-    println!("{}", size_of::<StrPointer>());
+    println!("size of <RecordPage> {}", size_of::<RecordPage>());
+    println!("size of <PageHeader> {}", size_of::<PageHeader>());
+    println!("size of <MemRecord> {}", size_of::<MemRecord>());
+    println!("size of <MemData> {}", size_of::<MemData>());
+    println!("size of <StrPointer> {}", size_of::<StrPointer>());
     assert!(size_of::<FileHeader>() <= PAGE_SIZE);
     assert!(size_of::<StringPage>() <= PAGE_SIZE);
     assert!(size_of::<RecordPage>() <= PAGE_SIZE);

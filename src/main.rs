@@ -6,13 +6,12 @@ extern crate lalrpop_util;
 // pub mod tok;
 // pub mod sql;
 pub mod utils;
-pub mod db;
 pub mod index;
+pub mod rm;
 
 use std::io;
 use std::io::prelude::*;
 
-pub mod rm;
 
 
 

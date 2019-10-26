@@ -1,6 +1,7 @@
 use std::io;
 use std::io::prelude::*;
 use std::fs;
+use std::path::Path;
 use std::fs::OpenOptions;
 use std::io::SeekFrom;
 
@@ -16,15 +17,14 @@ pub struct FileManager {
 
 impl FileManager {
     fn _create_file(&self, name: &str) -> io::Result<()> {
-        let mut f = OpenOptions::new().create(true).append(true).open(name)?;
-
+        fs::create_dir_all(Path::new(name).parent().unwrap())?;
+        OpenOptions::new().create(true).write(true).truncate(true).open(name)?;
         Ok(())
     }
 
     fn _open_file(&mut self, name: &str, file_id: i32) -> io::Result<()> {
-        let mut f = OpenOptions::new().create(true).read(true).write(true).open(name)?;
+        OpenOptions::new().create(true).read(true).write(true).open(name)?;
         self.fd[file_id as usize] = Some(name.to_owned());
-
         Ok(())
     }
 
@@ -47,7 +47,7 @@ impl FileManager {
 
         let mut f = OpenOptions::new().read(true).write(true).open(fname)?;
         f.seek(SeekFrom::Start(offset as u64))?;
-        let r = f.write(&buf[(off as usize) .. (off as usize) + PAGE_SIZE])?;
+        f.write(&buf[(off as usize) .. (off as usize) + PAGE_SIZE])?;
 
         Ok(())
     }
@@ -80,15 +80,12 @@ impl FileManager {
         let file_id = self.fm.find_left_one();
         self.fm.set_bit(file_id, 0);
         assert!(self._open_file(name, file_id).is_ok());
-        
-
         file_id
     }
     
     pub fn new_type(&mut self) -> i32 {
         let t = self.tm.find_left_one();
         self.tm.set_bit(t, 0);
-
         t
     }
 

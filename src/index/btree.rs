@@ -104,9 +104,7 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td
     pub fn new_node(&mut self) -> Self {
         match self.btree {
             Some(ref btree) => {
-                println!("???");
                 btree.borrow_mut().btree_node_id += 1;
-                println!("!!!");
                 BTreeNode {
                     ty: BTreeNodeType::Leaf,
                     key: Vec::new(),
@@ -133,7 +131,6 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td
                 new_node.borrow_mut().key = self.key.split_off(mid);
                 new_node.borrow_mut().data = self.data.split_off(mid);
                 new_node.borrow_mut().father = self.father.clone();
-                println!("!!!");
 
                 if let Some(ref father) = self.father {
                     let mut father = father.borrow_mut();
@@ -144,13 +141,10 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td
                             break;
                         }
                     }
-                    println!("father {:?}", father.key);
                 }
             }
             BTreeNodeType::Internal => {
                 let new_node = Rc::new(RefCell::new(self.new_node()));
-                println!("???");
-
                 new_node.borrow_mut().ty = BTreeNodeType::Internal;
                 new_node.borrow_mut().key = self.key.split_off(mid + 1);
                 new_node.borrow_mut().son = self.son.split_off(mid + 1);
@@ -228,17 +222,12 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td
                 father.borrow_mut().split();
             }
             None => {
-                println!("split root");
-                println!("!!!");
                 let node = self.new_node();
-                println!("!!!");
                 let new_node = Rc::new(RefCell::new(std::mem::replace(self, node)));
 
-                println!("!!!");
                 if let Some(ref btree) = self.btree {
                     new_node.borrow_mut().father = Some(btree.borrow().root.clone());
                 }
-                println!("!!!");
 
                 for son in &new_node.borrow_mut().son {
                     son.borrow_mut().father = Some(new_node.clone());
@@ -347,7 +336,6 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td
     }
 
     pub fn search(&self, key: Tk) -> Option<Td> {
-        println!("{:?} {:?} {:?}", self.key, self.data, key);
         match self.ty {
             BTreeNodeType::Leaf => {
                 for i in 0..self.key.len() {

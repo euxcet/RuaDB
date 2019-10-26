@@ -58,8 +58,7 @@ impl FileHandler {
         self.cache.borrow_mut().write_back_file(self.fd, &self.used_page.borrow());
     }
 
-    // checked
-    pub fn set_column(&mut self, columns: &Vec<ColumnType>) {
+    pub fn set_columns(&mut self, columns: &Vec<ColumnType>) {
         assert!(columns.len() <= MAX_COLUMN_NUMBER);
         let header = unsafe{ self.header_mut() };
         assert_eq!(header.has_set_column, 0);
@@ -67,7 +66,11 @@ impl FileHandler {
         header.column_num = columns.len() as u32;
 
         for (i, column) in columns.iter().enumerate() {
-            self.columns[i] = Some(column.clone());
+
+            let mut new_column = column.clone();
+            new_column.index = i as u32;
+            self.columns[i] = Some(new_column);
+
             let header = unsafe{ self.header_mut() };
 
             set_used(&mut header.column_slot, i as u32);
@@ -131,7 +134,6 @@ impl FileHandler {
         }
     }
 
-    // checked
     fn alloc_string(&self, s: &str) -> StrPointer {
         let s_len = s.len();
         let slot_num = (s_len + MAX_FIXED_STRING_LENGTH - 1) / MAX_FIXED_STRING_LENGTH;
@@ -158,17 +160,14 @@ impl FileHandler {
         spt
     }
 
-    // checked
     fn alloc_string_slot(&self) -> (u32, u16) {
         self.alloc_slot(USAGE_STR)
     }
 
-    // checked
     fn alloc_record_slot(&self) -> (u32, u16) {
         self.alloc_slot(USAGE_RECORD)
     }
 
-    // checked
     fn alloc_slot(&self, usage: u32) -> (u32, u16) {
         assert!(usage == USAGE_STR || usage == USAGE_RECORD);
 
@@ -204,7 +203,6 @@ impl FileHandler {
         (page_id, fsi as u16)
     }
 
-    // checked
     fn free_string_slot(&self, strp: &mut StrPointer) {
         let this_page = strp.page;
         let offset = strp.offset;
@@ -224,7 +222,6 @@ impl FileHandler {
         }
     }
 
-    // checked
     fn free_string(&self, strp: &mut StrPointer) {
         loop {
             if strp.len == 0 {
@@ -234,14 +231,12 @@ impl FileHandler {
         }
     }
 
-    // checked
     fn use_new_page(&self) -> u32 {
         let header = unsafe{self.header_mut()};
         header.least_unused_page += 1;
         header.least_unused_page - 1
     }
 
-    // checked
     pub fn get_string(&self, strp: &StrPointer) -> String {
         let mut res = String::new();
         let mut t = strp.clone();
@@ -257,16 +252,23 @@ impl FileHandler {
         res
     }
     
-    // checked
     pub fn get_columns(&self) -> Vec<ColumnType> {
+        // panic!();
+        // let mut v: Vec<ColumnType> = Vec::new();
+        // for oc in &self.columns {
+        //     if let &Some(ref c) = oc {
+        //         v.push(c.clone());
+        //     }
+        // }
+        // v
         self.columns.clone().into_iter().filter_map(|c| c).collect()
     }
 
-    //checked
     fn read_columns(&mut self) {
         let header = unsafe{self.header()};
         assert_eq!(header.has_set_column, u32::max_value());
         assert_eq!(header.column_num, used_num(header.column_slot, MAX_COLUMN_NUMBER));
+        println!("{}", header.column_slot);
 
         for i in 0..MAX_COLUMN_NUMBER {
             let header = unsafe{self.header()};
@@ -328,7 +330,6 @@ impl FileHandler {
         }
     }
 
-    // checked
     fn check_column(&self, c: &ColumnData) {
         assert!(self.columns[c.index as usize].is_some());
         if c.default {
@@ -336,11 +337,9 @@ impl FileHandler {
         }
     }
 
-    // checked
     fn get_insert_data(&self, c: &ColumnData) -> InsertData {
         let ct = self.columns[c.index as usize].as_ref().unwrap();
 
-        // let ci = &header.column_info[c.index as usize];
         let mut id = InsertData {
             index: ct.index,
             is_null: false,
@@ -402,7 +401,6 @@ impl FileHandler {
         id
     }
 
-    // checked
     pub fn create_record(&self, r: &Record) -> u32 {
         let record = &r.record;
         let mut v: Vec<InsertData> = Vec::new();
@@ -433,10 +431,9 @@ impl FileHandler {
     }
 
     fn get_pos(rid: u32) -> (u32, u32) {
-        (rid / MAX_PAGE_RECORD_NUMBER as u32, rid % MAX_PAGE_RECORD_NUMBER as u32)
+        (rid / MAX_PAGE_RECORD_NUMBER as u32 + 1, rid % MAX_PAGE_RECORD_NUMBER as u32)
     }
 
-    // checked
     fn write_record_column(&self, id: &InsertData, mem_record: &mut MemRecord) {
         let i = id.index;
         if id.is_null {
@@ -445,7 +442,6 @@ impl FileHandler {
         mem_record.data[i as usize] = id.data;
     }
 
-    // checked
     fn read_record_column(&self, is_null: bool, mem_data: MemData, column_type: &ColumnType) -> ColumnData {
         let mut cd = ColumnData {
             index: column_type.index,
@@ -542,12 +538,6 @@ fn bit_op_test() {
     set_used(&mut a, 1);
     assert_eq!(a, 0x3u32);
 }
-
-#[test]
-fn divide() {
-    assert_eq!(6/5, 1);
-}
-
 
 /*
 ----------
