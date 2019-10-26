@@ -1,11 +1,14 @@
 use std;
 use std::ptr;
 use std::alloc::{alloc, Layout};
+use std::collections::HashSet;
+
 
 use super::find_replace::FindReplace;
 use super::super::utils::hashmap::Hashmap;
 use super::super::fileio::file_manager::FileManager;
 use super::super::pagedef::*;
+use super::super::super::pagedef::*;
 
 // use crate::filesystem::utils::hashmap::Hashmap;
 // use crate::filesystem::bufmanager::find_replace::FindReplace;
@@ -14,18 +17,23 @@ use super::super::pagedef::*;
 
 pub struct BufPageManager {
     last: i32,
-    file_manager: FileManager,
+    pub file_manager: FileManager,
     hash: Hashmap,
     replace: FindReplace,
-    dirty: [bool; CAP],
-    addr: [*mut u8; CAP],
+    dirty: Vec<bool>,
+    addr: Vec<*mut u8>, 
 }
 
 impl BufPageManager {
     fn alloc_page_mem() -> *mut u8 {
-        unsafe {
-            alloc(Layout::new::<[u8; PAGE_SIZE as usize]>())
+        let p = unsafe { alloc(Layout::new::<[u8; PAGE_SIZE as usize]>()) };
+
+        let array = unsafe{std::slice::from_raw_parts_mut(p, PAGE_SIZE)};
+        for i in array {
+            *i = 0;
         }
+
+        p
     }
     fn fetch_page(&mut self, type_id: i32, page_id: i32) -> (*mut u8, i32) {
         let index = self.replace.find();
@@ -73,6 +81,15 @@ impl BufPageManager {
             _ => {
                 self.access(index);
                 (self.addr[index as usize], index)
+            }
+        }
+    }
+
+    pub fn write_back_file(&mut self, file_id: i32, page_id_list: &HashSet<(i32, i32)>) {
+        for (page_id, index) in page_id_list {
+            let hash_index = self.hash.find_index(file_id, *page_id);
+            if *index == hash_index {
+                self.write_back(hash_index);
             }
         }
     }
@@ -133,8 +150,8 @@ impl BufPageManager {
         Self {
             last: -1,
             file_manager: FileManager::new(),
-            addr: [ptr::null_mut(); CAP],
-            dirty: [false; CAP],
+            addr: vec![ptr::null_mut(); CAP],
+            dirty: vec![false; CAP],
             hash: Hashmap::new(c, m),
             replace: FindReplace::new(c),
         }
@@ -149,7 +166,6 @@ impl BufPageManager {
     }
 }
 
-#[test]
 fn test_file_system() {
     let mut bpm = BufPageManager::new();
     bpm.file_manager.create_file("d:/Rua/testfile.txt");

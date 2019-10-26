@@ -1,5 +1,3 @@
-#![allow(unreachable_patterns)]
-
 // #[macro_use]
 extern crate lalrpop_util;
 
@@ -7,12 +5,14 @@ extern crate lalrpop_util;
 // pub mod ast;
 // pub mod tok;
 // pub mod sql;
-// pub mod utils;
+pub mod utils;
 pub mod db;
 pub mod index;
 
 use std::io;
 use std::io::prelude::*;
+
+pub mod rm;
 
 
 

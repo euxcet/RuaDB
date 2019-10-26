@@ -1,9 +1,11 @@
 use std::io;
 use std::io::prelude::*;
+use std::fs;
 use std::fs::OpenOptions;
 use std::io::SeekFrom;
 
 use super::super::pagedef::*;
+use super::super::super::pagedef::*;
 use super::super::utils::bitmap::*;
 
 pub struct FileManager {
@@ -20,11 +22,16 @@ impl FileManager {
     }
 
     fn _open_file(&mut self, name: &str, file_id: i32) -> io::Result<()> {
-        let mut f = OpenOptions::new().read(true).write(true).open(name)?;
+        let mut f = OpenOptions::new().create(true).read(true).write(true).open(name)?;
         self.fd[file_id as usize] = Some(name.to_owned());
 
         Ok(())
     }
+
+    fn _delete_file(&self, name: &str) -> io::Result<()> {
+        fs::remove_file(name)
+    }
+
 
     pub fn new() -> Self {
         Self {
@@ -40,7 +47,7 @@ impl FileManager {
 
         let mut f = OpenOptions::new().read(true).write(true).open(fname)?;
         f.seek(SeekFrom::Start(offset as u64))?;
-        let r = f.write(&buf[(off as usize) .. (off + PAGE_SIZE) as usize])?;
+        let r = f.write(&buf[(off as usize) .. (off as usize) + PAGE_SIZE])?;
 
         Ok(())
     }
@@ -51,7 +58,7 @@ impl FileManager {
 
         let mut f = OpenOptions::new().read(true).open(fname)?;
         f.seek(SeekFrom::Start(offset as u64))?;
-        f.read(&mut buf[(off as usize) .. (off + PAGE_SIZE) as usize])?;
+        f.read(&mut buf[(off as usize) .. (off as usize) + PAGE_SIZE])?;
 
         Ok(())
     }
@@ -65,10 +72,15 @@ impl FileManager {
         self._create_file(name)
     }
 
+    pub fn delete_file(&self, name: &str) -> io::Result<()> {
+        self._delete_file(name)
+    }
+
     pub fn open_file(&mut self, name: &str) -> i32 {
         let file_id = self.fm.find_left_one();
         self.fm.set_bit(file_id, 0);
-        self._open_file(name, file_id);
+        assert!(self._open_file(name, file_id).is_ok());
+        
 
         file_id
     }
