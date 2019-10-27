@@ -168,6 +168,25 @@ mod tests {
         fh.close()
     }
 
+    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, MAX_STRING_LENGTH: u32) -> Record {
+        let mut record = Vec::new();
+        for c in columns.iter() {
+            record.push(ColumnData {
+                index: c.index,
+                data: match c.data_type {
+                    Type::Int(_) => Some(Data::Int(gen.gen::<i64>())),
+                    Type::Float(_) => Some(Data::Float(gen.gen::<f64>())),
+                    Type::Date(_) => Some(Data::Date(gen.gen::<u64>())),
+                    Type::Str(_, _) => Some(Data::Str(gen.gen_string_s(MAX_STRING_LENGTH as usize))),
+                },
+                default: if c.has_default {gen.gen()} else {false},
+            });
+        }
+        Record {
+            record: record
+        }
+    }
+
     #[test]
     fn full_test() {
         let mut r = RecordManager::new();
@@ -183,35 +202,26 @@ mod tests {
         fh.set_columns(&columns);
         fh.close();
 
-        let mut fh = r.open("d:/Rua/test/records_test.rua");
+        let fh = r.open("d:/Rua/test/records_test.rua");
         let columns_ = fh.get_columns();
-
         assert_eq!(columns, columns_);
+        fh.close();
+
+
+        let fh = r.open("d:/Rua/test/records_test.rua");
+
+        const MAX_RECORD_NUMBER: u32 = 10;
+
+        let mut rids = Vec::new();
+
+        for _ in 0..MAX_RECORD_NUMBER {
+            let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
+            rids.push(fh.create_record(&record));
+        }
 
         fh.close();
 
         /*
-
-        let record = Record {
-            record: vec![
-                ColumnData {
-                    index: 0,
-                    default: false,
-                    data: Some(Data::Int(65535)),
-                },
-                ColumnData {
-                    index: 1,
-                    default: false,
-                    data: Some(Data::Str(String::from("str"))),
-                },
-                ColumnData {
-                    index: 2,
-                    default: true,
-                    data: None,
-                }
-            ],
-        };
-
 
         let rid = fh.create_record(&record);
 

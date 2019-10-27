@@ -32,6 +32,7 @@ impl FileHandler {
             header.free_page = [0,0];
             header.least_unused_page = 1;
         }
+        println!("header {}", header.least_unused_page);
         
         if header.has_set_column == u32::max_value() {
             s.read_columns();
@@ -181,22 +182,31 @@ impl FileHandler {
         let header = unsafe{self.header_mut()};
         let need_new_page = header.free_page[i] == 0;
 
+        // println!("{}", need_new_page);
+
         if need_new_page {
             header.free_page[i] = self.use_new_page();
         }
         let page_id = header.free_page[i];
+        // println!("{}", page_id);
 
         let ph = unsafe{self.ph_mut(page_id)};
+
         if need_new_page {
             ph.usage = usage;
         }
 
         let fsi = get_free_index(ph.free_slot);
+        // println!("before {:#b}", ph.free_slot);
 
         assert!(fsi < max_number as u32);
         set_used(&mut ph.free_slot, fsi);
 
+        // println!("after  {:#b}", ph.free_slot);
+
         if all_used(ph.free_slot, max_number) {
+            // println!("realloc");
+            // println!("{} {}", i, ph.next_free_page);
             unsafe{self.header_mut()}.free_page[i] = ph.next_free_page;
         }
 
@@ -262,7 +272,6 @@ impl FileHandler {
         assert_eq!(header.column_num, used_num(header.column_slot, MAX_COLUMN_NUMBER));
 
         for i in 0..MAX_COLUMN_NUMBER {
-            println!("{}", i);
             let header = unsafe{self.header()};
             if is_free(header.column_slot, i) {
                 continue;

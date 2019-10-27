@@ -59,6 +59,8 @@ fn bit() {
     assert!(is_used(0x0fff0ff2, 5));
     assert!(is_free(0x0fff0ff2, 31));
 
+    assert!(all_used(0x3fffffff, 30));
+
     let mut a = 0x00ff0f11;
     set_free(&mut a, 0);
     assert_eq!(a, 0x00ff0f10);
