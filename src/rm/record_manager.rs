@@ -170,24 +170,23 @@ mod tests {
 
     #[test]
     fn full_test() {
-
         let mut r = RecordManager::new();
         r.create("d:/Rua/test/records_test.rua");
         let mut fh = r.open("d:/Rua/test/records_test.rua");
 
         let mut gen = random::Generator::new(true);
 
-        const MAX_STRING_LENGTH: u32 = 1000;
-        // let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER, MAX_STRING_LENGTH);
-        let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
+        const MAX_STRING_LENGTH: u32 = 1000000;
+        let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER, MAX_STRING_LENGTH);
+        // let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
 
         fh.set_columns(&columns);
         fh.close();
 
         let mut fh = r.open("d:/Rua/test/records_test.rua");
-        // let columns_ = fh.get_columns();
+        let columns_ = fh.get_columns();
 
-        // assert_eq!(columns, columns_);
+        assert_eq!(columns, columns_);
 
         fh.close();
 

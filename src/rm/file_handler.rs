@@ -244,23 +244,15 @@ impl FileHandler {
             if t.len == 0 {
                 break;
             }
-            let sp = unsafe{self.sp(strp.page)};
-            res.push_str(from_bytes(&sp.strs[strp.offset as usize].bytes, strp.len as usize).as_str());
-            t = sp.strs[strp.offset as usize].next.clone();
+            let sp = unsafe{self.sp(t.page)};
+            res.push_str(from_bytes(&sp.strs[t.offset as usize].bytes, t.len as usize).as_str());
+            t = sp.strs[t.offset as usize].next.clone();
         }
         
         res
     }
     
     pub fn get_columns(&self) -> Vec<ColumnType> {
-        // panic!();
-        // let mut v: Vec<ColumnType> = Vec::new();
-        // for oc in &self.columns {
-        //     if let &Some(ref c) = oc {
-        //         v.push(c.clone());
-        //     }
-        // }
-        // v
         self.columns.clone().into_iter().filter_map(|c| c).collect()
     }
 
@@ -268,9 +260,9 @@ impl FileHandler {
         let header = unsafe{self.header()};
         assert_eq!(header.has_set_column, u32::max_value());
         assert_eq!(header.column_num, used_num(header.column_slot, MAX_COLUMN_NUMBER));
-        println!("{}", header.column_slot);
 
         for i in 0..MAX_COLUMN_NUMBER {
+            println!("{}", i);
             let header = unsafe{self.header()};
             if is_free(header.column_slot, i) {
                 continue;
