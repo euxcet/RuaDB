@@ -1,7 +1,7 @@
 use super::super::utils::linklist::LinkList;
 
 pub struct FindReplace {
-    list: LinkList,
+    pub list: LinkList,
     cap: i32,
 }
 

@@ -55,6 +55,7 @@ pub struct PageHeader {
 pub struct MemRecord {
     pub rid: u32,
     pub is_null: u32,
+    pub is_default: u32,
     pub data: [MemData; MAX_COLUMN_NUMBER],
 }
 
@@ -111,7 +112,7 @@ pub struct MemColumnInfo {
     pub foreign_table_name_len: u8,
 }
 
-#[derive(PartialEq, std::fmt::Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Data {
     Str(String),
     Int(i64),
@@ -147,12 +148,14 @@ pub struct ColumnType {
     pub foreign_table_name: String,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct ColumnData {
     pub index: u32,
     pub default: bool,
     pub data: Option<Data>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct Record {
     pub record: Vec<ColumnData>,
 }

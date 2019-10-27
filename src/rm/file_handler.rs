@@ -13,7 +13,7 @@ use super::filesystem::pagedef::*;
 pub struct FileHandler{
     fd: i32,
     cache: Rc<RefCell<BufPageManager>>,
-    used_page: RefCell<HashSet<(i32, i32)>>,
+    used_page: RefCell<HashSet<i32>>,
     columns: Vec<Option<ColumnType>>,
 }
 
@@ -25,14 +25,16 @@ impl FileHandler {
             used_page: RefCell::new(HashSet::new()),
             columns: vec![None;MAX_COLUMN_NUMBER],
         };
+        // println!("new file");
+        // println!("visit header");
         let header = unsafe{s.header_mut()};
+        // println!("end visit header");
         
         if header.has_used == 0 {
             header.has_used = 1;
             header.free_page = [0,0];
             header.least_unused_page = 1;
         }
-        println!("header {}", header.least_unused_page);
         
         if header.has_set_column == u32::max_value() {
             s.read_columns();
@@ -43,7 +45,7 @@ impl FileHandler {
 
     unsafe fn page_mut<'b, T>(&self, page_id: u32, dirty: bool) -> &'b mut T {
         let (page, index) = self.cache.borrow_mut().get_page(self.fd, page_id as i32);
-        self.used_page.borrow_mut().insert((page_id as i32, index));
+        self.used_page.borrow_mut().insert(page_id as i32);
         if dirty {
             self.cache.borrow_mut().mark_dirty(index);
         }
@@ -57,6 +59,7 @@ impl FileHandler {
 
     pub fn close(&self) {
         self.cache.borrow_mut().write_back_file(self.fd, &self.used_page.borrow());
+        assert!(self.cache.borrow_mut().file_manager.close_file(self.fd).is_ok());
     }
 
     pub fn set_columns(&mut self, columns: &Vec<ColumnType>) {
@@ -182,14 +185,10 @@ impl FileHandler {
         let header = unsafe{self.header_mut()};
         let need_new_page = header.free_page[i] == 0;
 
-        // println!("{}", need_new_page);
-
         if need_new_page {
             header.free_page[i] = self.use_new_page();
         }
         let page_id = header.free_page[i];
-        // println!("{}", page_id);
-
         let ph = unsafe{self.ph_mut(page_id)};
 
         if need_new_page {
@@ -197,16 +196,11 @@ impl FileHandler {
         }
 
         let fsi = get_free_index(ph.free_slot);
-        // println!("before {:#b}", ph.free_slot);
 
         assert!(fsi < max_number as u32);
         set_used(&mut ph.free_slot, fsi);
 
-        // println!("after  {:#b}", ph.free_slot);
-
         if all_used(ph.free_slot, max_number) {
-            // println!("realloc");
-            // println!("{} {}", i, ph.next_free_page);
             unsafe{self.header_mut()}.free_page[i] = ph.next_free_page;
         }
 
@@ -405,11 +399,17 @@ impl FileHandler {
     pub fn create_record(&self, r: &Record) -> u32 {
         let record = &r.record;
         let mut v: Vec<InsertData> = Vec::new();
+        let mut di: Vec<u32> = Vec::new();
         for c in record {
             self.check_column(c);
         }
         for c in record {
-            v.push(self.get_insert_data(c));
+            if !c.default {
+                v.push(self.get_insert_data(c));
+            }
+            else {
+                di.push(c.index);
+            }
         }
 
         let (page, offset) = self.alloc_record_slot();
@@ -420,8 +420,12 @@ impl FileHandler {
 
         mem_record.rid = rid;
         mem_record.is_null = 0;
+        mem_record.is_default = 0;
         for id in &v {
             self.write_record_column(id, &mut mem_record);
+        }
+        for i in &di {
+            set_used(&mut mem_record.is_default, *i);
         }
 
         rid
@@ -443,30 +447,48 @@ impl FileHandler {
         mem_record.data[i as usize] = id.data;
     }
 
-    fn read_record_column(&self, is_null: bool, mem_data: MemData, column_type: &ColumnType) -> ColumnData {
-        let mut cd = ColumnData {
+    fn read_record_column(&self, is_null: bool, is_default: bool, mem_data: MemData, column_type: &ColumnType) -> ColumnData {
+        ColumnData {
             index: column_type.index,
-            default: false,
-            data: None,
-        };
-        if !is_null {
-            match &column_type.data_type {
-                &Type::Str(_, _) => {
-                    cd.data = Some(Data::Str(self.get_string(&unsafe{mem_data.strp})));
+            default: is_default,
+            data: 
+                if is_default {
+                    match &column_type.data_type {
+                        &Type::Str(_, Some(ref x)) => {
+                            Some(Data::Str(x.clone()))
+                        },
+                        &Type::Int(Some(x)) => {
+                            Some(Data::Int(x))
+                        },
+                        &Type::Float(Some(x)) => {
+                            Some(Data::Float(x))
+                        },
+                        &Type::Date(Some(x)) => {
+                            Some(Data::Date(x))
+                        },
+                        _ => {
+                            unreachable!();
+                        },
+                    }
+                } else if !is_null {
+                    match &column_type.data_type {
+                        &Type::Str(_, _) => {
+                            Some(Data::Str(self.get_string(&unsafe{mem_data.strp})))
+                        },
+                        &Type::Int(_) => {
+                            Some(Data::Int(unsafe{mem_data.int}))
+                        },
+                        &Type::Float(_) => {
+                            Some(Data::Float(unsafe{mem_data.float}))
+                        },
+                        &Type::Date(_) => {
+                            Some(Data::Date(unsafe{mem_data.date}))
+                        },
+                    }
+                } else {
+                    None
                 },
-                &Type::Int(_) => {
-                    cd.data = Some(Data::Int(unsafe{mem_data.int}));
-                },
-                &Type::Float(_) => {
-                    cd.data = Some(Data::Float(unsafe{mem_data.float}));
-                },
-                &Type::Date(_) => {
-                    cd.data = Some(Data::Date(unsafe{mem_data.date}));
-                },
-            }
         }
-
-        cd
     }
 
     pub fn get_record(&self, rid: u32) -> Record {
@@ -477,7 +499,8 @@ impl FileHandler {
             let rp = unsafe{self.rp(page)};
             let mem_record = &rp.record[offset as usize];
             let i = c.index as usize;
-            record.push(self.read_record_column(is_one(mem_record.is_null, i), mem_record.data[i], &c));
+
+            record.push(self.read_record_column(is_one(mem_record.is_null, i), is_one(mem_record.is_default, i), mem_record.data[i], &c));
         }
 
         Record {

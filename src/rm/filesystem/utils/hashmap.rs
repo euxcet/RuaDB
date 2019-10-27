@@ -1,6 +1,6 @@
 use super::linklist::LinkList;
 
-
+#[derive(Debug)]
 struct DataNode {
     key1: i32,
     key2: i32,
@@ -16,6 +16,16 @@ pub struct Hashmap {
 impl Hashmap {
     fn hash(&self, k1: i32, k2: i32) -> i32 {
         ((k1 + k2) * (k1 + k2 + 1) / 2 + k2) % self.modd
+    }
+
+    pub fn print(&self) {
+        println!("empty check begin");
+        for i in &self.a {
+            if i.key1 != -1 || i.key2 != -1 {
+                println!("{:?}", i);
+            }
+        }
+        println!("empty check end");
     }
 
     pub fn find_index(&self, k1: i32, k2: i32) -> i32 {

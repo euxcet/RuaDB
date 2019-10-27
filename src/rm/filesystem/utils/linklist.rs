@@ -10,6 +10,31 @@ pub struct LinkList {
 } 
 
 impl LinkList {
+    pub fn print_head(&self, list_id: i32, len: usize) {
+        let mut node = list_id + self.cap;
+        print!("head elem of {} :", list_id);
+        for _ in 0..len {
+            node = self.a[node as usize].next;
+            print!("{} ", node);
+        }
+        println!();
+    }
+
+    pub fn print_tail(&self, list_id: i32, len: usize) {
+        let mut node = list_id + self.cap;
+        print!("tail elem of {} :", list_id);
+        for _ in 0..len {
+            // print!("{} ", self.a[node as usize].prev);
+            node = self.a[node as usize].prev;
+        }
+        for _ in 0..len {
+            print!("{} ", node);
+            node = self.a[node as usize].next;
+        }
+        println!();
+    }
+
+
     fn link(&mut self, prev: i32, next: i32) {
         self.a[prev as usize].next = next;
         self.a[next as usize].prev = prev;
@@ -35,9 +60,9 @@ impl LinkList {
     pub fn insert_first(&mut self, list_id: i32, elem: i32) {
         self.del(elem);
         let node = list_id + self.cap;
-        let prev = self.a[node as usize].next;
-        self.link(prev, elem);
-        self.link(elem, node);
+        let next = self.a[node as usize].next;
+        self.link(node, elem);
+        self.link(elem, next);
     }
 
     pub fn get_first(&self, list_id: i32) -> i32 {
