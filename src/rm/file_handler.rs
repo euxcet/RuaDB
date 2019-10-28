@@ -25,10 +25,7 @@ impl FileHandler {
             used_page: RefCell::new(HashSet::new()),
             columns: vec![None;MAX_COLUMN_NUMBER],
         };
-        // println!("new file");
-        // println!("visit header");
         let header = unsafe{s.header_mut()};
-        // println!("end visit header");
         
         if header.has_used == 0 {
             header.has_used = 1;
@@ -190,8 +187,8 @@ impl FileHandler {
         }
         let page_id = header.free_page[i];
         let ph = unsafe{self.ph_mut(page_id)};
-
         if need_new_page {
+            assert_eq!(ph.usage, 0);
             ph.usage = usage;
         }
 
@@ -404,12 +401,7 @@ impl FileHandler {
             self.check_column(c);
         }
         for c in record {
-            if !c.default {
-                v.push(self.get_insert_data(c));
-            }
-            else {
-                di.push(c.index);
-            }
+            v.push(self.get_insert_data(c));
         }
 
         let (page, offset) = self.alloc_record_slot();
@@ -420,12 +412,8 @@ impl FileHandler {
 
         mem_record.rid = rid;
         mem_record.is_null = 0;
-        mem_record.is_default = 0;
         for id in &v {
             self.write_record_column(id, &mut mem_record);
-        }
-        for i in &di {
-            set_used(&mut mem_record.is_default, *i);
         }
 
         rid
@@ -447,30 +435,12 @@ impl FileHandler {
         mem_record.data[i as usize] = id.data;
     }
 
-    fn read_record_column(&self, is_null: bool, is_default: bool, mem_data: MemData, column_type: &ColumnType) -> ColumnData {
+    fn read_record_column(&self, is_null: bool, mem_data: MemData, column_type: &ColumnType) -> ColumnData {
         ColumnData {
             index: column_type.index,
-            default: is_default,
+            default: false,
             data: 
-                if is_default {
-                    match &column_type.data_type {
-                        &Type::Str(_, Some(ref x)) => {
-                            Some(Data::Str(x.clone()))
-                        },
-                        &Type::Int(Some(x)) => {
-                            Some(Data::Int(x))
-                        },
-                        &Type::Float(Some(x)) => {
-                            Some(Data::Float(x))
-                        },
-                        &Type::Date(Some(x)) => {
-                            Some(Data::Date(x))
-                        },
-                        _ => {
-                            unreachable!();
-                        },
-                    }
-                } else if !is_null {
+                if !is_null {
                     match &column_type.data_type {
                         &Type::Str(_, _) => {
                             Some(Data::Str(self.get_string(&unsafe{mem_data.strp})))
@@ -500,7 +470,7 @@ impl FileHandler {
             let mem_record = &rp.record[offset as usize];
             let i = c.index as usize;
 
-            record.push(self.read_record_column(is_one(mem_record.is_null, i), is_one(mem_record.is_default, i), mem_record.data[i], &c));
+            record.push(self.read_record_column(is_one(mem_record.is_null, i), mem_record.data[i], &c));
         }
 
         Record {
@@ -522,7 +492,6 @@ impl FileHandler {
                 _ => {},
             }
         }
-        
 
         if free_num(rp.header.free_slot, MAX_PAGE_RECORD_NUMBER) == 1 {
             let header = unsafe{self.header_mut()};
@@ -536,6 +505,13 @@ impl FileHandler {
         let (page, offset) = Self::get_pos(rid);
         let id = self.get_insert_data(column_data);
         let rp = unsafe{self.rp_mut(page)};
+        let i = column_data.index as usize;
+        let ct = self.columns[i].as_ref().unwrap();
+        assert_eq!(ct.index, column_data.index);
+
+        if let &Type::Str(_, _) = &ct.data_type {
+            self.free_string(&mut unsafe{rp.record[offset as usize].data[i].strp});
+        }
         self.write_record_column(&id, &mut rp.record[offset as usize]);
     }
 

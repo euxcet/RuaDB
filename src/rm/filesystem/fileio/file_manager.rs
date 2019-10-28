@@ -43,7 +43,7 @@ impl FileManager {
 
     pub fn write_page(&self, file_id: i32, page_id: i32, buf: &[u8], off: i32) -> io::Result<()> {
         let fname = &self.fd[file_id as usize].as_ref().unwrap();
-        let offset = page_id << PAGE_SIZE_IDX;
+        let offset = (page_id as u64) << (PAGE_SIZE_IDX as u64);
 
         let mut f = OpenOptions::new().read(true).write(true).open(fname)?;
         f.seek(SeekFrom::Start(offset as u64))?;
@@ -54,13 +54,21 @@ impl FileManager {
 
     pub fn read_page(&self, file_id: i32, page_id: i32, buf: &mut [u8], off: i32) -> io::Result<()>{
         let fname = &self.fd[file_id as usize].as_ref().unwrap();
-        let offset = page_id << PAGE_SIZE_IDX;
+        let offset = (page_id as u64) << (PAGE_SIZE_IDX as u64);
 
         let mut f = OpenOptions::new().read(true).open(fname)?;
-        f.seek(SeekFrom::Start(offset as u64))?;
-        f.read(&mut buf[(off as usize) .. (off as usize) + PAGE_SIZE])?;
+        f.seek(SeekFrom::Start(offset))?;
+        let off = off as usize;
+        let r = f.read(&mut buf[off .. off + PAGE_SIZE]);
 
-        Ok(())
+        if let Ok(bytes) = r {
+            for i in &mut buf[off + bytes .. off + PAGE_SIZE] {
+                *i = 0;
+            }
+            Ok(())
+        } else {
+            panic!("read error");
+        }
     }
 
     pub fn close_file(&mut self, file_id: i32) -> io::Result<()> {

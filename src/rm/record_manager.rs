@@ -200,13 +200,14 @@ mod tests {
 
     #[test]
     fn full_test() {
-        const MAX_STRING_LENGTH: u32 = 1000;
+        const MAX_STRING_LENGTH: u32 = 100;
 
         let mut r = RecordManager::new();
         r.create("d:/Rua/test/records_test.rua");
 
         let mut gen = random::Generator::new(true);
-        let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER, MAX_STRING_LENGTH);
+
+        let columns = gen_random_columns(&mut gen, 3, MAX_STRING_LENGTH);
 
         let mut fh = r.open("d:/Rua/test/records_test.rua");
         fh.set_columns(&columns);
@@ -218,7 +219,8 @@ mod tests {
         fh.close();
 
         let fh = r.open("d:/Rua/test/records_test.rua");
-        const MAX_RECORD_NUMBER: u32 = 1000;
+
+        const MAX_RECORD_NUMBER: u32 = 100;
         let mut rids = Vec::new();
         let mut records = Vec::new();
         for _ in 0..MAX_RECORD_NUMBER {
@@ -236,57 +238,28 @@ mod tests {
         assert_eq!(records, records_);
         fh.close();
 
-
         let fh = r.open("d:/Rua/test/records_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            let rid = gen.gen::<usize>() % rids.len();
+
+            let rid_index = gen.gen::<usize>() % rids.len();
+            let rid = rids[rid_index];
+
             for c in &record.record {
-                fh.update_record(rids[rid], c);
+                fh.update_record(rid, c);
             }
             assert_eq!(fh.get_record(rid as u32), record);
-            records[rid] = record;
+            records[rid_index] = record;
         }
         fh.close();
 
+
         let fh = r.open("d:/Rua/test/records_test.rua");
-        for rid in 0..records.len() {
-            assert_eq!(fh.get_record(rid as u32), records[rid]);
+        for i in 0..records.len() {
+            assert_eq!(fh.get_record(rids[i] as u32), records[i]);
         }
         fh.close()
 
-        /*
-
-        let rid = fh.create_record(&record);
-
-
-        let r = fh.get_record(rid);
-        assert_eq!(r.record.len(), record.record.len());
-        assert_eq!(r.record[0].data, Some(Data::Int(65535)));
-        assert_eq!(r.record[1].data, Some(Data::Str(String::from("str"))));
-        assert_eq!(r.record[2].data, Some(Data::Float(123.456f64)));
-
-        fh.update_record(rid, &ColumnData {
-                    index: 0,
-                    default: false,
-                    data: Some(Data::Int(i64::max_value())),
-                });
-        fh.update_record(rid, &ColumnData {
-                    index: 1,
-                    default: false,
-                    data: Some(Data::Str(String::from("fuck"))),
-                });
-        fh.update_record(rid, &ColumnData {
-                    index: 2,
-                    default: false,
-                    data: Some(Data::Float(55555.55555f64)),
-                });
-
-        let r = fh.get_record(rid);
-        assert_eq!(r.record[0].data, Some(Data::Int(i64::max_value())));
-        assert_eq!(r.record[1].data, Some(Data::Str(String::from("fuck"))));
-        assert_eq!(r.record[2].data, Some(Data::Float(55555.55555f64)));
-        */
 
     }
 }

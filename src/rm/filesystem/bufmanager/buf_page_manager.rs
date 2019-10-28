@@ -26,14 +26,7 @@ pub struct BufPageManager {
 
 impl BufPageManager {
     fn alloc_page_mem() -> *mut u8 {
-        let p = unsafe { alloc(Layout::new::<[u8; PAGE_SIZE as usize]>()) };
-
-        let array = unsafe{std::slice::from_raw_parts_mut(p, PAGE_SIZE)};
-        for i in array {
-            *i = 0;
-        }
-
-        p
+        unsafe{ alloc(Layout::new::<[u8; PAGE_SIZE as usize]>()) }
     }
     fn fetch_page(&mut self, file_id: i32, page_id: i32) -> (*mut u8, i32) {
         let index = self.replace.find();
@@ -41,6 +34,9 @@ impl BufPageManager {
 
         if !b.is_null() {
             let (k1, k2) = self.hash.get_keys(index);
+            // if k1 != -1 || k2 != -1 {
+            //     unreachable!();
+            // }
             if self.dirty[index as usize] {
                 let (k1, k2) = self.hash.get_keys(index);
                 unsafe {
@@ -59,25 +55,16 @@ impl BufPageManager {
         (b, index)
     }
 
-    // pub fn alloc_page(&mut self, file_id: i32, page_id: i32, read: bool) -> (*mut u8, i32) {
-    //     let (b, index) = self.fetch_page(file_id, page_id);
-    //     if read {
-    //         unsafe {
-    //             self.file_manager.read_page(file_id, page_id, std::slice::from_raw_parts_mut(b, PAGE_SIZE as usize), 0);
-    //         }
-    //     }
-
-    //     (b, index)
-    // }
 
     pub fn get_page(&mut self, file_id: i32, page_id: i32) -> (*mut u8, i32) {
         let index = self.hash.find_index(file_id, page_id);
+
         match index {
             -1 => {
                 let (b, i) = self.fetch_page(file_id, page_id);
                 unsafe {
-                    self.file_manager.read_page(file_id, page_id, std::slice::from_raw_parts_mut(b, PAGE_SIZE as usize), 0);
-                }
+                    self.file_manager.read_page(file_id, page_id, unsafe{std::slice::from_raw_parts_mut(b, PAGE_SIZE)}, 0)
+                };
                 (b, i)
             },
             _ => {

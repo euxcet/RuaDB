@@ -55,7 +55,6 @@ pub struct PageHeader {
 pub struct MemRecord {
     pub rid: u32,
     pub is_null: u32,
-    pub is_default: u32,
     pub data: [MemData; MAX_COLUMN_NUMBER],
 }
 
@@ -148,11 +147,17 @@ pub struct ColumnType {
     pub foreign_table_name: String,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub struct ColumnData {
     pub index: u32,
     pub default: bool,
     pub data: Option<Data>,
+}
+
+impl PartialEq for ColumnData {
+    fn eq (&self, other: &ColumnData) -> bool {
+        self.index == other.index && self.data == other.data
+    }
 }
 
 #[derive(PartialEq, Debug)]
