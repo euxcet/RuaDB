@@ -1,0 +1,5 @@
+[database]
+rd_windows = "d:/Rua/test/"
+rd_linux = "/Users/euxcet/Desktop/Rua/test/"
+rd_macos = "/Users/euxcet/Desktop/Rua/test/"
+

@@ -7,25 +7,27 @@ use super::record::*;
 
 struct RecordManager {
     bpm: Rc<RefCell<BufPageManager>>,
+    root_dir: String,
 }
 
 impl RecordManager {
-    pub fn new() -> Self {
+    pub fn new(root_dir: String) -> Self {
         Self {
             bpm: Rc::new(RefCell::new(BufPageManager::new())),
+            root_dir: root_dir,
         }
     }
 
     pub fn create(&mut self, path: &str) {
-        assert!(self.bpm.borrow_mut().file_manager.create_file(path).is_ok());
+        assert!(self.bpm.borrow_mut().file_manager.create_file((self.root_dir.clone() + path).as_str()).is_ok());
     }
 
     pub fn delete(&mut self, path: &str) {
-        assert!(self.bpm.borrow_mut().file_manager.delete_file(path).is_ok());
+        assert!(self.bpm.borrow_mut().file_manager.delete_file((self.root_dir.clone() + path).as_str()).is_ok());
     }
 
     pub fn open(&mut self, path: &str) -> FileHandler {
-        let fd = self.bpm.borrow_mut().file_manager.open_file(path);
+        let fd = self.bpm.borrow_mut().file_manager.open_file((self.root_dir.clone() + path).as_str());
         FileHandler::new(fd, self.bpm.clone())
     }
 }
@@ -41,89 +43,7 @@ impl Drop for RecordManager {
 mod tests {
     use super::*;
     use crate::utils::random;
-
-    // #[test]
-    // fn basic_test() {
-    //     let mut r = RecordManager::new();
-    //     r.create("d:/Rua/test/basic_test.rua");
-    //     let mut fh = r.open("d:/Rua/test/basic_test.rua");
-
-    //     let columns = vec![
-    //         ColumnType {
-    //             name: String::from("id"),
-    //             data_type: Type::Int(None),
-    //             has_index: true,
-    //             is_primary: true,
-    //             .. Default::default()
-    //         },
-    //         ColumnType {
-    //             name: String::from("name"),
-    //             data_type: Type::Str(100, Some(String::from("lyt"))),
-    //             .. Default::default()
-    //         },
-    //         ColumnType {
-    //             name: String::from("value"),
-    //             data_type: Type::Float(Some(123.456f64)),
-    //             has_default: true,
-    //             .. Default::default()
-    //         }
-    //     ];
-
-    //     let record = Record {
-    //         record: vec![
-    //             ColumnData {
-    //                 index: 0,
-    //                 default: false,
-    //                 data: Some(Data::Int(65535)),
-    //             },
-    //             ColumnData {
-    //                 index: 1,
-    //                 default: false,
-    //                 data: Some(Data::Str(String::from("str"))),
-    //             },
-    //             ColumnData {
-    //                 index: 2,
-    //                 default: true,
-    //                 data: None,
-    //             }
-    //         ],
-    //     };
-
-    //     fh.set_columns(&columns);
-
-    //     let rid = fh.create_record(&record);
-
-
-    //     let r = fh.get_record(rid);
-    //     assert_eq!(r.record.len(), record.record.len());
-    //     assert_eq!(r.record[0].data, Some(Data::Int(65535)));
-    //     assert_eq!(r.record[1].data, Some(Data::Str(String::from("str"))));
-    //     assert_eq!(r.record[2].data, Some(Data::Float(123.456f64)));
-
-    //     fh.update_record(rid, &ColumnData {
-    //                 index: 0,
-    //                 default: false,
-    //                 data: Some(Data::Int(i64::max_value())),
-    //             });
-    //     fh.update_record(rid, &ColumnData {
-    //                 index: 1,
-    //                 default: false,
-    //                 data: Some(Data::Str(String::from("fuck"))),
-    //             });
-    //     fh.update_record(rid, &ColumnData {
-    //                 index: 2,
-    //                 default: false,
-    //                 data: Some(Data::Float(55555.55555f64)),
-    //             });
-
-    //     let r = fh.get_record(rid);
-    //     assert_eq!(r.record[0].data, Some(Data::Int(i64::max_value())));
-    //     assert_eq!(r.record[1].data, Some(Data::Str(String::from("fuck"))));
-    //     assert_eq!(r.record[2].data, Some(Data::Float(55555.55555f64)));
-
-    //     fh.close();
-    // }
-
+    use crate::settings;
 
     fn gen_random_columns(gen: &mut random::Generator, number: usize, MAX_STRING_LENGTH: u32) -> Vec<ColumnType> {
         let mut columns = Vec::new();
@@ -151,22 +71,6 @@ mod tests {
         }
         columns
     }
-
-    // #[test]
-    // #[should_panic]
-    // fn set_columns_test() {
-    //     let mut r = RecordManager::new();
-    //     r.create("d:/Rua/test/records_test.rua");
-    //     let mut fh = r.open("d:/Rua/test/records_test.rua");
-
-    //     let mut gen = random::Generator::new(true);
-
-    //     const MAX_STRING_LENGTH: u32 = 1000;
-    //     let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER + 1, MAX_STRING_LENGTH);
-
-    //     fh.set_columns(&columns);
-    //     fh.close()
-    // }
 
     fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, MAX_STRING_LENGTH: u32) -> Record {
         let mut record = Vec::new();
@@ -198,27 +102,51 @@ mod tests {
         }
     }
 
+    // #[test]
+    // #[should_panic]
+    // fn set_columns_test() {
+    //     let mut r = RecordManager::new();
+    //     r.create("d:/Rua/test/records_test.rua");
+    //     let mut fh = r.open("d:/Rua/test/records_test.rua");
+
+    //     let mut gen = random::Generator::new(true);
+
+    //     const MAX_STRING_LENGTH: u32 = 1000;
+    //     let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER + 1, MAX_STRING_LENGTH);
+
+    //     fh.set_columns(&columns);
+    //     fh.close()
+    // }
+
     #[test]
     fn full_test() {
         const MAX_STRING_LENGTH: u32 = 100;
 
-        let mut r = RecordManager::new();
-        r.create("d:/Rua/test/records_test.rua");
+        let settings = settings::Settings::new().unwrap();
+
+        #[cfg(target_os = "macos")]
+        let mut r = RecordManager::new(settings.database.rd_macos);
+        #[cfg(target_os = "windows")]
+        let mut r = RecordManager::new(settings.database.rd_windows);
+        #[cfg(target_os = "linux")]
+        let mut r = RecordManager::new(settings.database.rd_linux);
+
+        r.create("records_test.rua");
 
         let mut gen = random::Generator::new(true);
 
         let columns = gen_random_columns(&mut gen, 3, MAX_STRING_LENGTH);
 
-        let mut fh = r.open("d:/Rua/test/records_test.rua");
+        let mut fh = r.open("records_test.rua");
         fh.set_columns(&columns);
         fh.close();
 
-        let fh = r.open("d:/Rua/test/records_test.rua");
+        let fh = r.open("records_test.rua");
         let columns_ = fh.get_columns();
         assert_eq!(columns, columns_);
         fh.close();
 
-        let fh = r.open("d:/Rua/test/records_test.rua");
+        let fh = r.open("records_test.rua");
 
         const MAX_RECORD_NUMBER: u32 = 100;
         let mut rids = Vec::new();
@@ -230,7 +158,7 @@ mod tests {
         }
         fh.close();
 
-        let fh = r.open("d:/Rua/test/records_test.rua");
+        let fh = r.open("records_test.rua");
         let mut records_ = Vec::new();
         for id in &rids {
             records_.push(fh.get_record(*id));
@@ -238,23 +166,23 @@ mod tests {
         assert_eq!(records, records_);
         fh.close();
 
-        let fh = r.open("d:/Rua/test/records_test.rua");
+        let fh = r.open("records_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
 
-            let rid_index = gen.gen::<usize>() % rids.len();
-            let rid = rids[rid_index];
+            let index: usize = gen.gen_range(0, rids.len());
+            let rid = rids[index];
 
             for c in &record.record {
                 fh.update_record(rid, c);
             }
             assert_eq!(fh.get_record(rid as u32), record);
-            records[rid_index] = record;
+            records[index] = record;
         }
         fh.close();
 
 
-        let fh = r.open("d:/Rua/test/records_test.rua");
+        let fh = r.open("records_test.rua");
         for i in 0..records.len() {
             assert_eq!(fh.get_record(rids[i] as u32), records[i]);
         }

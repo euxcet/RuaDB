@@ -1,5 +1,11 @@
-// #[macro_use]
 extern crate lalrpop_util;
+
+#[macro_use]
+extern crate serde_derive;
+
+extern crate config;
+
+use std::collections::HashMap;
 
 // pub mod parser;
 // pub mod ast;
@@ -8,6 +14,9 @@ extern crate lalrpop_util;
 pub mod utils;
 pub mod index;
 pub mod rm;
+mod settings;
+
+use settings::Settings;
 
 use std::io;
 use std::io::prelude::*;
@@ -26,6 +35,9 @@ fn print_prompt() {
 
 fn main() {
     initalize();
+
+    let settings = Settings::new();
+    println!("{:?}", settings);
 
     /*
     loop {

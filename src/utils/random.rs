@@ -2,6 +2,7 @@ use std::iter;
 use rand::prelude::*;
 use rand::{Rng, thread_rng};
 use rand::distributions::{Standard, Alphanumeric};
+use rand::distributions::uniform::{SampleUniform, SampleBorrow};
 use rand::SeedableRng;
 
 pub struct Generator {
@@ -27,6 +28,18 @@ impl Generator {
         }
         else {
             self.threadRng.gen::<T>()
+        }
+    }
+
+    pub fn gen_range<T: SampleUniform, B1, B2>(&mut self, low: B1, high: B2) -> T
+        where
+            B1: SampleBorrow<T> + Sized,
+            B2: SampleBorrow<T> + Sized, {
+        if self.seedable {
+            self.stdRng.gen_range::<T, B1, B2>(low, high)
+        }
+        else {
+            self.threadRng.gen_range::<T, B1, B2>(low, high)
         }
     }
 
