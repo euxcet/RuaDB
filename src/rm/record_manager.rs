@@ -200,19 +200,15 @@ mod tests {
 
     #[test]
     fn full_test() {
+        const MAX_STRING_LENGTH: u32 = 1000;
+
         let mut r = RecordManager::new();
         r.create("d:/Rua/test/records_test.rua");
-        let mut fh = r.open("d:/Rua/test/records_test.rua");
 
         let mut gen = random::Generator::new(true);
-
-        const MAX_STRING_LENGTH: u32 = 1000;
-        // const MAX_STRING_LENGTH: u32 = 1000;
-        // const MAX_STRING_LENGTH: u32 = 10;
         let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER, MAX_STRING_LENGTH);
-        // let columns = gen_random_columns(&mut gen, 3, MAX_STRING_LENGTH);
-        // let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
 
+        let mut fh = r.open("d:/Rua/test/records_test.rua");
         fh.set_columns(&columns);
         fh.close();
 
@@ -222,9 +218,7 @@ mod tests {
         fh.close();
 
         let fh = r.open("d:/Rua/test/records_test.rua");
-
         const MAX_RECORD_NUMBER: u32 = 1000;
-
         let mut rids = Vec::new();
         let mut records = Vec::new();
         for _ in 0..MAX_RECORD_NUMBER {
@@ -232,17 +226,34 @@ mod tests {
             rids.push(fh.create_record(&record));
             records.push(record);
         }
-
         fh.close();
-        let fh = r.open("d:/Rua/test/records_test.rua");
 
+        let fh = r.open("d:/Rua/test/records_test.rua");
         let mut records_ = Vec::new();
         for id in &rids {
             records_.push(fh.get_record(*id));
         }
+        assert_eq!(records, records_);
         fh.close();
 
-        assert_eq!(records, records_);
+
+        let fh = r.open("d:/Rua/test/records_test.rua");
+        for _ in 0..MAX_RECORD_NUMBER {
+            let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
+            let rid = gen.gen::<usize>() % rids.len();
+            for c in &record.record {
+                fh.update_record(rids[rid], c);
+            }
+            assert_eq!(fh.get_record(rid as u32), record);
+            records[rid] = record;
+        }
+        fh.close();
+
+        let fh = r.open("d:/Rua/test/records_test.rua");
+        for rid in 0..records.len() {
+            assert_eq!(fh.get_record(rid as u32), records[rid]);
+        }
+        fh.close()
 
         /*
 
