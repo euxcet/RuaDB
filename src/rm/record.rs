@@ -64,6 +64,21 @@ pub struct RecordPage {
     pub record: [MemRecord; MAX_PAGE_RECORD_NUMBER],
 }
 
+/*
+#[repr(C)]
+pub struct BTreeNode {
+    pub index: MemRecord,
+    pub next_node: TypePointer,
+}
+
+#[repr(C)]
+pub struct BTreeNodePage {
+    pub header: PageHeader,
+    pub nodes: [BTreeNode; MAX_PAGE_NODE_NUMBER],
+    // pub indexes: [MemRecord; MAX_PAGE_RECORD_NUMBER],
+}
+*/
+
 #[repr(C)]
 pub struct StringSlice {
     pub bytes: [u8; MAX_FIXED_STRING_LENGTH],
@@ -163,6 +178,11 @@ impl PartialEq for ColumnData {
 #[derive(PartialEq, Debug)]
 pub struct Record {
     pub record: Vec<ColumnData>,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Index {
+    pub index: Vec<ColumnData>,
 }
 
 #[derive(Debug)]

@@ -21,9 +21,6 @@ use settings::Settings;
 use std::io;
 use std::io::prelude::*;
 
-
-
-
 fn initalize() {
     println!("Connected to server.");
 }

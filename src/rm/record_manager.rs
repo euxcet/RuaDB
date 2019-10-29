@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 use super::file_handler::FileHandler;
 use super::filesystem::bufmanager::buf_page_manager::BufPageManager;
+use crate::settings;
 use super::record::*;
 
 struct RecordManager {
@@ -11,10 +12,16 @@ struct RecordManager {
 }
 
 impl RecordManager {
-    pub fn new(root_dir: String) -> Self {
+    pub fn new() -> Self {
+        let settings = settings::Settings::new().unwrap();
         Self {
             bpm: Rc::new(RefCell::new(BufPageManager::new())),
-            root_dir: root_dir,
+            #[cfg(target_os = "macos")]
+            root_dir: settings.database.rd_macos,
+            #[cfg(target_os = "windows")]
+            root_dir: settings.database.rd_windows,
+            #[cfg(target_os = "linux")]
+            root_dir: settings.database.rd_linux,
         }
     }
 
@@ -43,7 +50,6 @@ impl Drop for RecordManager {
 mod tests {
     use super::*;
     use crate::utils::random;
-    use crate::settings;
 
     fn gen_random_columns(gen: &mut random::Generator, number: usize, MAX_STRING_LENGTH: u32) -> Vec<ColumnType> {
         let mut columns = Vec::new();
@@ -102,35 +108,28 @@ mod tests {
         }
     }
 
-    // #[test]
-    // #[should_panic]
-    // fn set_columns_test() {
-    //     let mut r = RecordManager::new();
-    //     r.create("d:/Rua/test/records_test.rua");
-    //     let mut fh = r.open("d:/Rua/test/records_test.rua");
+    #[test]
+    #[should_panic]
+    fn set_columns_test() {
+        let mut r = RecordManager::new();
+        r.create("records_test.rua");
 
-    //     let mut gen = random::Generator::new(true);
+        let mut gen = random::Generator::new(true);
 
-    //     const MAX_STRING_LENGTH: u32 = 1000;
-    //     let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER + 1, MAX_STRING_LENGTH);
+        let mut fh = r.open("records_test.rua");
 
-    //     fh.set_columns(&columns);
-    //     fh.close()
-    // }
+        const MAX_STRING_LENGTH: u32 = 1000;
+        let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER + 1, MAX_STRING_LENGTH);
+
+        fh.set_columns(&columns);
+        fh.close()
+    }
 
     #[test]
     fn full_test() {
         const MAX_STRING_LENGTH: u32 = 100;
 
-        let settings = settings::Settings::new().unwrap();
-
-        #[cfg(target_os = "macos")]
-        let mut r = RecordManager::new(settings.database.rd_macos);
-        #[cfg(target_os = "windows")]
-        let mut r = RecordManager::new(settings.database.rd_windows);
-        #[cfg(target_os = "linux")]
-        let mut r = RecordManager::new(settings.database.rd_linux);
-
+        let mut r = RecordManager::new();
         r.create("records_test.rua");
 
         let mut gen = random::Generator::new(true);
