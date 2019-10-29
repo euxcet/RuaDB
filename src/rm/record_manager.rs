@@ -72,7 +72,7 @@ mod tests {
         columns
     }
 
-    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, MAX_STRING_LENGTH: u32) -> Record {
+    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>) -> Record {
         let mut record = Vec::new();
         for c in columns.iter() {
             let default = if c.has_default {gen.gen()} else {false};
@@ -91,7 +91,7 @@ mod tests {
                         &Type::Int(_) => Some(Data::Int(gen.gen::<i64>())),
                         &Type::Float(_) => Some(Data::Float(gen.gen::<f64>())),
                         &Type::Date(_) => Some(Data::Date(gen.gen::<u64>())),
-                        &Type::Str(_, _) => Some(Data::Str(gen.gen_string_s(MAX_STRING_LENGTH as usize))),
+                        &Type::Str(len, _) => Some(Data::Str(gen.gen_string_s(len as usize))),
                     }
                 },
                 default: default,
@@ -152,7 +152,7 @@ mod tests {
         let mut rids = Vec::new();
         let mut records = Vec::new();
         for _ in 0..MAX_RECORD_NUMBER {
-            let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
+            let record = gen_record(&mut gen, &columns);
             rids.push(fh.create_record(&record));
             records.push(record);
         }
@@ -168,7 +168,7 @@ mod tests {
 
         let fh = r.open("records_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
-            let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
+            let record = gen_record(&mut gen, &columns);
 
             let index: usize = gen.gen_range(0, rids.len());
             let rid = rids[index];
@@ -186,8 +186,12 @@ mod tests {
         for i in 0..records.len() {
             assert_eq!(fh.get_record(rids[i] as u32), records[i]);
         }
-        fh.close()
+        fh.close();
 
-
+        let fh = r.open("records_test.rua");
+        for rid in rids {
+            fh.delete_record(rid as u32);
+            assert_eq!(fh.create_record(&gen_record(&mut gen, &columns)), rid);
+        }
     }
 }
