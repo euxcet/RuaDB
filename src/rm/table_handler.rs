@@ -1,6 +1,7 @@
 use super::file_handler::*;
 use super::record::*;
 use super::in_file::*;
+use super::pagedef::*;
 
 pub struct TableHandler {
     // TODO: support multiple filehandlers
@@ -22,8 +23,9 @@ impl TableHandler {
         self.fh.delete(ptr);
     }
 
+    // for String
     pub fn insert_string(&self, s: &String) -> StrPointer {
-        self.fh.create::<String, u32>(&s)
+        self.fh.insert::<String, u32>(&s)
     }
 
     pub fn get_string(&self, ptr: &StrPointer) -> String {
@@ -34,8 +36,9 @@ impl TableHandler {
         self.fh.update::<String, u32>(ptr, &s);
     }
 
+    // for Record
     pub fn insert_record(&self, record: &Record) -> StrPointer {
-        self.fh.create::<RecordInFile, u32>(&RecordInFile::from(self, record))
+        self.fh.insert::<RecordInFile, u32>(&RecordInFile::from(self, record))
     }
 
     pub fn get_record(&self, ptr: &StrPointer) -> Record {
@@ -46,8 +49,9 @@ impl TableHandler {
         self.fh.update::<RecordInFile, u32>(ptr, &RecordInFile::from(self, record));
     }
 
+    // for ColumnType
     pub fn insert_column_type(&self, ct: &ColumnType) -> StrPointer {
-        self.fh.create::<ColumnTypeInFile, u32>(&ColumnTypeInFile::from(self, ct))
+        self.fh.insert::<ColumnTypeInFile, u32>(&ColumnTypeInFile::from(self, ct))
     }
 
     pub fn get_column_type(&self, ptr: &StrPointer) -> ColumnType {

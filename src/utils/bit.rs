@@ -45,28 +45,43 @@ pub fn is_zero(slot: u32, index: usize) -> bool {
 }
 
 
-#[test]
-fn bit() {
-    assert_eq!(free_num(0x0fff0ff1, 30), 9);
-    assert_eq!(free_num(0x0fff0ff1, 32), 11);
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn bit() {
+        assert_eq!(free_num(0x0fff0ff1, 30), 9);
+        assert_eq!(free_num(0x0fff0ff1, 32), 11);
 
-    assert_eq!(free_num(0x0fff0ff1, 1), 0);
-    assert_eq!(free_num(0x0fff0ff1, 10), 3);
+        assert_eq!(free_num(0x0fff0ff1, 1), 0);
+        assert_eq!(free_num(0x0fff0ff1, 10), 3);
 
-    assert!(all_free(0x0fff0ff2, 1));
-    assert!(!all_free(0x0fff0ff2, 2));
+        assert!(all_free(0x0fff0ff2, 1));
+        assert!(!all_free(0x0fff0ff2, 2));
 
-    assert!(is_used(0x0fff0ff2, 5));
-    assert!(is_free(0x0fff0ff2, 31));
+        assert!(is_used(0x0fff0ff2, 5));
+        assert!(is_free(0x0fff0ff2, 31));
 
-    assert!(all_used(0x3fffffff, 30));
+        assert!(all_used(0x3fffffff, 30));
 
-    let mut a = 0x00ff0f11;
-    set_free(&mut a, 0);
-    assert_eq!(a, 0x00ff0f10);
-    set_free(&mut a, 0);
-    assert_eq!(a, 0x00ff0f10);
-    set_used(&mut a, 3);
-    assert_eq!(a, 0x00ff0f18);
+        let mut a = 0x00ff0f11;
+        set_free(&mut a, 0);
+        assert_eq!(a, 0x00ff0f10);
+        set_free(&mut a, 0);
+        assert_eq!(a, 0x00ff0f10);
+        set_used(&mut a, 3);
+        assert_eq!(a, 0x00ff0f18);
+    }
+
+
+    #[test]
+    #[warn(exceeding_bitshifts)]
+    fn bit_op_test() {
+        assert_eq!(get_free_index(0xFFu32), 8);
+        assert!(all_used(0xFFFFFFFFu32, 30));
+        assert!(!all_used(0xFFFFFF8Fu32, 30));
+        let mut a = 0x1u32;
+        set_used(&mut a, 1);
+        assert_eq!(a, 0x3u32);
+    }
 }
-

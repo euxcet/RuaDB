@@ -1,8 +1,9 @@
 use std::mem::{transmute, size_of};
-use crate::bytevec::*;
 use super::table_handler::*;
 use super::record::*;
+use super::pagedef::*;
 
+// structs that needed to be written to the file should be contained in the bytevec_decl! macro.
 bytevec_decl! {
     #[derive(PartialEq, Eq, Debug)]
     pub struct ColumnTypeInFile {
@@ -26,20 +27,17 @@ bytevec_decl! {
         */
         pub flags: u8
     }
-
     #[derive(PartialEq, Eq, Debug)]
     pub struct RecordInFile {
         pub record: String
     }
 }
 
-
 /*
     ColumnDataInFile represents the specific arrangement of RecordInFile::record
-    It's not placed in the file separately
+    It's not stored in the file separately
 */
 #[repr(C, packed)]
-#[derive(Debug)]
 pub struct ColumnDataInFile {
     pub index: u32,
     /*
@@ -57,6 +55,7 @@ pub struct ColumnDataInFile {
 }
 
 impl ColumnDataInFile {
+    // &[u8] to ColumnDataInFile
     pub fn new(data: &[u8]) -> Self {
         ColumnDataInFile {
             index: unsafe {*(data.as_ptr() as *const u32)},
@@ -65,12 +64,8 @@ impl ColumnDataInFile {
         }
     }
 
+    // ColumnData to ColumnDataInFile
     pub fn from(th: &TableHandler, cd: &ColumnData) -> Self {
-        /*
-        pub index: u32,
-        pub default: bool,
-        pub data: Option<Data>,
-        */
         match &cd.data {
             Some(data) => {
                 ColumnDataInFile {
@@ -97,18 +92,9 @@ impl ColumnDataInFile {
                 }
             }
         }
-
     }
 
-    pub fn to_string(&self) -> String {
-        unsafe {
-            let index: [u8; 4] = transmute(self.index);
-            let flags: [u8; 1] = transmute(self.flags);
-            let data: [u8; 8] = transmute(self.data);
-            format!("{}{}{}", String::from_utf8_unchecked(index.to_vec()), String::from_utf8_unchecked(flags.to_vec()), String::from_utf8_unchecked(data.to_vec()))
-        }
-    }
-
+    // ColumnDataInFile to ColumnData
     pub fn to_column_data(&self, th: &TableHandler) -> ColumnData {
         ColumnData {
             index: self.index,
@@ -126,77 +112,44 @@ impl ColumnDataInFile {
             } else {None},
         }
     }
+
+    // ColumnDataInFile to String (for RecordInFile)
+    pub fn to_string(&self) -> String {
+        unsafe {
+            let index: [u8; 4] = transmute(self.index);
+            let flags: [u8; 1] = transmute(self.flags);
+            let data: [u8; 8] = transmute(self.data);
+            format!("{}{}{}", String::from_utf8_unchecked(index.to_vec()), String::from_utf8_unchecked(flags.to_vec()), String::from_utf8_unchecked(data.to_vec()))
+        }
+    }
 }
 
 
 impl RecordInFile {
+    // Record to RecordInFile
     pub fn from(th: &TableHandler, record: &Record) -> Self {
-        let mut rs = String::new();
-        for c in &record.record {
-            rs.push_str(&ColumnDataInFile::from(th, c).to_string());
-        }
         RecordInFile {
-            record: rs
+            record: record.record.iter()
+                    .map(|c| ColumnDataInFile::from(th, c).to_string())
+                    .fold(String::new(), |s, v| s + &v)
         }
     }
 
+    // RecordInFile to Record
     pub fn to_record(&self, th: &TableHandler) -> Record {
         let r: &[u8] = self.record.as_bytes();
         let size_of_data = size_of::<ColumnDataInFile>();
         assert_eq!(r.len() % size_of_data, 0);
-
         let mut result = Record{ record: vec![] };
-        let mut offset = 0;
-
-        while offset < r.len() {
-            let data = &r[offset .. offset + size_of_data];
-            result.record.push(ColumnDataInFile::new(data).to_column_data(th));
-            offset += size_of_data;
+        for offset in (0..r.len()).step_by(size_of_data) {
+            result.record.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]).to_column_data(th));
         }
         result
     }
 }
 
 impl ColumnTypeInFile {
-/*
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct ColumnType {
-    pub name: String,
-    pub foreign_table_name: String,
-    pub index: u32,
-    pub data_type: Type,
-    pub can_be_null: bool,
-    pub has_index: bool,
-    pub has_default: bool,
-    pub is_primary: bool,
-    pub is_foreign: bool,
-    pub default_null: bool,
-}
-
-pub struct ColumnTypeInFile {
-    pub name: String,
-    pub foreign_table_name: String,
-    pub index: u32,
-    /*
-        data_type [bit0, bit1, bit2, 0, 0, 0, 0, 0]
-        bit meaning
-        0   Type::Str
-        1   Type::Int
-        2   Type::Float
-        3   Type::Date
-        4   Type::Numeric
-    */
-    pub data_type: u8,
-    pub data: u64,
-    /*
-        flags [0 .. 8]
-        [can_be_null, has_index, has_default, is_primary, is_foreign, default_null, 0, 0]
-        can_be_null:
-
-    */
-    pub flags: u8
-}
-*/
+    // ColumnType to ColumnTypeInFile
     pub fn from(th: &TableHandler, ct: &ColumnType) -> Self {
         ColumnTypeInFile {
             name: th.insert_string(&ct.name).to_u64(),
@@ -226,34 +179,10 @@ pub struct ColumnTypeInFile {
         }
     }
 
+    // ColumnTypeInFile to ColumnType
     pub fn to_column_type(&self, th: &TableHandler) -> ColumnType {
         let has_default = self.flags & 4 > 0;
         ColumnType {
-            /*
-            pub name: String,
-            pub foreign_table_name: String,
-            pub index: u32,
-            pub data_type: Type,
-            pub can_be_null: bool,
-            pub has_index: bool,
-            pub has_default: bool,
-            pub is_primary: bool,
-            pub is_foreign: bool,
-            pub default_null: bool,
-
-    pub name: String,
-    pub foreign_table_name: String,
-    pub index: u32,
-    pub data_type: u8,
-    pub data: u64,
-    /*
-        flags [0 .. 8]
-        [can_be_null, has_index, has_default, is_primary, is_foreign, default_null, 0, 0]
-        can_be_null:
-
-    */
-    pub flags: u8
-            */
             name: th.get_string(&StrPointer::new(self.name)),
             foreign_table_name: th.get_string(&StrPointer::new(self.foreign_table_name)),
             index: self.index,
@@ -272,10 +201,4 @@ pub struct ColumnTypeInFile {
             default_null: self.flags & 32 > 0,
         }
     }
-}
-
-
-#[test]
-fn wow() {
-
 }

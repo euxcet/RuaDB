@@ -2,25 +2,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use crate::settings;
-use crate::bytevec;
 use super::file_handler::FileHandler;
 use super::filesystem::bufmanager::buf_page_manager::BufPageManager;
-use super::record::*;
-use super::in_file::*;
 use super::table_handler::*;
-
-/*
-macro_rules! unpack {
-    ($x: expr, $y: ident, $b: block) => {
-        if let Some(ref $y) = $x {
-            $b
-        }
-        else {
-            unreachable!();
-        }
-    }
-}
-*/
 
 pub struct RecordManager {
     bpm: Rc<RefCell<BufPageManager>>,
@@ -67,9 +51,10 @@ impl Drop for RecordManager {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use super::super::record::*;
     use crate::utils::random;
 
-    fn gen_random_columns(gen: &mut random::Generator, number: usize, MAX_STRING_LENGTH: u32) -> Vec<ColumnType> {
+    fn gen_random_columns(gen: &mut random::Generator, number: usize, max_string_length: usize) -> Vec<ColumnType> {
         let mut columns = Vec::new();
         for i in 0..number {
             let ty_rand = gen.gen::<u8>() % 4;
@@ -78,14 +63,14 @@ mod tests {
                 0 => Type::Int(if has_default {Some(gen.gen::<i64>())} else {None}),
                 1 => Type::Float(if has_default {Some(gen.gen::<f64>())} else {None}),
                 2 => Type::Date(if has_default {Some(gen.gen::<u64>())} else {None}),
-                3 => Type::Str(0, if has_default {Some(gen.gen_string_s(MAX_STRING_LENGTH as usize))} else {None}),
+                3 => Type::Str(0, if has_default {Some(gen.gen_string_s(max_string_length))} else {None}),
                 _ => unreachable!()
             };
 
             columns.push(
                 ColumnType {
                     index: i as u32,
-                    name: gen.gen_string(MAX_COLUMN_NAME_LENGTH),
+                    name: gen.gen_string(max_string_length),
                     data_type: ty,
                     has_default: has_default,
                     default_null: !has_default,
@@ -96,7 +81,7 @@ mod tests {
         columns
     }
 
-    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, MAX_STRING_LENGTH: u32) -> Record {
+    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, max_string_length: usize) -> Record {
         let mut record = Vec::new();
         for c in columns.iter() {
             let default = if c.has_default {gen.gen()} else {false};
@@ -115,7 +100,7 @@ mod tests {
                         &Type::Int(_) => Some(Data::Int(gen.gen::<i64>())),
                         &Type::Float(_) => Some(Data::Float(gen.gen::<f64>())),
                         &Type::Date(_) => Some(Data::Date(gen.gen::<u64>())),
-                        &Type::Str(_, _) => Some(Data::Str(gen.gen_string_s(MAX_STRING_LENGTH as usize))),
+                        &Type::Str(_, _) => Some(Data::Str(gen.gen_string_s(max_string_length as usize))),
                     }
                 },
                 default: default,
@@ -126,12 +111,11 @@ mod tests {
         }
     }
 
-
     #[test]
     fn record_test() {
         let mut gen = random::Generator::new(false);
-        const MAX_STRING_LENGTH: u32 = 10;
-        const MAX_RECORD_NUMBER: u32 = 1000;
+        const MAX_STRING_LENGTH: usize = 10;
+        const MAX_RECORD_NUMBER: usize = 1000;
 
         let mut r = RecordManager::new();
         r.create_table("records_test.rua");
@@ -161,7 +145,6 @@ mod tests {
             records.push(record);
         }
         th.close();
-
 
         let th = r.open_table("records_test.rua");
         for i in 0..ptrs.len() {
