@@ -4,12 +4,42 @@ use std::collections::HashSet;
 
 use crate::utils::bit::*;
 use crate::utils::string::*;
+use crate::bytevec;
 
 use super::record::*;
 use super::filesystem::bufmanager::buf_page_manager::BufPageManager;
 use super::filesystem::pagedef::*;
 
+/*
+----------
+stack_top 4 u32
+column_num 4 u32
+list
+[
+    record_type 1
+    none 1
+]
+----------
 
+----------
+next_page 4
+free 1 00000000 (bitmap)
+
+record:
+type 1
+{
+    int    8 i64
+    float  8 f64
+    date   8 u64
+    str {
+        len 2 u16
+        content len
+    }
+}
+----------
+*/
+
+#[derive(Clone)]
 pub struct FileHandler{
     fd: i32,
     cache: Rc<RefCell<BufPageManager>>,
@@ -135,6 +165,28 @@ impl FileHandler {
         }
     }
 
+    fn alloc(&self, s: &Vec<u8>) -> StrPointer {
+        let slot_num = (s.len() + MAX_FIXED_STRING_LENGTH - 1) / MAX_FIXED_STRING_LENGTH;
+        let mut spt = StrPointer::new(0);
+        for i in (0..slot_num).rev() {
+            let (page_id, offset) = self.alloc_string_slot();
+            let sp = unsafe{self.sp_mut(page_id)}; 
+
+            let len = if i == slot_num - 1 {
+                s.len() - (slot_num - 1) * MAX_FIXED_STRING_LENGTH
+            } else {
+                MAX_FIXED_STRING_LENGTH
+            };
+            sp.strs[offset as usize].next = spt;
+
+            let begin = i * MAX_FIXED_STRING_LENGTH;
+            copy_bytes_u8(&mut sp.strs[offset as usize].bytes, &s[begin .. begin + len]);
+
+            spt = StrPointer { len: len as u16, page: page_id, offset: offset };
+        }
+        spt
+    }
+
     fn alloc_string(&self, s: &str) -> StrPointer {
         let s_len = s.len();
         let slot_num = (s_len + MAX_FIXED_STRING_LENGTH - 1) / MAX_FIXED_STRING_LENGTH;
@@ -224,10 +276,7 @@ impl FileHandler {
     }
 
     fn free_string(&self, strp: &mut StrPointer) {
-        loop {
-            if strp.len == 0 {
-                break;
-            }
+        while strp.len != 0 {
             self.free_string_slot(strp);
         }
     }
@@ -249,7 +298,6 @@ impl FileHandler {
             res.push_str(from_bytes(&sp.strs[t.offset as usize].bytes, t.len as usize).as_str());
             t = sp.strs[t.offset as usize].next.clone();
         }
-        
         res
     }
     
@@ -396,7 +444,6 @@ impl FileHandler {
     pub fn create_record(&self, r: &Record) -> u32 {
         let record = &r.record;
         let mut v: Vec<InsertData> = Vec::new();
-        let mut di: Vec<u32> = Vec::new();
         for c in record {
             self.check_column(c);
         }
@@ -516,6 +563,38 @@ impl FileHandler {
     }
 
 
+    pub fn create<T, Size>(&self, data: &T) -> StrPointer
+        where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
+              Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
+        let bytes = data.encode::<Size>().unwrap();
+        self.alloc(&bytes)
+    }
+
+    pub fn get<T, Size>(&self, ptr: &StrPointer) -> T
+        where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
+              Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
+        let mut res: Vec<u8> = Vec::new();
+        let mut t = ptr.clone();
+        while t.len > 0 {
+            let sp = unsafe{self.sp(t.page)};
+            let bytes = &sp.strs[t.offset as usize].bytes[..t.len as usize];
+            res.extend_from_slice(bytes);
+            t = sp.strs[t.offset as usize].next.clone();
+        }
+        T::decode::<Size>(&res).unwrap()
+    }
+
+    pub fn update<T, Size>(&self, ptr: &mut StrPointer, data: &T)
+        where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
+              Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
+        self.free_string(ptr);
+        *ptr = self.create::<T, Size>(data);
+    }
+
+    pub fn delete(&self, ptr: &mut StrPointer) {
+        self.free_string(ptr);
+    }
+
     unsafe fn header_mut<'b>(&self) -> &'b mut FileHeader { self.page_mut(0, true) }
     unsafe fn header<'b>(&self) -> &'b FileHeader { self.page_mut(0, false) } 
     unsafe fn sp_mut<'b>(&self, page_id: u32) -> &'b mut StringPage { self.page_mut(page_id, true) }
@@ -538,32 +617,3 @@ fn bit_op_test() {
     set_used(&mut a, 1);
     assert_eq!(a, 0x3u32);
 }
-
-/*
-----------
-stack_top 4 u32
-column_num 4 u32
-list
-[
-    record_type 1
-    none 1
-]
-----------
-
-----------
-next_page 4
-free 1 00000000 (bitmap)
-
-record:
-type 1
-{
-    int    8 i64
-    float  8 f64
-    date   8 u64
-    str {
-        len 2 u16
-        content len
-    }
-}
-----------
-*/

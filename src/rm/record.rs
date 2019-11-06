@@ -22,6 +22,20 @@ pub struct StrPointer {
     pub offset: u16,
 }
 
+impl StrPointer {
+    pub fn new(p: u64) -> Self {
+        StrPointer {
+            page: (p & 0xffffffff) as u32,
+            len: ((p >> 32) & 0xffff) as u16,
+            offset: ((p >> 48) & 0xffff) as u16,
+        }
+    }
+
+    pub fn to_u64(&self) -> u64 {
+        (self.offset as u64) << 48 | (self.len as u64) << 32 | (self.page as u64)
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union MemData {
@@ -64,21 +78,6 @@ pub struct RecordPage {
     pub record: [MemRecord; MAX_PAGE_RECORD_NUMBER],
 }
 
-/*
-#[repr(C)]
-pub struct BTreeNode {
-    pub index: MemRecord,
-    pub next_node: TypePointer,
-}
-
-#[repr(C)]
-pub struct BTreeNodePage {
-    pub header: PageHeader,
-    pub nodes: [BTreeNode; MAX_PAGE_NODE_NUMBER],
-    // pub indexes: [MemRecord; MAX_PAGE_RECORD_NUMBER],
-}
-*/
-
 #[repr(C)]
 pub struct StringSlice {
     pub bytes: [u8; MAX_FIXED_STRING_LENGTH],
@@ -97,8 +96,6 @@ pub struct FileHeader {
     pub has_used: u32,
     pub has_set_column: u32,
 
-    // pub free_record_page: u32,
-    // pub free_string_page: u32,
     pub free_page: [u32;2],
 
     pub least_unused_page: u32,
@@ -178,11 +175,6 @@ impl PartialEq for ColumnData {
 #[derive(PartialEq, Debug)]
 pub struct Record {
     pub record: Vec<ColumnData>,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct Index {
-    pub index: Vec<ColumnData>,
 }
 
 #[derive(Debug)]

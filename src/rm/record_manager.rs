@@ -1,12 +1,28 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use crate::settings;
+use crate::bytevec;
 use super::file_handler::FileHandler;
 use super::filesystem::bufmanager::buf_page_manager::BufPageManager;
-use crate::settings;
 use super::record::*;
+use super::in_file::*;
+use super::table_handler::*;
 
-struct RecordManager {
+/*
+macro_rules! unpack {
+    ($x: expr, $y: ident, $b: block) => {
+        if let Some(ref $y) = $x {
+            $b
+        }
+        else {
+            unreachable!();
+        }
+    }
+}
+*/
+
+pub struct RecordManager {
     bpm: Rc<RefCell<BufPageManager>>,
     root_dir: String,
 }
@@ -14,28 +30,31 @@ struct RecordManager {
 impl RecordManager {
     pub fn new() -> Self {
         let settings = settings::Settings::new().unwrap();
+
+        #[cfg(target_os = "macos")]
+        let rd = settings.database.rd_macos;
+        #[cfg(target_os = "windows")]
+        let rd = settings.database.rd_windows;
+        #[cfg(target_os = "linux")]
+        let rd = settings.database.rd_linux;
+
         Self {
             bpm: Rc::new(RefCell::new(BufPageManager::new())),
-            #[cfg(target_os = "macos")]
-            root_dir: settings.database.rd_macos,
-            #[cfg(target_os = "windows")]
-            root_dir: settings.database.rd_windows,
-            #[cfg(target_os = "linux")]
-            root_dir: settings.database.rd_linux,
+            root_dir: rd,
         }
     }
 
-    pub fn create(&mut self, path: &str) {
+    pub fn create_table(&mut self, path: &str) {
         assert!(self.bpm.borrow_mut().file_manager.create_file((self.root_dir.clone() + path).as_str()).is_ok());
     }
 
-    pub fn delete(&mut self, path: &str) {
+    pub fn delete_table(&mut self, path: &str) {
         assert!(self.bpm.borrow_mut().file_manager.delete_file((self.root_dir.clone() + path).as_str()).is_ok());
     }
 
-    pub fn open(&mut self, path: &str) -> FileHandler {
+    pub fn open_table(&mut self, path: &str) -> TableHandler {
         let fd = self.bpm.borrow_mut().file_manager.open_file((self.root_dir.clone() + path).as_str());
-        FileHandler::new(fd, self.bpm.clone())
+        TableHandler::new(FileHandler::new(fd, self.bpm.clone()))
     }
 }
 
@@ -44,7 +63,6 @@ impl Drop for RecordManager {
         self.bpm.borrow_mut().close();
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -60,7 +78,7 @@ mod tests {
                 0 => Type::Int(if has_default {Some(gen.gen::<i64>())} else {None}),
                 1 => Type::Float(if has_default {Some(gen.gen::<f64>())} else {None}),
                 2 => Type::Date(if has_default {Some(gen.gen::<u64>())} else {None}),
-                3 => Type::Str(MAX_STRING_LENGTH, if has_default {Some(gen.gen_string_s(MAX_STRING_LENGTH as usize))} else {None}),
+                3 => Type::Str(0, if has_default {Some(gen.gen_string_s(MAX_STRING_LENGTH as usize))} else {None}),
                 _ => unreachable!()
             };
 
@@ -78,7 +96,7 @@ mod tests {
         columns
     }
 
-    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>) -> Record {
+    fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, MAX_STRING_LENGTH: u32) -> Record {
         let mut record = Vec::new();
         for c in columns.iter() {
             let default = if c.has_default {gen.gen()} else {false};
@@ -97,7 +115,7 @@ mod tests {
                         &Type::Int(_) => Some(Data::Int(gen.gen::<i64>())),
                         &Type::Float(_) => Some(Data::Float(gen.gen::<f64>())),
                         &Type::Date(_) => Some(Data::Date(gen.gen::<u64>())),
-                        &Type::Str(len, _) => Some(Data::Str(gen.gen_string_s(len as usize))),
+                        &Type::Str(_, _) => Some(Data::Str(gen.gen_string_s(MAX_STRING_LENGTH as usize))),
                     }
                 },
                 default: default,
@@ -108,89 +126,46 @@ mod tests {
         }
     }
 
-    #[test]
-    #[should_panic]
-    fn set_columns_test() {
-        let mut r = RecordManager::new();
-        r.create("records_test.rua");
-
-        let mut gen = random::Generator::new(true);
-
-        let mut fh = r.open("records_test.rua");
-
-        const MAX_STRING_LENGTH: u32 = 1000;
-        let columns = gen_random_columns(&mut gen, MAX_COLUMN_NUMBER + 1, MAX_STRING_LENGTH);
-
-        fh.set_columns(&columns);
-        fh.close()
-    }
 
     #[test]
-    fn full_test() {
-        const MAX_STRING_LENGTH: u32 = 100;
+    fn record_test() {
+        let mut gen = random::Generator::new(false);
+        const MAX_STRING_LENGTH: u32 = 10;
+        const MAX_RECORD_NUMBER: u32 = 1000;
 
         let mut r = RecordManager::new();
-        r.create("records_test.rua");
+        r.create_table("records_test.rua");
 
-        let mut gen = random::Generator::new(true);
 
-        let columns = gen_random_columns(&mut gen, 3, MAX_STRING_LENGTH);
+        let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
+        let mut c_ptrs = Vec::new();
+        let th = r.open_table("records_test.rua");
+        for c in &columns {
+            c_ptrs.push(th.insert_column_type(c));
+        }
+        th.close();
 
-        let mut fh = r.open("records_test.rua");
-        fh.set_columns(&columns);
-        fh.close();
+        let th = r.open_table("records_test.rua");
+        for i in 0..columns.len() {
+            assert_eq!(th.get_column_type(&c_ptrs[i]), columns[i]);
+        }
+        th.close();
 
-        let fh = r.open("records_test.rua");
-        let columns_ = fh.get_columns();
-        assert_eq!(columns, columns_);
-        fh.close();
-
-        let fh = r.open("records_test.rua");
-
-        const MAX_RECORD_NUMBER: u32 = 100;
-        let mut rids = Vec::new();
+        let mut ptrs = Vec::new();
         let mut records = Vec::new();
+
+        let th = r.open_table("records_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
-            let record = gen_record(&mut gen, &columns);
-            rids.push(fh.create_record(&record));
+            let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
+            ptrs.push(th.insert_record(&record));
             records.push(record);
         }
-        fh.close();
-
-        let fh = r.open("records_test.rua");
-        let mut records_ = Vec::new();
-        for id in &rids {
-            records_.push(fh.get_record(*id));
-        }
-        assert_eq!(records, records_);
-        fh.close();
-
-        let fh = r.open("records_test.rua");
-        for _ in 0..MAX_RECORD_NUMBER {
-            let record = gen_record(&mut gen, &columns);
-
-            let index: usize = gen.gen_range(0, rids.len());
-            let rid = rids[index];
-
-            for c in &record.record {
-                fh.update_record(rid, c);
-            }
-            assert_eq!(fh.get_record(rid as u32), record);
-            records[index] = record;
-        }
-        fh.close();
+        th.close();
 
 
-        let fh = r.open("records_test.rua");
-        for i in 0..records.len() {
-            assert_eq!(fh.get_record(rids[i] as u32), records[i]);
-        }
-        fh.close();
-
-        let fh = r.open("records_test.rua");
-        for rid in rids {
-            fh.delete_record(rid as u32);
-            assert_eq!(fh.create_record(&gen_record(&mut gen, &columns)), rid);
+        let th = r.open_table("records_test.rua");
+        for i in 0..ptrs.len() {
+            assert_eq!(th.get_record(&ptrs[i]), records[i]);
         }
     }
 }

@@ -5,6 +5,9 @@ extern crate serde_derive;
 
 extern crate config;
 
+#[macro_use]
+pub mod bytevec;
+
 use std::collections::HashMap;
 
 // pub mod parser;
