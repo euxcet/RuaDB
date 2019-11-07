@@ -2,10 +2,17 @@ use super::file_handler::*;
 use super::record::*;
 use super::in_file::*;
 use super::pagedef::*;
+use std::fmt;
 
 pub struct TableHandler {
     // TODO: support multiple filehandlers
     fh: FileHandler,
+}
+
+impl fmt::Debug for TableHandler {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "TableHandler")
+    }
 }
 
 impl TableHandler {

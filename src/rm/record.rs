@@ -8,7 +8,7 @@ pub enum Data {
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum Type {
-    Str(u32, Option<String>),
+    Str(Option<String>),
     Int(Option<i64>),
     Float(Option<f64>),
     Date(Option<u64>),

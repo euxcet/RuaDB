@@ -7,8 +7,8 @@ use super::pagedef::*;
 bytevec_decl! {
     #[derive(PartialEq, Eq, Debug)]
     pub struct ColumnTypeInFile {
-        pub name: u64,
-        pub foreign_table_name: u64,
+        pub name: u64, // StrPointer
+        pub foreign_table_name: u64, // StrPointer
         pub index: u32,
         /*
             data_type [bit0, bit1, bit2, 0, 0, 0, 0, 0]
@@ -20,7 +20,7 @@ bytevec_decl! {
             4   Data::Numeric
         */
         pub data_type: u8,
-        pub data: u64,
+        pub data: u64, // StrPointer
         /*
             flags [0 .. 8]
             [can_be_null, has_index, has_default, is_primary, is_foreign, default_null, 0, 0]
@@ -51,13 +51,13 @@ pub struct ColumnDataInFile {
         4   Data::Numeric
     */
     pub flags: u8,
-    pub data: u64
+    pub data: u64 // StrPointer
 }
 
 impl ColumnDataInFile {
     // &[u8] to ColumnDataInFile
     pub fn new(data: &[u8]) -> Self {
-        ColumnDataInFile {
+        Self {
             index: unsafe {*(data.as_ptr() as *const u32)},
             flags: data[4],
             data: unsafe {*(data.as_ptr().add(5) as *const u64)},
@@ -68,7 +68,7 @@ impl ColumnDataInFile {
     pub fn from(th: &TableHandler, cd: &ColumnData) -> Self {
         match &cd.data {
             Some(data) => {
-                ColumnDataInFile {
+                Self {
                     index: cd.index,
                     flags: cd.default as u8 | match data {
                         Data::Str(_) => 0 << 2,
@@ -85,7 +85,7 @@ impl ColumnDataInFile {
                 }
             }
             None => {
-                ColumnDataInFile {
+                Self {
                     index: cd.index,
                     flags: cd.default as u8 | 2,
                     data: 0,
@@ -128,7 +128,7 @@ impl ColumnDataInFile {
 impl RecordInFile {
     // Record to RecordInFile
     pub fn from(th: &TableHandler, record: &Record) -> Self {
-        RecordInFile {
+        Self {
             record: record.record.iter()
                     .map(|c| ColumnDataInFile::from(th, c).to_string())
                     .fold(String::new(), |s, v| s + &v)
@@ -151,18 +151,18 @@ impl RecordInFile {
 impl ColumnTypeInFile {
     // ColumnType to ColumnTypeInFile
     pub fn from(th: &TableHandler, ct: &ColumnType) -> Self {
-        ColumnTypeInFile {
+        Self {
             name: th.insert_string(&ct.name).to_u64(),
             foreign_table_name: th.insert_string(&ct.foreign_table_name).to_u64(),
             index: ct.index,
             data_type: match ct.data_type {
-                Type::Str(_, _) => 0,
+                Type::Str(_) => 0,
                 Type::Int(_) => 1,
                 Type::Float(_) => 2,
                 Type::Date(_) => 3,
             },
             data: match &ct.data_type {
-                Type::Str(_, data) => match data {
+                Type::Str(data) => match data {
                     Some(data) => th.insert_string(&data).to_u64(),
                     None => 0,
                 },
@@ -187,7 +187,7 @@ impl ColumnTypeInFile {
             foreign_table_name: th.get_string(&StrPointer::new(self.foreign_table_name)),
             index: self.index,
             data_type: match self.data_type {
-                0 => Type::Str(0, if has_default {Some(th.get_string(&StrPointer::new(self.data)))} else {None}),
+                0 => Type::Str(if has_default {Some(th.get_string(&StrPointer::new(self.data)))} else {None}),
                 1 => Type::Int(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 2 => Type::Float(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 3 => Type::Date(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
