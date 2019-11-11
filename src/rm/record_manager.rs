@@ -112,24 +112,23 @@ mod tests {
     }
 
     #[test]
-    fn record_test() {
+    fn alloc_record() {
         let mut gen = random::Generator::new(false);
         const MAX_STRING_LENGTH: usize = 10;
         const MAX_RECORD_NUMBER: usize = 1000;
 
         let mut r = RecordManager::new();
-        r.create_table("records_test.rua");
-
+        r.create_table("alloc_record.rua");
 
         let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
         let mut c_ptrs = Vec::new();
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for c in &columns {
             c_ptrs.push(th.insert_column_type(c));
         }
         th.close();
 
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for i in 0..columns.len() {
             assert_eq!(th.get_column_type(&c_ptrs[i]), columns[i]);
         }
@@ -138,7 +137,7 @@ mod tests {
         let mut ptrs = Vec::new();
         let mut records = Vec::new();
 
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             ptrs.push(th.insert_record(&record));
@@ -146,9 +145,9 @@ mod tests {
         }
         th.close();
 
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for i in 0..ptrs.len() {
-            assert_eq!(th.get_record(&ptrs[i]), records[i]);
+            assert_eq!(th.get_record(&ptrs[i]).0, records[i]);
         }
     }
 }

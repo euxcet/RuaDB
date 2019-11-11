@@ -1,4 +1,6 @@
 use std::mem::{transmute, size_of};
+use std::cmp::Ordering;
+use crate::index::btree::Index;
 use super::table_handler::*;
 use super::record::*;
 use super::pagedef::*;
@@ -27,6 +29,7 @@ bytevec_decl! {
         */
         pub flags: u8
     }
+
     #[derive(PartialEq, Eq, Debug)]
     pub struct RecordInFile {
         pub record: String
@@ -145,6 +148,41 @@ impl RecordInFile {
             result.record.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]).to_column_data(th));
         }
         result
+    }
+
+    pub fn get_index<'a>(&self, th: &'a TableHandler, cols: &Vec<u32>) -> Index<'a> {
+        let mut index_flags = Vec::new();
+        let mut index = Vec::new();
+
+        let r: &[u8] = self.record.as_bytes();
+        let size_of_data = size_of::<ColumnDataInFile>();
+        assert_eq!(r.len() % size_of_data, 0);
+
+        let mut columns = Vec::new();
+
+        for offset in (0..r.len()).step_by(size_of_data) {
+            columns.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]));
+        }
+
+        unsafe {
+            columns.sort_by(|a, b| b.index.cmp(&a.index));
+        }
+
+        let mut cols_id = 0;
+        for column in &columns {
+            if cols_id < cols.len() && column.index == cols[cols_id] {
+                index_flags.push(column.flags);
+                index.push(column.data);
+                cols_id += 1
+            }
+        }
+        assert_eq!(cols_id, cols.len());
+
+        Index {
+            th: th,
+            index_flags: index_flags,
+            index: index,
+        }
     }
 }
 

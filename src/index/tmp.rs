@@ -350,7 +350,6 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTreeNode<Tk, Td
 }
 
 impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTree<Tk, Td> {
-
     fn new() -> Rc<RefCell<Self>> {
         let root = Rc::new(RefCell::new(BTreeNode::new(None, 0)));
         let btree = Rc::new(RefCell::new(BTree {
@@ -372,7 +371,6 @@ impl<Tk: PartialOrd + Copy + fmt::Debug, Td: Copy + fmt::Debug> BTree<Tk, Td> {
     fn search_data(&mut self, key: Tk) -> Option<Td> {
         self.root.borrow().search(key)
     }
-
 }
 
 #[cfg(test)]
