@@ -57,7 +57,7 @@ impl IndexInFile {
 impl BTreeInFile {
     pub fn from(th: &TableHandler, btree: &BTree) -> Self {
         Self {
-            root: th.insert_btree_node(&btree.root.borrow()).to_u64(),
+            root: btree.root,
             node_capacity: btree.node_capacity,
             index_col: unsafe{convert::vec_u32_to_string(&btree.index_col)},
         }
@@ -65,9 +65,8 @@ impl BTreeInFile {
 
     pub fn to_btree<'a>(&self, th: &'a TableHandler) -> BTree<'a> {
         BTree {
-            root: Rc::new(RefCell::new(
-                th.get_btree_node(&StrPointer::new(self.root))
-            )),
+            th: th,
+            root: self.root,
             node_capacity: self.node_capacity,
             index_col: unsafe{convert::string_to_vec_u32(&self.index_col)},
         }
@@ -184,8 +183,9 @@ mod tests {
 
     #[test]
     fn alloc_btree() {
-        let mut gen = random::Generator::new(false);
+        let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
+
         const MAX_RECORD_NUMBER: usize = 1000;
 
         let mut r = RecordManager::new();
@@ -203,12 +203,15 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            ptrs.push(th.insert_record(&record));
+            let insert_times: usize = gen.gen_range(1, 5);
+            for _ in 0..insert_times {
+                ptrs.push(th.insert_record(&record));
+            }
         }
         th.close();
 
         let th = r.open_table("alloc_btree_test.rua");
-        let btree = BTree::new(&th, 3, vec![0]);
+        let btree = BTree::new(&th, 20, vec![0]);
         let btree_ptr = th.insert_btree(&btree);
         th.close();
 
@@ -216,14 +219,19 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
 
         let mut btree_ = th.get_btree(&btree_ptr);
-        let record = th.get_record(&ptrs[0]);
 
-        let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
+        for i in 0..ptrs.len() {
+            let record = th.get_record(&ptrs[i]);
+            let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
+            btree_.insert_record(&index, ptrs[i].to_u64());
+        }
 
-        btree_.insert_record(&index, ptrs[0].to_u64());
-        println!("{:?}", btree_.search_record(&index));
+        for i in 0..ptrs.len() {
+            let record = th.get_record(&ptrs[i]);
+            let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
+            assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
+        }
+
         th.close();
-
-        panic!();
     }
 }

@@ -98,6 +98,12 @@ impl TableHandler {
         self.fh.update::<BTreeNodeInFile, u32>(ptr, &BTreeNodeInFile::from(self, node))
     }
 
+    pub fn update_btree_node_(&self, ptr: &mut u64, node: &BTreeNode) {
+        let mut s_ptr = StrPointer::new(*ptr);
+        self.fh.update::<BTreeNodeInFile, u32>(&mut s_ptr, &BTreeNodeInFile::from(self, node));
+        *ptr = s_ptr.to_u64();
+    }
+
     // for index
     pub fn insert_index(&self, index: &Index) -> StrPointer {
         self.fh.insert::<IndexInFile, u32>(&IndexInFile::from(self, index))

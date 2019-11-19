@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
     Int(i64),
@@ -6,7 +6,7 @@ pub enum Data {
     Date(u64),
 } 
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Type {
     Str(Option<String>),
     Int(Option<i64>),

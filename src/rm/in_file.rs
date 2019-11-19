@@ -171,7 +171,7 @@ impl RecordInFile {
         let mut cols_id = 0;
         for column in &columns {
             if cols_id < cols.len() && column.index == cols[cols_id] {
-                index_flags.push(column.flags);
+                index_flags.push((column.flags >> 2) & 7);
                 index.push(column.data);
                 cols_id += 1
             }
