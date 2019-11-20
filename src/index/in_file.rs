@@ -33,7 +33,9 @@ bytevec_decl! {
 
 bytevec_decl! {
     pub struct BucketInFile {
-        data: String
+        data: String,
+        prev: u64,
+        next: u64
     }
 }
 
@@ -107,12 +109,16 @@ impl BucketInFile {
     pub fn from(th: &TableHandler, bucket: &Bucket) -> Self {
         Self {
             data: unsafe{convert::vec_u64_to_string(&bucket.data)},
+            prev: bucket.prev,
+            next: bucket.next,
         }
     }
 
     pub fn to_bucket(&self, th: &TableHandler) -> Bucket {
         Bucket {
             data: unsafe{convert::string_to_vec_u64(&self.data)},
+            prev: self.prev,
+            next: self.next,
         }
     }
 }
@@ -186,7 +192,7 @@ mod tests {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
 
-        const MAX_RECORD_NUMBER: usize = 1000;
+        const MAX_RECORD_NUMBER: usize = 20;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -203,7 +209,7 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            let insert_times: usize = gen.gen_range(1, 5);
+            let insert_times: usize = gen.gen_range(1, 2);
             for _ in 0..insert_times {
                 ptrs.push(th.insert_record(&record));
             }
@@ -211,7 +217,7 @@ mod tests {
         th.close();
 
         let th = r.open_table("alloc_btree_test.rua");
-        let btree = BTree::new(&th, 20, vec![0]);
+        let btree = BTree::new(&th, 10, vec![0]);
         let btree_ptr = th.insert_btree(&btree);
         th.close();
 
@@ -230,6 +236,16 @@ mod tests {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
+        }
+
+        for i in 0..ptrs.len() {
+            let record = th.get_record(&ptrs[i]);
+            let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
+            btree_.delete_record(&index, ptrs[i].to_u64());
+            let result = btree_.search_record(&index);
+            if result.is_some() {
+                assert!(!result.unwrap().data.contains(&ptrs[i].to_u64()));
+            }
         }
 
         th.close();

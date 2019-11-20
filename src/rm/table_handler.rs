@@ -129,4 +129,10 @@ impl TableHandler {
     pub fn update_bucket(&self, ptr: &mut StrPointer, bucket: &Bucket) {
         self.fh.update::<BucketInFile, u32>(ptr, &BucketInFile::from(self, bucket))
     }
+
+    pub fn update_bucket_(&self, ptr: &mut u64, bucket: &Bucket) {
+        let mut s_ptr = StrPointer::new(*ptr);
+        self.fh.update::<BucketInFile, u32>(&mut s_ptr, &BucketInFile::from(self, bucket));
+        *ptr = s_ptr.to_u64();
+    }
 }
