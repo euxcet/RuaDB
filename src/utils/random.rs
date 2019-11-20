@@ -16,7 +16,7 @@ impl Generator {
     pub fn new(seedable: bool) -> Self {
         Generator {
             threadRng: thread_rng(),
-            stdRng: SeedableRng::from_seed([11; 32]),
+            stdRng: SeedableRng::from_seed([3; 32]),
             seedable: seedable,
         }
     }
