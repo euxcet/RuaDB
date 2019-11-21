@@ -1,5 +1,4 @@
 const LEAF_BIT: i32 = 32;
-const MAX_LEVEL: i32 = 5;
 const MAX_INNER_NUM: usize = 67;
 
 const BIAS: u32 = 5;
@@ -128,7 +127,6 @@ impl Bitmap {
             panic!("log error");
         }
         k.trailing_zeros() as i32
-        // DE_BRUIJN[((k as u32).wrapping_mul(0x077CB531) >> 27) as usize]
     }
 
     fn lowbit(k: i32) -> i32 {
@@ -139,10 +137,6 @@ impl Bitmap {
         let pos = index >> BIAS;
         let bit = index - (pos << BIAS);
         (pos, bit)
-    }
-
-    fn data0(&self) -> u32 {
-        self.data[0]
     }
 
     pub fn set_bit(&mut self, index: i32, k: u32) {
@@ -157,7 +151,6 @@ impl Bitmap {
     pub fn find_left_one(&self) -> i32 {
         let i = self._find_left_one(self.root_level, self.root_index, 0, self.root_bit);
         let lb = Self::lowbit(self.get_leaf_data(i) as i32);
-
         (i << BIAS) + Self::get_index(lb)
     }
 
@@ -172,40 +165,11 @@ impl Bitmap {
                 }; 
                 s], 
             inner: [0; MAX_INNER_NUM],
-            // inner_mask: 0,
-            // root_mask: 0,
             root_bit: 0,
             root_level: 0,
             root_index: 0,
         };
         m.init();
-
         m
     }
-
-    // fn new_with_data(cap: i32, da: [u32]) -> Bitmap {
-    //     let mut m = Bitmap {
-    //         size: (cap >> BIAS),
-    //         data: da,
-    //         inner: [0; MAX_INNER_NUM],
-    //         // inner_mask: 0,
-    //         // root_mask: 0,
-    //         root_bit: 0,
-    //         root_level: 0,
-    //         root_index: 0,
-    //     };
-    //     m.init();
-
-    //     m
-    // }
-    // fn reload(&mut self, da: [u32])  {
-    //     self.data = da;
-    // }
 }
-
-// #[test]
-// fn index() {
-//     for i in 0..32 {
-//         assert_eq!(i, Bitmap::get_index(1 << i) as usize);
-//     }
-// }

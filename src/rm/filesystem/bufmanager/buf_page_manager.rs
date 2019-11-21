@@ -31,12 +31,7 @@ impl BufPageManager {
     fn fetch_page(&mut self, file_id: i32, page_id: i32) -> (*mut u8, i32) {
         let index = self.replace.find();
         let mut b = self.addr[index as usize];
-
         if !b.is_null() {
-            let (k1, k2) = self.hash.get_keys(index);
-            // if k1 != -1 || k2 != -1 {
-            //     unreachable!();
-            // }
             if self.dirty[index as usize] {
                 let (k1, k2) = self.hash.get_keys(index);
                 unsafe {
@@ -51,7 +46,6 @@ impl BufPageManager {
             self.addr[index as usize] = b;
         }
         self.hash.replace(index, file_id, page_id);
-
         (b, index)
     }
 
@@ -62,9 +56,7 @@ impl BufPageManager {
         match index {
             -1 => {
                 let (b, i) = self.fetch_page(file_id, page_id);
-                unsafe {
-                    self.file_manager.read_page(file_id, page_id, unsafe{std::slice::from_raw_parts_mut(b, PAGE_SIZE)}, 0)
-                };
+                unsafe{self.file_manager.read_page(file_id, page_id, std::slice::from_raw_parts_mut(b, PAGE_SIZE), 0).ok()};
                 (b, i)
             },
             _ => {
@@ -107,9 +99,7 @@ impl BufPageManager {
             let (f, p) = self.hash.get_keys(index);
             assert_eq!(f, fd);
             assert_eq!(p, pd);
-            unsafe {
-                self.file_manager.write_page(f, p, std::slice::from_raw_parts(self.addr[index as usize], PAGE_SIZE as usize), 0);
-            }
+            unsafe { self.file_manager.write_page(f, p, std::slice::from_raw_parts(self.addr[index as usize], PAGE_SIZE as usize), 0).ok(); }
             self.dirty[index as usize] = false;
         }
         self.replace.free(index);
@@ -119,9 +109,7 @@ impl BufPageManager {
     pub fn write_back(&mut self, index: i32) {
         if self.dirty[index as usize] {
             let (f, p) = self.hash.get_keys(index);
-            unsafe {
-                self.file_manager.write_page(f, p, std::slice::from_raw_parts(self.addr[index as usize], PAGE_SIZE as usize), 0);
-            }
+            unsafe { self.file_manager.write_page(f, p, std::slice::from_raw_parts(self.addr[index as usize], PAGE_SIZE as usize), 0).ok(); }
             self.dirty[index as usize] = false;
         }
         self.replace.free(index);
@@ -168,52 +156,6 @@ impl BufPageManager {
         std::slice::from_raw_parts(data, PAGE_SIZE as usize)
     }
 }
-
-// fn test_file_system() {
-//     let mut bpm = BufPageManager::new();
-//     bpm.file_manager.create_file("d:/Rua/testfile.txt");
-//     bpm.file_manager.create_file("d:/Rua/testfile2.txt");
-//     let f1 = bpm.file_manager.open_file("d:/Rua/testfile.txt");
-//     let f2 = bpm.file_manager.open_file("d:/Rua/testfile2.txt");
-//     for page_id in 0..1000 {
-//         let (b, index) = bpm.alloc_page(f1, page_id, false);
-//         unsafe {
-//             let buf = BufPageManager::to_slice_mut(b);
-//             buf[0] = page_id as u8;
-//             buf[1] = f1 as u8;
-//         }
-//         bpm.mark_dirty(index);
-//         let (b, index) = bpm.alloc_page(f2, page_id, false);
-//         unsafe {
-//             let buf = BufPageManager::to_slice_mut(b);
-//             buf[0] = page_id as u8;
-//             buf[1] = f2 as u8;
-//         }
-//         bpm.mark_dirty(index);
-//     }
-
-//     println!("");
-
-//     for page_id in 0..1000 {
-//         let (b, index) = bpm.get_page(f1, page_id);
-//         unsafe {
-//             let buf = BufPageManager::to_slice(b);
-//             assert_eq!(buf[0], page_id as u8);
-//             assert_eq!(buf[1], f1 as u8);
-//         }
-//         bpm.access(index);
-
-//         let (b, index) = bpm.get_page(f2, page_id);
-
-//         unsafe {
-//             let buf = BufPageManager::to_slice(b);
-//             assert_eq!(buf[0], page_id as u8);
-//             assert_eq!(buf[1], f2 as u8);
-//         }
-//         bpm.access(index);
-//     }
-//     bpm.close();
-// }
 
 #[test]
 fn test_mem() {

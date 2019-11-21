@@ -1,7 +1,3 @@
-use std::rc::Rc;
-use std::cell::RefCell;
-use std::mem::{transmute, size_of};
-use crate::rm::pagedef::StrPointer;
 use crate::rm::table_handler::TableHandler;
 use crate::utils::convert;
 use super::btree::*;
@@ -192,7 +188,7 @@ mod tests {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
 
-        const MAX_RECORD_NUMBER: usize = 20;
+        const MAX_RECORD_NUMBER: usize = 200;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");

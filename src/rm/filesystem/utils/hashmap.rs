@@ -7,7 +7,6 @@ struct DataNode {
 }
 
 pub struct Hashmap {
-    cap: i32,
     modd: i32,
     list: LinkList,
     a: Vec<DataNode>,
@@ -64,7 +63,6 @@ impl Hashmap {
         }
 
         Self {
-            cap: c,
             modd: m,
             a: v,
             list: LinkList::new(c, m),

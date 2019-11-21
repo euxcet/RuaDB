@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 pub const MAX_FIXED_STRING_NUMBER: usize = 30;
 pub const MAX_FIXED_STRING_LENGTH: usize = 256;
 

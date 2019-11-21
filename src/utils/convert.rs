@@ -1,4 +1,4 @@
-use std::mem::{transmute, size_of};
+use std::mem::transmute;
 use std::convert::TryInto;
 
 // TODO: optimize

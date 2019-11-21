@@ -43,7 +43,6 @@ impl Index<'_> {
                     index_flags.push(3);
                     index.push(unsafe{transmute(*d)});
                 },
-                _ => unreachable!(),
             }
         }
         Index {
