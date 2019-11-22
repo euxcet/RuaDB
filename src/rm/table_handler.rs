@@ -86,21 +86,21 @@ impl TableHandler {
     }
 
     // for BTreeNode
-    pub fn insert_btree_node(&self, node: &BTreeNode) -> StrPointer {
-        self.fh.insert::<BTreeNodeInFile, u32>(&BTreeNodeInFile::from(self, node))
+    pub fn insert_btree_node(&self, node: &BTreeNode, node_capacity: usize) -> StrPointer {
+        self.fh.insert::<BTreeNodeInFile, u32>(&BTreeNodeInFile::from(self, node, node_capacity))
     }
 
     pub fn get_btree_node(&self, ptr: &StrPointer) -> BTreeNode {
         self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self)
     }
 
-    pub fn update_btree_node(&self, ptr: &mut StrPointer, node: &BTreeNode) {
-        self.fh.update::<BTreeNodeInFile, u32>(ptr, &BTreeNodeInFile::from(self, node))
+    pub fn update_btree_node(&self, ptr: &mut StrPointer, node: &BTreeNode, node_capacity: usize) {
+        self.fh.update::<BTreeNodeInFile, u32>(ptr, &BTreeNodeInFile::from(self, node, node_capacity))
     }
 
-    pub fn update_btree_node_(&self, ptr: &mut u64, node: &BTreeNode) {
+    pub fn update_btree_node_(&self, ptr: &mut u64, node: &BTreeNode, node_capacity: usize) {
         let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<BTreeNodeInFile, u32>(&mut s_ptr, &BTreeNodeInFile::from(self, node));
+        self.fh.update::<BTreeNodeInFile, u32>(&mut s_ptr, &BTreeNodeInFile::from(self, node, node_capacity));
         *ptr = s_ptr.to_u64();
     }
 
@@ -134,5 +134,10 @@ impl TableHandler {
         let mut s_ptr = StrPointer::new(*ptr);
         self.fh.update::<BucketInFile, u32>(&mut s_ptr, &BucketInFile::from(self, bucket));
         *ptr = s_ptr.to_u64();
+    }
+
+    // for all
+    pub fn update_sub(&self, ptr: &StrPointer, offset: usize, data: Vec<u8>) {
+        self.fh.update_sub(ptr, offset, data);
     }
 }

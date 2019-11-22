@@ -1,5 +1,5 @@
-pub const MAX_FIXED_STRING_NUMBER: usize = 30;
-pub const MAX_FIXED_STRING_LENGTH: usize = 256;
+pub const SLOT_PER_PAGE: usize = 30;
+pub const SLOT_LENGTH: usize = 256;
 
 pub const PAGE_SIZE: usize = 8192;
 pub const PAGE_SIZE_IDX: i32 = 13;
@@ -34,14 +34,14 @@ pub struct PageHeader {
 
 #[repr(C)]
 pub struct StringSlice {
-    pub bytes: [u8; MAX_FIXED_STRING_LENGTH],
+    pub bytes: [u8; SLOT_LENGTH],
     pub next: StrPointer,
 }
 
 #[repr(C)]
 pub struct StringPage {
     pub header: PageHeader,
-    pub strs: [StringSlice; MAX_FIXED_STRING_NUMBER],
+    pub strs: [StringSlice; SLOT_PER_PAGE],
 }
 
 #[derive(Default, Debug)]
