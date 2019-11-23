@@ -157,14 +157,3 @@ impl BufPageManager {
     }
 }
 
-#[test]
-fn test_mem() {
-    let b = unsafe {alloc(Layout::new::<[u8; PAGE_SIZE as usize]>())};
-    let buf = unsafe {std::slice::from_raw_parts_mut(b, PAGE_SIZE as usize)};
-    buf[0] = 10u8;
-    buf[1] = 20u8;
-    let a = b;
-    let buf = unsafe {std::slice::from_raw_parts_mut(a, PAGE_SIZE as usize)};
-    assert_eq!(buf[0], 10u8);
-    assert_eq!(buf[1], 20u8);
-}

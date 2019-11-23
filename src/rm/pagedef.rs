@@ -1,3 +1,5 @@
+use std::mem::size_of;
+
 pub const SLOT_PER_PAGE: usize = 30;
 pub const SLOT_LENGTH: usize = 256;
 
@@ -8,21 +10,23 @@ pub const PAGE_SIZE_IDX: i32 = 13;
 #[repr(C)]
 pub struct StrPointer {
     pub page: u32,
-    pub len: u16,
-    pub offset: u16,
+    pub offset: u32,
 }
 
 impl StrPointer {
     pub fn new(p: u64) -> Self {
         StrPointer {
-            page: (p & 0xffffffff) as u32,
-            len: ((p >> 32) & 0xffff) as u16,
-            offset: ((p >> 48) & 0xffff) as u16,
+            page: ((p >> 32) & 0xffffffff) as u32,
+            offset: (p & 0xffffffff) as u32,
         }
     }
 
     pub fn to_u64(&self) -> u64 {
-        (self.offset as u64) << 48 | (self.len as u64) << 32 | (self.page as u64)
+        ((self.page as u64) << 32) | (self.offset as u64)
+    }
+
+    pub fn is_null(&self) -> bool {
+        self.page == 0
     }
 }
 
@@ -34,6 +38,7 @@ pub struct PageHeader {
 
 #[repr(C)]
 pub struct StringSlice {
+    pub len: u64,
     pub bytes: [u8; SLOT_LENGTH],
     pub next: StrPointer,
 }
@@ -52,3 +57,14 @@ pub struct FileHeader {
     pub least_unused_page: u32,
 }
 
+
+#[cfg(test)]
+mod tests {
+    use crate::rm::pagedef::*;
+
+    #[test]
+    fn page_size() {
+        assert!(size_of::<StringPage>() <= PAGE_SIZE);
+        assert!(size_of::<FileHeader>() <= PAGE_SIZE);
+    }
+}
