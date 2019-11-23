@@ -592,7 +592,6 @@ impl<'a> BTreeNode<'a> {
     }
 
     pub fn traverse(&self, self_ptr: u64) {
-        // println!("{:?} {:?}\n   key {:?}\n   son {:?}\n   bucket {:?}", self_ptr, self.ty, self.key, self.son, self.bucket);
         match self.ty {
             BTreeNodeType::Leaf => {
                 assert_eq!(self.key.len(), self.bucket.len());
