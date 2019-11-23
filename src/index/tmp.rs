@@ -434,3 +434,10 @@ mod btree_tests {
         */
     }
 }
+
+/*
+                unsafe {
+                    self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity).into_bytes());
+                    self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity).into_bytes());
+                }
+                */

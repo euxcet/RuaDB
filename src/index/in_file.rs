@@ -1,7 +1,3 @@
-use std::rc::Rc;
-use std::cell::RefCell;
-use std::mem::{transmute, size_of};
-use crate::rm::pagedef::StrPointer;
 use crate::rm::table_handler::TableHandler;
 use crate::utils::convert;
 use super::btree::*;
@@ -11,7 +7,6 @@ bytevec_decl! {
         root: u64, // StrPointer
         node_capacity: u32,
         index_col: String
-        // index_type: String   necessary?
     }
 
     pub struct BTreeNodeInFile {
@@ -33,9 +28,9 @@ bytevec_decl! {
 
 bytevec_decl! {
     pub struct BucketInFile {
-        data: String,
         prev: u64,
-        next: u64
+        next: u64,
+        data: String
     }
 }
 
@@ -76,19 +71,19 @@ impl BTreeInFile {
 }
 
 impl BTreeNodeInFile {
-    pub fn from(th: &TableHandler, node: &BTreeNode) -> Self {
+    pub fn from(th: &TableHandler, node: &BTreeNode, node_capacity: usize) -> Self {
         Self {
             flags: match node.ty {
                 BTreeNodeType::Leaf => 0,
                 BTreeNodeType::Internal => 1,
             },
-            key: unsafe{convert::vec_u64_to_string(&node.key)},
+            key: unsafe{convert::vec_u64_to_string_len(&node.key, node_capacity + 1)},
             next: match node.ty {
                 BTreeNodeType::Leaf => { // from node.bucket
-                    unsafe{convert::vec_u64_to_string(&node.bucket)}
+                    unsafe{convert::vec_u64_to_string_len(&node.bucket, node_capacity + 1)}
                 },
                 BTreeNodeType::Internal => { // from node.son
-                    unsafe{convert::vec_u64_to_string(&node.son)}
+                    unsafe{convert::vec_u64_to_string_len(&node.son, node_capacity + 1)}
                 },
             },
         }
@@ -108,17 +103,17 @@ impl BTreeNodeInFile {
 impl BucketInFile {
     pub fn from(th: &TableHandler, bucket: &Bucket) -> Self {
         Self {
-            data: unsafe{convert::vec_u64_to_string(&bucket.data)},
             prev: bucket.prev,
             next: bucket.next,
+            data: unsafe{convert::vec_u64_to_string(&bucket.data)},
         }
     }
 
     pub fn to_bucket(&self, th: &TableHandler) -> Bucket {
         Bucket {
-            data: unsafe{convert::string_to_vec_u64(&self.data)},
             prev: self.prev,
             next: self.next,
+            data: unsafe{convert::string_to_vec_u64(&self.data)},
         }
     }
 }
@@ -191,8 +186,8 @@ mod tests {
     fn alloc_btree() {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
-
-        const MAX_RECORD_NUMBER: usize = 20;
+        const MAX_RECORD_NUMBER: usize = 100;
+        const BTREE_NODE_CAPACITY: u32 = 6;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -209,7 +204,7 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            let insert_times: usize = gen.gen_range(1, 2);
+            let insert_times: usize = gen.gen_range(1, 5);
             for _ in 0..insert_times {
                 ptrs.push(th.insert_record(&record));
             }
@@ -217,10 +212,9 @@ mod tests {
         th.close();
 
         let th = r.open_table("alloc_btree_test.rua");
-        let btree = BTree::new(&th, 10, vec![0]);
+        let btree = BTree::new(&th, BTREE_NODE_CAPACITY, vec![0]);
         let btree_ptr = th.insert_btree(&btree);
         th.close();
-
 
         let th = r.open_table("alloc_btree_test.rua");
 
@@ -238,6 +232,8 @@ mod tests {
             assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
         }
 
+        btree_.traverse();
+
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
@@ -247,6 +243,16 @@ mod tests {
                 assert!(!result.unwrap().data.contains(&ptrs[i].to_u64()));
             }
         }
+
+        // for offset
+        /*
+        let mut node = BTreeNode::new(&th);
+        node.key = vec![1, 2, 3];
+        node.bucket = vec![1, 2, 3];
+        let in_file = BTreeNodeInFile::from(&th, &node, 5);
+        use crate::bytevec::traits::ByteEncodable;
+        pGintln!("{:?}", in_file.encode::<u32>().unwrap());
+        */
 
         th.close();
     }

@@ -1,7 +1,20 @@
-use std::mem::{transmute, size_of};
+use std::mem::transmute;
 use std::convert::TryInto;
 
 // TODO: optimize
+
+/*
+pub unsafe fn vec_u64_to_vec_u8(data: &Vec<u64>) -> Vec<u8> {
+    data.iter()
+        .map(|x| transmute::<u64, [u8; 8]>(*x))
+        .fold(Vec::new(), |s, v| s.extend(&mut v))
+}
+*/
+
+pub unsafe fn u64_to_vec_u8(data: u64) -> Vec<u8> {
+    transmute::<u64, [u8; 8]>(data).to_vec()
+}
+
 pub unsafe fn vec_u8_to_string(data: &Vec<u8>) -> String {
     String::from_utf8_unchecked(data.to_vec())
 }
@@ -22,6 +35,14 @@ pub unsafe fn vec_u64_to_string(data: &Vec<u64>) -> String {
     data.iter()
         .map(|x| transmute::<u64, [u8; 8]>(*x))
         .fold(String::new(), |s, v| s + &String::from_utf8_unchecked(v.to_vec()))
+}
+
+pub unsafe fn vec_u64_to_string_len(data: &Vec<u64>, len: usize) -> String {
+    assert!(data.len() <= len);
+    data.iter()
+        .map(|x| transmute::<u64, [u8; 8]>(*x))
+        .fold(String::new(), |s, v| s + &String::from_utf8_unchecked(v.to_vec()))
+        + &String::from_utf8_unchecked(vec![0u8; (len - data.len()) * 8])
 }
 
 pub fn string_to_vec_u8(data: &String) -> Vec<u8> {
@@ -50,7 +71,13 @@ pub unsafe fn string_to_vec_u64(data: &String) -> Vec<u64> {
     let bytes = data.as_bytes();
     let mut res = Vec::new();
     for i in (0..bytes.len()).step_by(8) {
-        res.push(transmute::<[u8; 8], u64>(bytes[i .. i + 8].try_into().expect("slice with incorrect length")));
+        let val = transmute::<[u8; 8], u64>(bytes[i .. i + 8].try_into().expect("slice with incorrect length"));
+        if val == 0 {
+            break;
+        }
+        else {
+            res.push(val);
+        }
     }
     res
 }

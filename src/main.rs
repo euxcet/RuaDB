@@ -1,14 +1,9 @@
 extern crate lalrpop_util;
-
-#[macro_use]
-extern crate serde_derive;
-
 extern crate config;
-
 #[macro_use]
 pub mod bytevec;
-
-use std::collections::HashMap;
+#[macro_use]
+extern crate serde_derive;
 
 // pub mod parser;
 // pub mod ast;

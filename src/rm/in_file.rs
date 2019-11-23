@@ -1,5 +1,4 @@
 use std::mem::{transmute, size_of};
-use std::cmp::Ordering;
 use crate::index::btree::Index;
 use super::table_handler::*;
 use super::record::*;
