@@ -255,6 +255,5 @@ mod tests {
         */
 
         th.close();
-        panic!();
     }
 }
