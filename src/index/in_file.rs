@@ -187,7 +187,7 @@ mod tests {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
 
-        const MAX_RECORD_NUMBER: usize = 10;
+        const MAX_RECORD_NUMBER: usize = 6;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -204,7 +204,7 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            let insert_times: usize = gen.gen_range(1, 4);
+            let insert_times: usize = gen.gen_range(1, 2);
             for _ in 0..insert_times {
                 ptrs.push(th.insert_record(&record));
             }
@@ -212,7 +212,7 @@ mod tests {
         th.close();
 
         let th = r.open_table("alloc_btree_test.rua");
-        let btree = BTree::new(&th, 4, vec![0]);
+        let btree = BTree::new(&th, 2, vec![0]);
         let btree_ptr = th.insert_btree(&btree);
         th.close();
 

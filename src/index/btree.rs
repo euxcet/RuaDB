@@ -262,15 +262,17 @@ impl<'a> BTreeNode<'a> {
                     bucket: self.bucket.split_off(mid),
                 };
                 unsafe {
-                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity).into_bytes());
-                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity).into_bytes());
+                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
+                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity + 1).into_bytes());
                 }
                 let new_node_ptr = self.th.insert_btree_node(&new_node, node_capacity).to_u64();
                 father.key.insert(pos, mid_key);
                 father.son.insert(pos + 1, new_node_ptr);
-                unsafe {
-                    self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity).into_bytes());
-                    self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity).into_bytes());
+                if father.key.len() <= node_capacity {
+                    unsafe {
+                        self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity + 1).into_bytes());
+                        self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity + 1).into_bytes());
+                    }
                 }
             }
             BTreeNodeType::Internal => {
@@ -282,16 +284,18 @@ impl<'a> BTreeNode<'a> {
                     bucket: Vec::new(),
                 };
                 unsafe {
-                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity).into_bytes());
-                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity).into_bytes());
+                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
+                    self.th.update_sub(&StrPointer::new(*self_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity + 1).into_bytes());
                 }
                 let mid_key = self.key.pop();
                 let new_node_ptr = self.th.insert_btree_node(&new_node, node_capacity).to_u64();
                 father.key.insert(pos, mid_key.unwrap());
                 father.son.insert(pos + 1, new_node_ptr);
-                unsafe {
-                    self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity).into_bytes());
-                    self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity).into_bytes());
+                if father.key.len() <= node_capacity {
+                    unsafe {
+                        self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity + 1).into_bytes());
+                        self.th.update_sub(&StrPointer::new(father_ptr), BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity + 1).into_bytes());
+                    }
                 }
             }
         }
@@ -470,6 +474,8 @@ impl<'a> BTreeNode<'a> {
     }
 
     pub fn delete(&mut self, key: &RawIndex, data: u64, node_capacity: usize, father: Option<(&mut BTreeNode, &mut u64)>, pos: usize, self_ptr: u64) -> (u64, bool) {
+        println!("delete {} {}", self_ptr, data);
+        println!("{:?} {:?} {:?}", self.key, self.son, self.bucket);
         let mut self_ptr = self_ptr;
         match self.ty {
             BTreeNodeType::Leaf => {
@@ -515,15 +521,17 @@ impl<'a> BTreeNode<'a> {
         if self.key.len() < node_capacity / 2 && father.is_some() {
             match self.ty {
                 BTreeNodeType::Leaf => {
+                    println!("combine leaf");
                     self.combine_leaf(node_capacity, father.unwrap().0, pos, &mut self_ptr);
                 }
                 BTreeNodeType::Internal => {
+                    println!("combine internal");
                     self.combine_internal(node_capacity, father.unwrap().0, pos, &mut self_ptr);
                 }
             }
             combined = true;
         }
-        else if father.is_none() && self.key.is_empty() && !self.son.is_empty(){ // delete root
+        else if father.is_none() && self.key.is_empty() && !self.son.is_empty() { // delete root
             self_ptr = self.son[0];
         }
         else {

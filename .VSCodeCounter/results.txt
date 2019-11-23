@@ -1,12 +1,12 @@
-Date : 2019-11-07 22:32:30
+Date : 2019-11-23 00:17:40
 Directory : e:\RuaDB
-Total : 45 files,  207226 codes, 612 comments, 2776 blanks, all 210614 lines
+Total : 46 files,  207917 codes, 561 comments, 2841 blanks, all 211319 lines
 
 Languages
 +----------+------------+------------+------------+------------+------------+
 | language | files      | code       | comment    | blank      | total      |
 +----------+------------+------------+------------+------------+------------+
-| Rust     |         44 |    207,215 |        612 |      2,771 |    210,598 |
+| Rust     |         45 |    207,906 |        561 |      2,836 |    211,303 |
 | YAML     |          1 |         11 |          0 |          5 |         16 |
 +----------+------------+------------+------------+------------+------------+
 
@@ -14,19 +14,19 @@ Directories
 +--------------------------------------------------+------------+------------+------------+------------+------------+
 | path                                             | files      | code       | comment    | blank      | total      |
 +--------------------------------------------------+------------+------------+------------+------------+------------+
-| .                                                |         45 |    207,226 |        612 |      2,776 |    210,614 |
-| src                                              |         43 |    207,211 |        611 |      2,769 |    210,591 |
+| .                                                |         46 |    207,917 |        561 |      2,841 |    211,319 |
+| src                                              |         44 |    207,902 |        560 |      2,834 |    211,296 |
 | src\parser                                       |          2 |    203,233 |         22 |      2,289 |    205,544 |
-| src\rm                                           |         19 |      1,147 |        133 |        195 |      1,475 |
+| src\rm                                           |         19 |      1,229 |         67 |        204 |      1,500 |
+| src\index                                        |          4 |        999 |        160 |         98 |      1,257 |
 | src\bytevec                                      |          7 |        787 |        228 |         79 |      1,094 |
 | src\tok                                          |          1 |        750 |         18 |         35 |        803 |
-| src\rm\filesystem                                |         12 |        573 |         83 |        116 |        772 |
 | src\bytevec\impls                                |          3 |        570 |         10 |         56 |        636 |
+| src\rm\filesystem                                |         12 |        556 |         13 |        103 |        672 |
 | src\ast                                          |          1 |        545 |         37 |         57 |        639 |
-| src\index                                        |          4 |        463 |        151 |         52 |        666 |
-| src\rm\filesystem\utils                          |          4 |        296 |         33 |         58 |        387 |
-| src\utils                                        |          6 |        193 |          0 |         39 |        232 |
-| src\rm\filesystem\bufmanager                     |          3 |        183 |         48 |         36 |        267 |
+| src\rm\filesystem\utils                          |          4 |        288 |          7 |         52 |        347 |
+| src\utils                                        |          7 |        268 |          8 |         53 |        329 |
+| src\rm\filesystem\bufmanager                     |          3 |        174 |          4 |         29 |        207 |
 | src\rm\filesystem\fileio                         |          3 |         86 |          0 |         22 |        108 |
 | .github                                          |          1 |         11 |          0 |          5 |         16 |
 | .github\workflows                                |          1 |         11 |          0 |          5 |         16 |
@@ -46,40 +46,41 @@ Files
 | src\bytevec\macros.rs                            | Rust     |        121 |         76 |         11 |        208 |
 | src\bytevec\mod.rs                               | Rust     |          9 |        135 |          2 |        146 |
 | src\bytevec\traits.rs                            | Rust     |         21 |          7 |          2 |         30 |
-| src\index\btree.rs                               | Rust     |        105 |          0 |          9 |        114 |
-| src\index\in_file.rs                             | Rust     |         71 |         27 |         14 |        112 |
+| src\index\btree.rs                               | Rust     |        497 |         18 |         39 |        554 |
+| src\index\in_file.rs                             | Rust     |        215 |         12 |         31 |        258 |
 | src\index\mod.rs                                 | Rust     |          2 |          0 |          0 |          2 |
-| src\index\tmp.rs                                 | Rust     |        285 |        124 |         29 |        438 |
-| src\main.rs                                      | Rust     |         26 |         16 |         13 |         55 |
+| src\index\tmp.rs                                 | Rust     |        285 |        130 |         28 |        443 |
+| src\main.rs                                      | Rust     |         25 |         16 |          9 |         50 |
 | src\parser\lrsql.rs                              | Rust     |    203,232 |          2 |      2,283 |    205,517 |
 | src\parser\mod.rs                                | Rust     |          1 |         20 |          6 |         27 |
-| src\rm\file_handler.rs                           | Rust     |        132 |         10 |         15 |        157 |
-| src\rm\filesystem\bufmanager\buf_page_manager.rs | Rust     |        152 |         48 |         29 |        229 |
-| src\rm\filesystem\bufmanager\find_replace.rs     | Rust     |         29 |          0 |          7 |         36 |
+| src\rm\file_handler.rs                           | Rust     |        151 |          9 |         16 |        176 |
+| src\rm\filesystem\bufmanager\buf_page_manager.rs | Rust     |        145 |          4 |         22 |        171 |
+| src\rm\filesystem\bufmanager\find_replace.rs     | Rust     |         27 |          0 |          7 |         34 |
 | src\rm\filesystem\bufmanager\mod.rs              | Rust     |          2 |          0 |          0 |          2 |
 | src\rm\filesystem\fileio\file_manager.rs         | Rust     |         84 |          0 |         20 |        104 |
 | src\rm\filesystem\fileio\file_table.rs           | Rust     |          0 |          0 |          1 |          1 |
 | src\rm\filesystem\fileio\mod.rs                  | Rust     |          2 |          0 |          1 |          3 |
 | src\rm\filesystem\mod.rs                         | Rust     |          4 |          0 |          0 |          4 |
 | src\rm\filesystem\pagedef.rs                     | Rust     |          4 |          2 |          0 |          6 |
-| src\rm\filesystem\utils\bitmap.rs                | Rust     |        150 |         32 |         29 |        211 |
-| src\rm\filesystem\utils\hashmap.rs               | Rust     |         63 |          0 |         12 |         75 |
-| src\rm\filesystem\utils\linklist.rs              | Rust     |         80 |          1 |         16 |         97 |
+| src\rm\filesystem\utils\bitmap.rs                | Rust     |        146 |          6 |         23 |        175 |
+| src\rm\filesystem\utils\hashmap.rs               | Rust     |         61 |          0 |         12 |         73 |
+| src\rm\filesystem\utils\linklist.rs              | Rust     |         78 |          1 |         16 |         95 |
 | src\rm\filesystem\utils\mod.rs                   | Rust     |          3 |          0 |          1 |          4 |
-| src\rm\in_file.rs                                | Rust     |        156 |         36 |         12 |        204 |
+| src\rm\in_file.rs                                | Rust     |        185 |         36 |         20 |        241 |
 | src\rm\mod.rs                                    | Rust     |          7 |          0 |          0 |          7 |
-| src\rm\pagedef.rs                                | Rust     |         46 |          0 |         11 |         57 |
+| src\rm\pagedef.rs                                | Rust     |         45 |          0 |         10 |         55 |
 | src\rm\record.rs                                 | Rust     |         47 |          0 |          6 |         53 |
-| src\rm\record_manager.rs                         | Rust     |        133 |          0 |         21 |        154 |
-| src\rm\table_handler.rs                          | Rust     |         53 |          4 |         14 |         71 |
-| src\settings.rs                                  | Rust     |         21 |          2 |          3 |         26 |
+| src\rm\record_manager.rs                         | Rust     |        133 |          0 |         20 |        153 |
+| src\rm\table_handler.rs                          | Rust     |        105 |          9 |         29 |        143 |
+| src\settings.rs                                  | Rust     |         20 |          0 |          3 |         23 |
 | src\sql.rs                                       | Rust     |         46 |          4 |          7 |         57 |
 | src\tok\mod.rs                                   | Rust     |        750 |         18 |         35 |        803 |
 | src\utils\bit.rs                                 | Rust     |         68 |          0 |         19 |         87 |
+| src\utils\convert.rs                             | Rust     |         72 |          8 |         13 |         93 |
 | src\utils\file.rs                                | Rust     |         22 |          0 |          7 |         29 |
 | src\utils\macro.rs                               | Rust     |         10 |          0 |          0 |         10 |
-| src\utils\mod.rs                                 | Rust     |          4 |          0 |          0 |          4 |
+| src\utils\mod.rs                                 | Rust     |          5 |          0 |          0 |          5 |
 | src\utils\random.rs                              | Rust     |         70 |          0 |          9 |         79 |
-| src\utils\string.rs                              | Rust     |         19 |          0 |          4 |         23 |
-| Total                                            |          |    207,226 |        612 |      2,776 |    210,614 |
+| src\utils\string.rs                              | Rust     |         21 |          0 |          5 |         26 |
+| Total                                            |          |    207,917 |        561 |      2,841 |    211,319 |
 +--------------------------------------------------+----------+------------+------------+------------+------------+
