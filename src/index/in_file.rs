@@ -186,8 +186,8 @@ mod tests {
     fn alloc_btree() {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
-
-        const MAX_RECORD_NUMBER: usize = 6;
+        const MAX_RECORD_NUMBER: usize = 100;
+        const BTREE_NODE_CAPACITY: u32 = 6;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -204,7 +204,7 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            let insert_times: usize = gen.gen_range(1, 2);
+            let insert_times: usize = gen.gen_range(1, 5);
             for _ in 0..insert_times {
                 ptrs.push(th.insert_record(&record));
             }
@@ -212,7 +212,7 @@ mod tests {
         th.close();
 
         let th = r.open_table("alloc_btree_test.rua");
-        let btree = BTree::new(&th, 2, vec![0]);
+        let btree = BTree::new(&th, BTREE_NODE_CAPACITY, vec![0]);
         let btree_ptr = th.insert_btree(&btree);
         th.close();
 
@@ -231,6 +231,8 @@ mod tests {
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
         }
+
+        btree_.traverse();
 
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
@@ -253,5 +255,6 @@ mod tests {
         */
 
         th.close();
+        panic!();
     }
 }
