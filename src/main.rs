@@ -9,18 +9,22 @@ extern crate serde_derive;
 // pub mod ast;
 // pub mod tok;
 // pub mod sql;
-pub mod utils;
-pub mod index;
-pub mod rm;
+mod utils;
+mod index;
+mod rm;
 mod settings;
+mod parser;
 
 use settings::Settings;
-
 use std::io;
 use std::io::prelude::*;
 
+use parser::sql;
+
 fn initalize() {
     println!("Connected to server.");
+    let settings = Settings::new();
+    println!("{:?}", settings);
 }
 
 fn print_prompt() {
@@ -28,16 +32,14 @@ fn print_prompt() {
     io::stdout().flush().ok().expect("Could not flush stdout.");
 }
 
+
 fn main() {
     initalize();
 
-    let settings = Settings::new();
-    println!("{:?}", settings);
-
-    /*
     loop {
         print_prompt();
         let mut sql = String::new();
+
         io::stdin().read_line(&mut sql).expect("Failed to read line.");
         if sql.trim() == "exit" {
             println!("bye!");
@@ -45,5 +47,4 @@ fn main() {
         }
         sql::parse(&sql);
     }
-    */
 }
