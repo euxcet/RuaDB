@@ -44,6 +44,10 @@ impl Index<'_> {
                     index_flags.push(3);
                     index.push(unsafe{transmute(*d)});
                 },
+                Data::Numeric(d) => {
+                    index_flags.push(4);
+                    index.push(unsafe{transmute(*d)});
+                }
             }
         }
         Index {
@@ -68,7 +72,7 @@ impl RawIndex {
                 1 => Data::Int(unsafe{transmute(index.index[i])}),
                 2 => Data::Float(unsafe{transmute(index.index[i])}),
                 3 => Data::Date(unsafe{transmute(index.index[i])}),
-                4 => unimplemented!(),
+                4 => Data::Numeric(unsafe{transmute(index.index[i])}),
                 _ => unreachable!(),
             });
         }

@@ -64,6 +64,7 @@ mod tests {
                 1 => Type::Float(if has_default {Some(gen.gen::<f64>())} else {None}),
                 2 => Type::Date(if has_default {Some(gen.gen::<u64>())} else {None}),
                 3 => Type::Str(if has_default {Some(gen.gen_string_s(max_string_length))} else {None}),
+                4 => Type::Numeric(if has_default {Some(gen.gen::<i64>())} else {None}),
                 _ => unreachable!()
             };
 
@@ -93,6 +94,7 @@ mod tests {
                         &Type::Float(Some(x)) => Some(Data::Float(x)),
                         &Type::Date(Some(x)) => Some(Data::Date(x)),
                         &Type::Str(Some(ref x)) => Some(Data::Str(x.clone())),
+                        &Type::Numeric(Some(x)) => Some(Data::Numeric(x)),
                         _ => unreachable!(),
                     }
                 } else {
@@ -101,6 +103,7 @@ mod tests {
                         &Type::Float(_) => Some(Data::Float(gen.gen::<f64>())),
                         &Type::Date(_) => Some(Data::Date(gen.gen::<u64>())),
                         &Type::Str(_) => Some(Data::Str(gen.gen_string_s(max_string_length as usize))),
+                        &Type::Numeric(_) => Some(Data::Numeric(gen.gen::<i64>()))
                     }
                 },
                 default: default,
