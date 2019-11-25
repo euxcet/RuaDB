@@ -55,6 +55,11 @@ impl TableHandler {
         (in_file.to_record(self), in_file)
     }
 
+    pub fn get_record_(&self, ptr: u64) -> (Record, RecordInFile) {
+        let in_file = self.fh.get::<RecordInFile, u32>(&StrPointer::new(ptr));
+        (in_file.to_record(self), in_file)
+    }
+
     pub fn update_record(&self, ptr: &mut StrPointer, record: &Record) {
         self.fh.update::<RecordInFile, u32>(ptr, &RecordInFile::from(self, record));
     }
@@ -138,6 +143,9 @@ impl TableHandler {
 
     // for all
     pub fn update_sub(&self, ptr: &StrPointer, offset: usize, data: Vec<u8>) {
+        if ptr.to_u64() == 0 {
+            return;
+        }
         self.fh.update_sub(ptr, offset, data);
     }
 }

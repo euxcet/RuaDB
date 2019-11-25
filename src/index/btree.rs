@@ -168,6 +168,16 @@ impl<'a> BTree<'a> {
         let root = self.th.get_btree_node(&StrPointer::new(self.root));
         root.traverse(self.root);
     }
+
+    pub fn first_bucket(&self) -> Option<Bucket> {
+        let root = self.th.get_btree_node(&StrPointer::new(self.root));
+        root.first_bucket()
+    }
+
+    pub fn last_bucket(&self) -> Option<Bucket> {
+        let root = self.th.get_btree_node(&StrPointer::new(self.root));
+        root.last_bucket()
+    }
 }
 
 #[derive(Debug)]
@@ -207,6 +217,24 @@ impl Bucket {
         + 8 // prev
         + 8 // next
         + pos * 8
+    }
+
+    pub fn prev_bucket(&self, th: &TableHandler) -> Option<Bucket> {
+        if self.prev == 0 {
+            None
+        }
+        else {
+            Some(th.get_bucket(&StrPointer::new(self.prev)))
+        }
+    }
+
+    pub fn next_bucket(&self, th: &TableHandler) -> Option<Bucket> {
+        if self.next == 0 {
+            None
+        }
+        else {
+            Some(th.get_bucket(&StrPointer::new(self.next)))
+        }
     }
 }
 
@@ -320,10 +348,20 @@ impl<'a> BTreeNode<'a> {
                     if i == self.key.len() {
                         modified = true;
                         self.key.push(key_ptr);
+                        let prev_bucket = *self.bucket.last().unwrap_or(&0u64);
+                        let next_bucket = if prev_bucket == 0 {0} else {self.th.get_bucket(&StrPointer::new(prev_bucket)).next};
+
                         let mut bucket = Bucket::new();
                         bucket.data.push(data);
-                        // TODO: update link
-                        self.bucket.push(self.th.insert_bucket(&bucket).to_u64());
+                        bucket.prev = prev_bucket;
+                        bucket.next = next_bucket;
+
+                        let ptr = self.th.insert_bucket(&bucket).to_u64();
+                        unsafe {
+                            self.th.update_sub(&StrPointer::new(prev_bucket), Bucket::get_offset_next(), convert::u64_to_vec_u8(ptr));
+                            self.th.update_sub(&StrPointer::new(next_bucket), Bucket::get_offset_prev(), convert::u64_to_vec_u8(ptr));
+                        }
+                        self.bucket.push(ptr);
                         break;
                     }
                     let index_in_node = RawIndex::from(&self.th.get_index(&StrPointer::new(self.key[i])));
@@ -342,11 +380,21 @@ impl<'a> BTreeNode<'a> {
                             },
                             Ordering::Greater => {
                                 modified = true;
+                                let next_bucket = self.bucket[i];
+                                let prev_bucket = self.th.get_bucket(&StrPointer::new(next_bucket)).prev;
+
                                 self.key.insert(i, key_ptr);
                                 let mut bucket = Bucket::new();
                                 bucket.data.push(data);
-                                // TODO: update link
-                                self.bucket.insert(i, self.th.insert_bucket(&bucket).to_u64());
+                                bucket.prev = prev_bucket;
+                                bucket.next = next_bucket;
+
+                                let ptr = self.th.insert_bucket(&bucket).to_u64();
+                                unsafe {
+                                    self.th.update_sub(&StrPointer::new(prev_bucket), Bucket::get_offset_next(), convert::u64_to_vec_u8(ptr));
+                                    self.th.update_sub(&StrPointer::new(next_bucket), Bucket::get_offset_prev(), convert::u64_to_vec_u8(ptr));
+                                }
+                                self.bucket.insert(i, ptr);
                                 break;
                             },
                             _ => {}
@@ -529,7 +577,19 @@ impl<'a> BTreeNode<'a> {
                             modified = true;
                             self.key.remove(i);
                             self.bucket.remove(i);
-                            // TODO update link
+
+                            let prev_bucket = if i > 0 {self.bucket[i - 1]} else {0u64};
+                            let next_bucket = if i + 1 < self.bucket.len() {self.bucket[i + 1]} else {0u64};
+                            let prev_bucket = if prev_bucket == 0 && next_bucket != 0 {self.th.get_bucket(&StrPointer::new(next_bucket)).prev} else {prev_bucket};
+                            let next_bucket = if next_bucket == 0 && prev_bucket != 0 {self.th.get_bucket(&StrPointer::new(prev_bucket)).next} else {next_bucket};
+                            unsafe {
+                                if prev_bucket != 0 {
+                                    self.th.update_sub(&StrPointer::new(prev_bucket), Bucket::get_offset_next(), convert::u64_to_vec_u8(next_bucket));
+                                }
+                                if next_bucket != 0 {
+                                    self.th.update_sub(&StrPointer::new(next_bucket), Bucket::get_offset_prev(), convert::u64_to_vec_u8(prev_bucket));
+                                }
+                            }
                         }
                         else {
                             self.th.update_bucket_(&mut self.bucket[i], &bucket);
@@ -605,6 +665,28 @@ impl<'a> BTreeNode<'a> {
                 for i in 0..self.son.len() {
                     self.th.get_btree_node(&StrPointer::new(self.son[i])).traverse(self.son[i]);
                 }
+            }
+        }
+    }
+
+    pub fn first_bucket(&self) -> Option<Bucket> {
+        match self.ty {
+            BTreeNodeType::Leaf => {
+                self.bucket.first().map(|x| self.th.get_bucket(&StrPointer::new(*x)))
+            }
+            BTreeNodeType::Internal => {
+                self.th.get_btree_node(&StrPointer::new(*self.son.first().unwrap())).first_bucket()
+            }
+        }
+    }
+
+    pub fn last_bucket(&self) -> Option<Bucket> {
+        match self.ty {
+            BTreeNodeType::Leaf => {
+                self.bucket.last().map(|x| self.th.get_bucket(&StrPointer::new(*x)))
+            }
+            BTreeNodeType::Internal => {
+                self.th.get_btree_node(&StrPointer::new(*self.son.last().unwrap())).first_bucket()
             }
         }
     }

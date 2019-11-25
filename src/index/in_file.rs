@@ -229,6 +229,17 @@ mod tests {
             btree_.insert_record(&index, ptrs[i].to_u64());
         }
 
+        /*
+        let mut bucket = btree_.first_bucket();
+        while bucket.is_some() {
+            let bucket_ = bucket.unwrap();
+            for ptr in &bucket_.data {
+                println!("{:?}", th.get_record_(*ptr).0);
+            }
+            bucket = bucket_.next_bucket(&th);
+        }
+        */
+
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
