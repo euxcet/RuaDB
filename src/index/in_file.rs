@@ -120,6 +120,7 @@ impl BucketInFile {
 
 #[cfg(test)]
 mod tests {
+    use std::time::{Duration, SystemTime};
     use crate::utils::random;
     use crate::rm::record_manager::*;
     use crate::rm::record::*;
@@ -187,10 +188,11 @@ mod tests {
 
     #[test]
     fn alloc_btree() {
+        let start_time = SystemTime::now();
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
-        const MAX_RECORD_NUMBER: usize = 100;
-        const BTREE_NODE_CAPACITY: u32 = 6;
+        const MAX_RECORD_NUMBER: usize = 10000;
+        const BTREE_NODE_CAPACITY: u32 = 20;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -207,12 +209,14 @@ mod tests {
         let th = r.open_table("alloc_btree_test.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
-            let insert_times: usize = gen.gen_range(1, 5);
+            let insert_times: usize = gen.gen_range(1, 2);
             for _ in 0..insert_times {
                 ptrs.push(th.insert_record(&record));
             }
         }
         th.close();
+        println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
+
 
         let th = r.open_table("alloc_btree_test.rua");
         let btree = BTree::new(&th, BTREE_NODE_CAPACITY, vec![0]);
@@ -229,7 +233,10 @@ mod tests {
             btree_.insert_record(&index, ptrs[i].to_u64());
         }
 
+        println!("btree insert {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
+
         /*
+
         let mut bucket = btree_.first_bucket();
         while bucket.is_some() {
             let bucket_ = bucket.unwrap();
@@ -246,7 +253,7 @@ mod tests {
             assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
         }
 
-        btree_.traverse();
+        println!("btree search {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
@@ -257,16 +264,7 @@ mod tests {
                 assert!(!result.unwrap().data.contains(&ptrs[i].to_u64()));
             }
         }
-
-        // for offset
-        /*
-        let mut node = BTreeNode::new(&th);
-        node.key = vec![1, 2, 3];
-        node.bucket = vec![1, 2, 3];
-        let in_file = BTreeNodeInFile::from(&th, &node, 5);
-        use crate::bytevec::traits::ByteEncodable;
-        pGintln!("{:?}", in_file.encode::<u32>().unwrap());
-        */
+        println!("btree delete {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
         th.close();
     }
