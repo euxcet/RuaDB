@@ -1,22 +1,17 @@
 use super::tok::{self, Tok};
 use super::ast::*;
+use std::str::FromStr;
 
 #[recursive_ascent]
 grammar<'input>(text: &'input str);
 
 CommaList<T>: Vec<T> = {
-    <v:(<T> ",")*> <e:T?> => match e {
-        None => v,
-        Some(e) => {
-            let mut v = v;
-            v.push(e);
-            v
-        }
-    }
+    <v:(<T> ",")*> <e:T> => {
+        let mut v = v;
+        v.push(e);
+        v
+    },
 };
-
-Qualified<T>: QualifiedName =
-    <db_name:(<DatabaseName> ".")?> <name:T> => QualifiedName { db_name: db_name, name: name };
 
 pub Sql: Sql = {
     <stmt_list: Stmt*> => {
@@ -27,38 +22,158 @@ pub Sql: Sql = {
 Stmt: Stmt = {
     <SystemStmt> ";" => Stmt::System(<>),
     <DatabaseStmt> ";" => Stmt::Database(<>),
-   // TableStmt ";" => Stmt::Table(<>),
-   // IndexStmt ";" => Stmt::Index(<>),
-   //  AlterStmt ";" => Stmt::Alter(<>),
+    <TableStmt> ";" => Stmt::Table(<>),
+    <IndexStmt> ";" => Stmt::Index(<>),
+    <AlterStmt> ";" => Stmt::Alter(<>),
 };
 
 SystemStmt: SystemStmt = {
     "show" "databases" => SystemStmt::ShowDatabases,
 };
 
-DatabaseStmt: DatabaseStmt = {
-    CreateDatabase,
-    DropDatabase,
-    UseDatabase,
-    ShowTables,
-};
-
-
 DatabaseName = Name;
-CreateDatabase: DatabaseStmt = {
+
+DatabaseStmt: DatabaseStmt = {
     "create" "database" <db_name: DatabaseName> => DatabaseStmt::CreateDatabase { <> },
-};
-
-DropDatabase: DatabaseStmt = {
-    "drop" "database" <db_name:DatabaseName> => DatabaseStmt::DropDatabase { <> },
-};
-
-UseDatabase: DatabaseStmt = {
-    "use" "database" <db_name:DatabaseName> => DatabaseStmt::UseDatabase { <> },
-};
-
-ShowTables: DatabaseStmt = {
+    "drop" "database" <db_name: DatabaseName> => DatabaseStmt::DropDatabase { <> },
+    "use" <db_name: DatabaseName> => DatabaseStmt::UseDatabase { <> },
     "show" "tables" => DatabaseStmt::ShowTables,
+};
+
+TableName = Name;
+
+TableStmt: TableStmt = {
+    "create" "table" <tb_name: TableName> "(" <field_list: CommaList<Field>> ")" => TableStmt::CreateTable { <> },
+    "drop" "table" <tb_name: TableName> => TableStmt::DropTable { <> },
+    "desc" <tb_name: TableName> => TableStmt::Desc { <> },
+    "insert" "into" <tb_name: TableName> "values" <value_lists: CommaList<ValueList>> => TableStmt::Insert { <> },
+    "delete" "from" <tb_name: TableName> <where_clause: ("where" <WhereClauseList>)?> => TableStmt::Delete { <> },
+    "update" <tb_name: TableName> "set" <set_clause: CommaList<SetClause>> <where_clause: ("where" <WhereClauseList>)?> => TableStmt::Update { <> },
+    "select" <selector: Selector> "from" <table_list: CommaList<TableName>> <where_clause: ("where" <WhereClauseList>)?> => TableStmt::Select { <> },
+};
+
+IndexName = Name;
+
+IndexStmt: IndexStmt = {
+    "create" "index" <idx_name: IndexName> "on" <tb_name: TableName> "(" <column_list: CommaList<ColName>> ")" => {
+        IndexStmt::CreateIndex { <> }
+    },
+    "drop" "index" <idx_name: IndexName> => IndexStmt::DropIndex { <> },
+    "alter" "table" <tb_name: TableName> "add" "index" <idx_name: IndexName> "(" <column_list: CommaList<ColName>> ")" => {
+        IndexStmt::AlterAddIndex { <> }
+    },
+    "alter" "table" <tb_name: TableName> "drop" "index" <idx_name: IndexName> => IndexStmt::AlterDropIndex { <> },
+};
+
+AlterStmt: AlterStmt = {
+    "alter" "table" <tb_name: TableName> "add" <field: ColumnField> => AlterStmt::AddColumn { <> },
+    "alter" "table" <tb_name: TableName> "drop" <col_name: ColName> => AlterStmt::DropColumn { <> },
+    "alter" "table" <tb_name: TableName> "change" <col_name: ColName> <field: ColumnField> => AlterStmt::ChangeColumn { <> },
+    "alter" "table" <tb_name: TableName> "rename" "to" <new_name: TableName> => AlterStmt::RenameTable { <> },
+    "alter" "table" <tb_name: TableName> "add" "primary" "key" "(" <column_list: CommaList<ColName>> ")" => AlterStmt::AddPrimaryKey { <> },
+    "alter" "table" <tb_name: TableName> "drop" "primary" "key" => AlterStmt::DropPrimaryKey { <> },
+    "alter" "table" <tb_name: TableName> "add" "constraint" <pk_name: Name> "primary" "key" "(" <column_list: CommaList<ColName>> ")" => AlterStmt::AddConstraintPrimaryKey { <> },
+    "alter" "table" <tb_name: TableName> "drop" "primary" "key" <pk_name: Name> => AlterStmt::DropConstraintPrimaryKey { <> },
+    "alter" "table" <tb_name: TableName> "add" "constraint" <fk_name: Name> "foreign" "key" "(" <column_list: CommaList<ColName>> ")" "references" <foreign_tb_name: TableName> "(" <foreign_column_list: CommaList<ColName>> ")" => {
+        AlterStmt::AddConstraintForeignKey { <> }
+    },
+    "alter" "table" <tb_name: TableName> "drop" "foreign" "key" <fk_name: Name> => AlterStmt::DropConstraintForeignKey { <> },
+};
+
+ColName = Name;
+
+SetClause: SetClause = {
+    <col_name: ColName> "=" <value: Value> => SetClause { <> },
+};
+
+WhereClauseList: Vec<WhereClause> = {
+    <v:(<WhereClause> "and")*> <e:WhereClause> => {
+        let mut v = v;
+        v.push(e);
+        v
+    },
+};
+
+Selector: Selector = {
+    "*" => Selector::All,
+    CommaList<Column> => Selector::Columns(<>),
+};
+
+Column: Column = {
+    <tb_name: (<TableName> ".")?> <col_name: ColName> => Column{ <> },
+};
+
+WhereClause: WhereClause = {
+    <col: Column> <op: Op> <expr: Expr> => WhereClause::Comparison { <> },
+    <col: Column> "is" <not_null: "not"?> "null" => {
+        WhereClause::IsAssert {
+            col: col,
+            null: not_null.is_none(),
+        }
+    },
+};
+
+Op: Op = {
+    "=" => Op::Equal,
+    "<>" => Op::NotEqual,
+    "<=" => Op::LessEqual,
+    ">=" => Op::GreaterEqual,
+    "<" => Op::Less,
+    ">" => Op::Greater,
+};
+
+Expr: Expr = {
+    Value => Expr::Value(<>),
+    Column => Expr::Column(<>),
+};
+
+ColumnField: Field = {
+    <col_name: ColName> <ty: Type> <not_null: ("not" "null")?> <default_value: ("default" <Value>)?> => {
+        let not_null = not_null.is_some();
+        Field::ColumnField { <> }
+    },
+};
+
+PrimaryKeyField: Field = {
+    "primary" "key" "(" <column_list: CommaList<ColName>> ")" => Field::PrimaryKeyField { <> },
+};
+
+ForeignKeyField: Field = {
+    "foreign" "key" "(" <col_name: ColName> ")" "references" <foreign_tb_name: TableName> "(" <foreign_col_name: ColName> ")" => Field::ForeignKeyField { <> },
+};
+
+Field: Field = {
+    ColumnField,
+    PrimaryKeyField,
+    ForeignKeyField,
+};
+
+ValueList: Vec<Value> = {
+    "(" <CommaList<Value>> ")"
+};
+
+Value: Value = {
+    "null" => Value::Null,
+    "StringLiteralDoubleQuote" => Value::Str(<>.to_owned()),
+    "+"? <"Integer"> => { Value::Int(<>.to_owned()) },
+    "-" <"Integer"> => { Value::Int(<>.to_owned()) },
+    "+"? <"Float"> => { Value::Float(<>.to_owned()) },
+    "-" <"Float"> => { Value::Float(<>.to_owned()) },
+};
+
+Type: Type = {
+    "int" "(" <"Integer"> ")" => {
+        Type::Int(i64::from_str(<>).unwrap())
+    },
+    "varchar" "(" <"Integer"> ")" => {
+        Type::Varchar(i64::from_str(<>).unwrap())
+    },
+    "date" => {
+        Type::Date
+    },
+    "float" => {
+        Type::Float
+    },
 };
 
 Id: Name = {
@@ -131,7 +246,7 @@ IdString: Name = {
 
 Name: Name = {
     Id,
-    "StringLiteral" => <>.to_owned(),
+    // "StringLiteral" => <>.to_owned(),
     "cross" => "cross".to_owned(),
     "inner" => "inner".to_owned(),
     "left" => "left".to_owned(),
@@ -164,6 +279,7 @@ extern {
         "cascade" => Tok::Cascade,
         "case" => Tok::Case,
         "cast" => Tok::Cast,
+        "change" => Tok::Change,
         "check" => Tok::Check,
         "collate" => Tok::Collate,
         "column" => Tok::ColumnKw,
@@ -177,6 +293,7 @@ extern {
         "current_timestamp" => Tok::CurrentTimestamp,
         "database" => Tok::Database,
         "databases" => Tok::Databases,
+        "date" => Tok::Date,
         "default" => Tok::Default,
         "deferrable" => Tok::Deferrable,
         "deferred" => Tok::Deferred,
@@ -194,6 +311,7 @@ extern {
         "exists" => Tok::Exists,
         "explain" => Tok::Explain,
         "fail" => Tok::Fail,
+        "float" => Tok::FloatType,
         "for" => Tok::For,
         "foreign" => Tok::Foreign,
         "from" => Tok::From,
@@ -211,6 +329,7 @@ extern {
         "inner" => Tok::Inner,
         "insert" => Tok::Insert,
         "instead" => Tok::Instead,
+        "int" => Tok::Int,
         "intersect" => Tok::Intersect,
         "into" => Tok::Into,
         "is" => Tok::Is,
@@ -266,6 +385,7 @@ extern {
         "using" => Tok::Using,
         "vacuum" => Tok::Vacuum,
         "values" => Tok::Values,
+        "varchar" => Tok::Varchar,
         "view" => Tok::View,
         "virtual" => Tok::Virtual,
         "when" => Tok::When,
@@ -273,7 +393,8 @@ extern {
         "with" => Tok::With,
         "without" => Tok::Without,
 
-        "StringLiteral" => Tok::StringLiteral(<&'input str>),
+        "StringLiteralDoubleQuote" => Tok::StringLiteralDoubleQuote(<&'input str>),
+        "StringLiteralSingleQuote" => Tok::StringLiteralSingleQuote(<&'input str>),
         "Id" => Tok::Id(<&'input str>),
         "Variable" => Tok::Variable(<&'input str>),
 
@@ -289,7 +410,7 @@ extern {
         "." => Tok::Dot,
         "=" => Tok::Equals,
         ">" => Tok::GreaterThan,
-        "=>" => Tok::GreaterEquals,
+        ">=" => Tok::GreaterEquals,
         "(" => Tok::LeftParen,
         "<<" => Tok::LeftShift,
         "<=" => Tok::LessEquals,

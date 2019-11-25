@@ -106,14 +106,19 @@ pub enum AlterStmt {
         new_name: Name,
     },
     AddPrimaryKey {
+        tb_name: Name,
         column_list: Vec<Name>,
     },
-    DropPrimaryKey,
+    DropPrimaryKey {
+        tb_name: Name,
+    },
     AddConstraintPrimaryKey {
+        tb_name: Name,
         pk_name: Name,
         column_list: Vec<Name>,
     },
     DropConstraintPrimaryKey {
+        tb_name: Name,
         pk_name: Name,
     },
     AddConstraintForeignKey {
@@ -134,16 +139,15 @@ pub enum Field {
     ColumnField {
         col_name: Name,
         ty: Type,
-        default: bool,
         not_null: bool,
         default_value: Option<Value>,
     },
 
-    PrimaryKey {
+    PrimaryKeyField {
         column_list: Vec<Name>,
     },
 
-    ForeignKey {
+    ForeignKeyField {
         col_name: Name,
         foreign_tb_name: Name, 
         foreign_col_name: Name,
@@ -160,8 +164,9 @@ pub enum Type {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
-    Int(i64),
+    Int(String),
     Str(String),
+    Float(String),
     Null,
 }
 
@@ -180,8 +185,8 @@ pub enum WhereClause {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Column {
-    tb_name: Option<Name>,
-    col_name: Name,
+    pub tb_name: Option<Name>,
+    pub col_name: Name,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -203,8 +208,8 @@ pub enum Op {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SetClause {
-    col_name: Name,
-    value: Value,
+    pub col_name: Name,
+    pub value: Value,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

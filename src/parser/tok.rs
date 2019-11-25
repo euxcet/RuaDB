@@ -69,6 +69,7 @@ pub enum Tok<'input> {
     Cascade,
     Case,
     Cast,
+    Change,
     Check,
     Collate,
     ColumnKw,
@@ -82,6 +83,7 @@ pub enum Tok<'input> {
     CurrentTimestamp,
     Database,
     Databases,
+    Date,
     Default,
     Deferrable,
     Deferred,
@@ -99,6 +101,7 @@ pub enum Tok<'input> {
     Exists,
     Explain,
     Fail,
+    FloatType,
     For,
     Foreign,
     From,
@@ -117,6 +120,7 @@ pub enum Tok<'input> {
     Inner,
     Insert,
     Instead,
+    Int,
     Intersect,
     Into,
     Is,
@@ -173,6 +177,7 @@ pub enum Tok<'input> {
     Using,
     Vacuum,
     Values,
+    Varchar,
     View,
     Virtual,
     When,
@@ -181,7 +186,8 @@ pub enum Tok<'input> {
     Without,
 
     // Identifiers:
-    StringLiteral(&'input str),
+    StringLiteralDoubleQuote(&'input str),
+    StringLiteralSingleQuote(&'input str),
     Id(&'input str),
     Variable(&'input str),
 
@@ -236,6 +242,7 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("CASCADE", Cascade),
     ("CASE", Case),
     ("CAST", Cast),
+    ("CHANGE", Change),
     ("CHECK", Check),
     ("COLLATE", Collate),
     ("COLUMN", ColumnKw),
@@ -249,6 +256,7 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("CURRENT_TIMESTAMP", CurrentTimestamp),
     ("DATABASE", Database),
     ("DATABASES", Databases),
+    ("DATE", Date),
     ("DEFAULT", Default),
     ("DEFERRABLE", Deferrable),
     ("DEFERRED", Deferred),
@@ -266,6 +274,7 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("EXISTS", Exists),
     ("EXPLAIN", Explain),
     ("FAIL", Fail),
+    ("FLOAT", FloatType),
     ("FOR", For),
     ("FOREIGN", Foreign),
     ("FROM", From),
@@ -283,6 +292,7 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("INNER", Inner),
     ("INSERT", Insert),
     ("INSTEAD", Instead),
+    ("INT", Int),
     ("INTERSECT", Intersect),
     ("INTO", Into),
     ("IS", Is),
@@ -339,6 +349,7 @@ const KEYWORDS: &'static [(&'static str, Tok<'static>)] = &[
     ("USING", Using),
     ("VACUUM", Vacuum),
     ("VALUES", Values),
+    ("VARCHAR", Varchar),
     ("VIEW", View),
     ("VIRTUAL", Virtual),
     ("WHEN", When),
@@ -466,7 +477,9 @@ impl<'input> Tokenizer<'input> {
                     self.bump();
                     Some(Ok((idx0, BitNot, idx0 + 1)))
                 }
-                Some((idx0, c)) if c == '`' || c == '\'' || c == '"' => Some(self.literal(idx0, c)),
+                // Some((idx0, c)) if c == '`' || c == '\'' || c == '"' => Some(self.literal(idx0, c)),
+                Some((idx0, c)) if c == '\'' || c == '"' => Some(self.literal(idx0, c)),
+
                 Some((idx0, '.')) => match self.bump() {
                     Some((_, c)) if c.is_digit(10) => Some(self.fractional_part(idx0)),
                     _ => Some(Ok((idx0, Dot, idx0 + 1))),
@@ -540,11 +553,16 @@ impl<'input> Tokenizer<'input> {
         match t {
             Some((idx1, c)) if c == delim => {
                 let text = &self.text[idx0 + 1..idx1];
-                let tok = if delim == '\'' {
-                    StringLiteral(text)
-                } else {
-                    Id(text) // empty Id (ie "") is OK
+                let tok = match delim {
+                    '\'' => StringLiteralSingleQuote(text),
+                    '\"' => StringLiteralDoubleQuote(text),
+                    _ => unreachable!(),
                 };
+                // let tok = if delim == '\'' {
+                //     StringLiteral(text)
+                // } else {
+                //     Id(text) // empty Id (ie "") is OK
+                // };
                 Ok((idx0, tok, idx1 + 1))
             }
             _ => error(UnterminatedLiteral, idx0, self.text),
@@ -614,15 +632,15 @@ impl<'input> Tokenizer<'input> {
 
     // Decimal or Hexadecimal Integer or Real
     fn number(&mut self, idx0: usize, digit: char) -> Result<Spanned<Tok<'input>>, Error> {
-        if digit == '0' {
-            match self.bump() {
-                Some((_, 'x')) | Some((_, 'X')) => {
-                    self.bump();
-                    return self.hex_integer(idx0);
-                }
-                _ => {}
-            }
-        }
+        // if digit == '0' {
+        //     match self.bump() {
+        //         Some((_, 'x')) | Some((_, 'X')) => {
+        //             self.bump();
+        //             return self.hex_integer(idx0);
+        //         }
+        //         _ => {}
+        //     }
+        // }
         match self.take_while(|c| c.is_digit(10)) {
             Some((end, c)) => {
                 if c == '.' {

@@ -29,7 +29,51 @@ mod tests {
     #[test]
     fn parser_test() {
         use crate::parser::sql::parse_sql;
-        assert!(parse_sql("create database test111;").is_ok());
+        let correct = vec![
+            "show databases;",
+            "create database test1;",
+            "create database test1;show databases;",
+            "drop database test1;",
+            "use test1;",
+            "show tables;",
+            "create table tb (c1 date, c2 int(1) not null default 1, c3 varchar(1) default \"default\", c4 float not null, primary key (c1, c2), foreign key (c5) references tb2 (c1));",
+            "drop table tb;",
+            "desc tb;",
+            "insert into tb values (\"1\", 1), (\"2\", 2);",
+            "delete from tb where id = 1;",
+            "delete from tb;",
+            "delete from tb where id = number;",
+            "delete from tb where id = number and id = 1;",
+            "update tb set id = 1;",
+            "update tb set id = 1 where id = number;",
+            "select * from tb;",
+            "select tb.c1 from tb, tb2 where tb1.id = \"1\";",
+            "create index idx on tb (c1, c2);",
+            "drop index idx;",
+            "alter table tb add index idx (c1, c2);",
+            "alter table tb drop index idx;",
+            "alter table tb add c1 date not null default 1;",
+            "alter table tb drop c1;",
+            "alter table tb2 change c1 c1 date default 1;",
+            "alter table tb2 rename to tb4;",
+            "alter table pk add primary key (c1, c2);",
+            "alter table pk drop primary key;",
+            "alter table tb add constraint pk primary key (c1, c2);",
+            "alter table tb drop primary key pk;",
+            "alter table tb add constraint fk foreign key (c1, c2) references ftb (c4, c5);",
+            "alter table tb drop foreign key fk;",
+        ];
+        let incorrect = vec![
+            "1;",
+        ];
+
+        for s in &correct {
+            assert!(parse_sql(s).is_ok());
+        }
+
+        for s in &incorrect {
+            assert!(parse_sql(s).is_err());
+        }
     }
 }
 
