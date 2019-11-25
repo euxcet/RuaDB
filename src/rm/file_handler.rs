@@ -1,6 +1,7 @@
 use std::rc::Rc;
 use std::mem::transmute;
 use std::cell::RefCell;
+use std::cmp::min;
 use std::collections::HashSet;
 
 use crate::utils::bit::*;
@@ -61,8 +62,8 @@ impl FileHandler {
     }
 
     // alloc a slot to contain a section of a string.
-    fn alloc_slot(&self) -> (u32, u16) {
-        let max_number = MAX_FIXED_STRING_NUMBER;
+    fn alloc_slot(&self) -> (u32, u32) {
+        let max_number = SLOT_PER_PAGE;
         let header = unsafe{self.header_mut()};
         let need_new_page = header.free_page == 0;
         if need_new_page {
@@ -76,21 +77,23 @@ impl FileHandler {
         if all_used(ph.free_slot, max_number) {
             unsafe{self.header_mut()}.free_page = ph.next_free_page;
         }
-        (page_id, fsi as u16)
+        (page_id, fsi)
     }
 
     // alloc a string in the file, return a pointer.
     fn alloc(&self, s: &Vec<u8>) -> StrPointer {
-        let slot_num = (s.len() + MAX_FIXED_STRING_LENGTH - 1) / MAX_FIXED_STRING_LENGTH;
+        let slot_num = (s.len() + SLOT_LENGTH - 1) / SLOT_LENGTH;
         let mut spt = StrPointer::new(0);
+
         for i in (0..slot_num).rev() {
             let (page_id, offset) = self.alloc_slot();
             let sp = unsafe{self.sp_mut(page_id)}; 
-            let len = if i == slot_num - 1 {s.len() - (slot_num - 1) * MAX_FIXED_STRING_LENGTH} else {MAX_FIXED_STRING_LENGTH};
+            let len = if i == slot_num - 1 {s.len() - (slot_num - 1) * SLOT_LENGTH} else {SLOT_LENGTH};
             sp.strs[offset as usize].next = spt;
-            let begin = i * MAX_FIXED_STRING_LENGTH;
+            let begin = i * SLOT_LENGTH;
+            sp.strs[offset as usize].len = (s.len() - begin) as u64;
             copy_bytes_u8(&mut sp.strs[offset as usize].bytes, &s[begin .. begin + len]);
-            spt = StrPointer { len: len as u16, page: page_id, offset: offset };
+            spt = StrPointer { page: page_id, offset: offset };
         }
         spt
     }
@@ -100,10 +103,10 @@ impl FileHandler {
         let this_page = strp.page;
         let offset = strp.offset;
         let sp = unsafe{self.sp_mut(this_page)};
-        assert!((strp.offset as usize) < MAX_FIXED_STRING_NUMBER);
+        assert!((strp.offset as usize) < SLOT_PER_PAGE);
         set_free(&mut sp.header.free_slot, strp.offset as u32);
         *strp = sp.strs[offset as usize].next;
-        if free_num(sp.header.free_slot, MAX_FIXED_STRING_NUMBER) == 1 {
+        if free_num(sp.header.free_slot, SLOT_PER_PAGE) == 1 {
             let header = unsafe{self.header_mut()};
             let stack_top = header.free_page;
             header.free_page = this_page;
@@ -113,7 +116,7 @@ impl FileHandler {
 
     // free a string in the file
     fn free(&self, strp: &mut StrPointer) {
-        while strp.len != 0 {
+        while !strp.is_null() {
             self.free_slot(strp);
         }
     }
@@ -132,9 +135,11 @@ impl FileHandler {
               Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
         let mut res: Vec<u8> = Vec::new();
         let mut t = ptr.clone();
-        while t.len > 0 {
+        while !t.is_null() {
             let sp = unsafe{self.sp(t.page)};
-            let bytes = &sp.strs[t.offset as usize].bytes[..t.len as usize];
+            let ss = &sp.strs[t.offset as usize];
+            let len = min(ss.len as usize, SLOT_LENGTH);
+            let bytes = &ss.bytes[..len];
             res.extend_from_slice(bytes);
             t = sp.strs[t.offset as usize].next.clone();
         }
@@ -142,12 +147,42 @@ impl FileHandler {
     }
 
     // update a struct in the file
-    // TODO: optimize
     pub fn update<T, Size>(&self, ptr: &mut StrPointer, data: &T)
         where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
               Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
         self.free(ptr);
         *ptr = self.insert::<T, Size>(data);
+    }
+
+    pub fn update_sub(&self, ptr: &StrPointer, offset: usize, data: Vec<u8>) {
+        let mut offset = offset;
+        let mut t = ptr.clone();
+
+        let slot_index = offset / SLOT_LENGTH;
+        for _ in 0..slot_index {
+            let sp = unsafe{self.sp(t.page)};
+            t = sp.strs[t.offset as usize].next.clone();
+        }
+        offset -= slot_index * SLOT_LENGTH;
+        // while offset >= t.len as usize {
+        //     offset -= t.len as usize;
+        //     let sp = unsafe{self.sp(t.page)};
+        //     t = sp.strs[t.offset as usize].next.clone();
+        // }
+
+        let mut done: usize = 0;
+        while done < data.len() {
+            // let len = min(data.len() - done, t.len as usize - offset);
+            let sp = unsafe{self.sp_mut(t.page)};
+
+            let slot_len = min(sp.strs[t.offset as usize].len as usize, SLOT_LENGTH);
+            let copy_len = min(slot_len - offset, data.len() - done);
+
+            assert!(copy_len > 0);
+            copy_bytes_u8_offset(&mut sp.strs[t.offset as usize].bytes, &data[done .. done + copy_len], offset);
+            done += copy_len;
+            offset = 0;
+        }
     }
 
     // delete a struct in the file

@@ -1,17 +1,19 @@
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
     Int(i64),
     Float(f64),
     Date(u64),
+    Numeric(i64),
 } 
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
 pub enum Type {
-    Str(u32, Option<String>),
+    Str(Option<String>),
     Int(Option<i64>),
     Float(Option<f64>),
     Date(Option<u64>),
+    Numeric(Option<i64>),
 }
 
 impl Default for Type {
@@ -25,6 +27,7 @@ pub struct ColumnType {
     pub name: String,
     pub index: u32,
     pub data_type: Type,
+    pub numeric_precision: u8,
     pub can_be_null: bool,
     pub has_index: bool,
     pub has_default: bool,

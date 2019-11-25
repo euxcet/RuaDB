@@ -5,7 +5,6 @@ struct ListNode {
 
 pub struct LinkList {
     cap: i32,
-    list_num: i32,
     a: Vec<ListNode>,
 } 
 
@@ -89,7 +88,6 @@ impl LinkList {
 
         Self {
             cap: c,
-            list_num: n,
             a: v,
         }
     }

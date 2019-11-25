@@ -63,7 +63,8 @@ mod tests {
                 0 => Type::Int(if has_default {Some(gen.gen::<i64>())} else {None}),
                 1 => Type::Float(if has_default {Some(gen.gen::<f64>())} else {None}),
                 2 => Type::Date(if has_default {Some(gen.gen::<u64>())} else {None}),
-                3 => Type::Str(0, if has_default {Some(gen.gen_string_s(max_string_length))} else {None}),
+                3 => Type::Str(if has_default {Some(gen.gen_string_s(max_string_length))} else {None}),
+                4 => Type::Numeric(if has_default {Some(gen.gen::<i64>())} else {None}),
                 _ => unreachable!()
             };
 
@@ -92,7 +93,8 @@ mod tests {
                         &Type::Int(Some(x)) => Some(Data::Int(x)),
                         &Type::Float(Some(x)) => Some(Data::Float(x)),
                         &Type::Date(Some(x)) => Some(Data::Date(x)),
-                        &Type::Str(_, Some(ref x)) => Some(Data::Str(x.clone())),
+                        &Type::Str(Some(ref x)) => Some(Data::Str(x.clone())),
+                        &Type::Numeric(Some(x)) => Some(Data::Numeric(x)),
                         _ => unreachable!(),
                     }
                 } else {
@@ -100,7 +102,8 @@ mod tests {
                         &Type::Int(_) => Some(Data::Int(gen.gen::<i64>())),
                         &Type::Float(_) => Some(Data::Float(gen.gen::<f64>())),
                         &Type::Date(_) => Some(Data::Date(gen.gen::<u64>())),
-                        &Type::Str(_, _) => Some(Data::Str(gen.gen_string_s(max_string_length as usize))),
+                        &Type::Str(_) => Some(Data::Str(gen.gen_string_s(max_string_length as usize))),
+                        &Type::Numeric(_) => Some(Data::Numeric(gen.gen::<i64>()))
                     }
                 },
                 default: default,
@@ -112,24 +115,23 @@ mod tests {
     }
 
     #[test]
-    fn record_test() {
+    fn alloc_record() {
         let mut gen = random::Generator::new(false);
         const MAX_STRING_LENGTH: usize = 10;
         const MAX_RECORD_NUMBER: usize = 1000;
 
         let mut r = RecordManager::new();
-        r.create_table("records_test.rua");
-
+        r.create_table("alloc_record.rua");
 
         let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
         let mut c_ptrs = Vec::new();
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for c in &columns {
             c_ptrs.push(th.insert_column_type(c));
         }
         th.close();
 
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for i in 0..columns.len() {
             assert_eq!(th.get_column_type(&c_ptrs[i]), columns[i]);
         }
@@ -138,7 +140,7 @@ mod tests {
         let mut ptrs = Vec::new();
         let mut records = Vec::new();
 
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             ptrs.push(th.insert_record(&record));
@@ -146,9 +148,9 @@ mod tests {
         }
         th.close();
 
-        let th = r.open_table("records_test.rua");
+        let th = r.open_table("alloc_record.rua");
         for i in 0..ptrs.len() {
-            assert_eq!(th.get_record(&ptrs[i]), records[i]);
+            assert_eq!(th.get_record(&ptrs[i]).0, records[i]);
         }
     }
 }

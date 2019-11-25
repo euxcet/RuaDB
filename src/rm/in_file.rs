@@ -1,4 +1,5 @@
 use std::mem::{transmute, size_of};
+use crate::index::btree::Index;
 use super::table_handler::*;
 use super::record::*;
 use super::pagedef::*;
@@ -7,8 +8,8 @@ use super::pagedef::*;
 bytevec_decl! {
     #[derive(PartialEq, Eq, Debug)]
     pub struct ColumnTypeInFile {
-        pub name: u64,
-        pub foreign_table_name: u64,
+        pub name: u64, // StrPointer
+        pub foreign_table_name: u64, // StrPointer
         pub index: u32,
         /*
             data_type [bit0, bit1, bit2, 0, 0, 0, 0, 0]
@@ -20,13 +21,15 @@ bytevec_decl! {
             4   Data::Numeric
         */
         pub data_type: u8,
-        pub data: u64,
+        pub data: u64, // StrPointer
+        pub numeric_precision: u8,
         /*
             flags [0 .. 8]
             [can_be_null, has_index, has_default, is_primary, is_foreign, default_null, 0, 0]
         */
         pub flags: u8
     }
+
     #[derive(PartialEq, Eq, Debug)]
     pub struct RecordInFile {
         pub record: String
@@ -51,13 +54,13 @@ pub struct ColumnDataInFile {
         4   Data::Numeric
     */
     pub flags: u8,
-    pub data: u64
+    pub data: u64 // StrPointer
 }
 
 impl ColumnDataInFile {
     // &[u8] to ColumnDataInFile
     pub fn new(data: &[u8]) -> Self {
-        ColumnDataInFile {
+        Self {
             index: unsafe {*(data.as_ptr() as *const u32)},
             flags: data[4],
             data: unsafe {*(data.as_ptr().add(5) as *const u64)},
@@ -68,24 +71,26 @@ impl ColumnDataInFile {
     pub fn from(th: &TableHandler, cd: &ColumnData) -> Self {
         match &cd.data {
             Some(data) => {
-                ColumnDataInFile {
+                Self {
                     index: cd.index,
                     flags: cd.default as u8 | match data {
                         Data::Str(_) => 0 << 2,
                         Data::Int(_) => 1 << 2,
                         Data::Float(_) => 2 << 2,
                         Data::Date(_) => 3 << 2,
+                        Data::Numeric(_) => 4 << 2,
                     },
                     data: match data {
                         Data::Str(d) => th.insert_string(&d).to_u64(),
                         Data::Int(d) => unsafe{transmute(*d)},
                         Data::Float(d) => unsafe{transmute(*d)},
                         Data::Date(d) => unsafe{transmute(*d)},
+                        Data::Numeric(d) => unsafe{transmute(*d)},
                     },
                 }
             }
             None => {
-                ColumnDataInFile {
+                Self {
                     index: cd.index,
                     flags: cd.default as u8 | 2,
                     data: 0,
@@ -105,8 +110,8 @@ impl ColumnDataInFile {
                         1 => Data::Int(unsafe{transmute(self.data)}),
                         2 => Data::Float(unsafe{transmute(self.data)}),
                         3 => Data::Date(unsafe{transmute(self.data)}),
+                        4 => Data::Numeric(unsafe{transmute(self.data)}),
                         _ => unreachable!(),
-
                     }
                 )
             } else {None},
@@ -128,7 +133,7 @@ impl ColumnDataInFile {
 impl RecordInFile {
     // Record to RecordInFile
     pub fn from(th: &TableHandler, record: &Record) -> Self {
-        RecordInFile {
+        Self {
             record: record.record.iter()
                     .map(|c| ColumnDataInFile::from(th, c).to_string())
                     .fold(String::new(), |s, v| s + &v)
@@ -146,30 +151,68 @@ impl RecordInFile {
         }
         result
     }
+
+    pub fn get_index<'a>(&self, th: &'a TableHandler, cols: &Vec<u32>) -> Index<'a> {
+        let mut index_flags = Vec::new();
+        let mut index = Vec::new();
+
+        let r: &[u8] = self.record.as_bytes();
+        let size_of_data = size_of::<ColumnDataInFile>();
+        assert_eq!(r.len() % size_of_data, 0);
+
+        let mut columns = Vec::new();
+
+        for offset in (0..r.len()).step_by(size_of_data) {
+            columns.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]));
+        }
+
+        unsafe {
+            columns.sort_by(|a, b| b.index.cmp(&a.index));
+        }
+
+        let mut cols_id = 0;
+        for column in &columns {
+            if cols_id < cols.len() && column.index == cols[cols_id] {
+                index_flags.push((column.flags >> 2) & 7);
+                index.push(column.data);
+                cols_id += 1
+            }
+        }
+        assert_eq!(cols_id, cols.len());
+
+        Index {
+            th: th,
+            index_flags: index_flags,
+            index: index,
+        }
+    }
 }
 
 impl ColumnTypeInFile {
     // ColumnType to ColumnTypeInFile
     pub fn from(th: &TableHandler, ct: &ColumnType) -> Self {
-        ColumnTypeInFile {
+        Self {
             name: th.insert_string(&ct.name).to_u64(),
             foreign_table_name: th.insert_string(&ct.foreign_table_name).to_u64(),
             index: ct.index,
             data_type: match ct.data_type {
-                Type::Str(_, _) => 0,
+                Type::Str(_) => 0,
                 Type::Int(_) => 1,
                 Type::Float(_) => 2,
                 Type::Date(_) => 3,
+                Type::Numeric(_) => 4,
             },
             data: match &ct.data_type {
-                Type::Str(_, data) => match data {
+                Type::Str(data) => match data {
                     Some(data) => th.insert_string(&data).to_u64(),
                     None => 0,
                 },
                 Type::Int(data) => unsafe{transmute(data.unwrap_or(0))},
                 Type::Float(data) => unsafe{transmute(data.unwrap_or(0.0))},
                 Type::Date(data) => unsafe{transmute(data.unwrap_or(0))},
+                Type::Numeric(data) => unsafe{transmute(data.unwrap_or(0))},
             },
+            numeric_precision: ct.numeric_precision,
             flags: (ct.can_be_null as u8) |
                    (ct.has_index as u8) << 1 |
                    (ct.has_default as u8) << 2 |
@@ -187,12 +230,14 @@ impl ColumnTypeInFile {
             foreign_table_name: th.get_string(&StrPointer::new(self.foreign_table_name)),
             index: self.index,
             data_type: match self.data_type {
-                0 => Type::Str(0, if has_default {Some(th.get_string(&StrPointer::new(self.data)))} else {None}),
+                0 => Type::Str(if has_default {Some(th.get_string(&StrPointer::new(self.data)))} else {None}),
                 1 => Type::Int(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 2 => Type::Float(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 3 => Type::Date(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
+                4 => Type::Numeric(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 _ => unreachable!(),
             },
+            numeric_precision: self.numeric_precision,
             can_be_null: self.flags & 1 > 0,
             has_index: self.flags & 2 > 0,
             has_default: self.flags & 4 > 0,

@@ -2,7 +2,6 @@ use super::super::utils::linklist::LinkList;
 
 pub struct FindReplace {
     pub list: LinkList,
-    cap: i32,
 }
 
 impl FindReplace {
@@ -23,7 +22,6 @@ impl FindReplace {
 
     pub fn new(c: i32) -> Self {
         let mut f = Self {
-            cap: c,
             list: LinkList::new(c, 1),
         };
 
