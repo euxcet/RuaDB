@@ -22,6 +22,7 @@ bytevec_decl! {
         */
         pub data_type: u8,
         pub data: u64, // StrPointer
+        pub numeric_precision: u8,
         /*
             flags [0 .. 8]
             [can_be_null, has_index, has_default, is_primary, is_foreign, default_null, 0, 0]
@@ -77,12 +78,14 @@ impl ColumnDataInFile {
                         Data::Int(_) => 1 << 2,
                         Data::Float(_) => 2 << 2,
                         Data::Date(_) => 3 << 2,
+                        Data::Numeric(_) => 4 << 2,
                     },
                     data: match data {
                         Data::Str(d) => th.insert_string(&d).to_u64(),
                         Data::Int(d) => unsafe{transmute(*d)},
                         Data::Float(d) => unsafe{transmute(*d)},
                         Data::Date(d) => unsafe{transmute(*d)},
+                        Data::Numeric(d) => unsafe{transmute(*d)},
                     },
                 }
             }
@@ -107,8 +110,8 @@ impl ColumnDataInFile {
                         1 => Data::Int(unsafe{transmute(self.data)}),
                         2 => Data::Float(unsafe{transmute(self.data)}),
                         3 => Data::Date(unsafe{transmute(self.data)}),
+                        4 => Data::Numeric(unsafe{transmute(self.data)}),
                         _ => unreachable!(),
-
                     }
                 )
             } else {None},
@@ -197,6 +200,7 @@ impl ColumnTypeInFile {
                 Type::Int(_) => 1,
                 Type::Float(_) => 2,
                 Type::Date(_) => 3,
+                Type::Numeric(_) => 4,
             },
             data: match &ct.data_type {
                 Type::Str(data) => match data {
@@ -206,7 +210,9 @@ impl ColumnTypeInFile {
                 Type::Int(data) => unsafe{transmute(data.unwrap_or(0))},
                 Type::Float(data) => unsafe{transmute(data.unwrap_or(0.0))},
                 Type::Date(data) => unsafe{transmute(data.unwrap_or(0))},
+                Type::Numeric(data) => unsafe{transmute(data.unwrap_or(0))},
             },
+            numeric_precision: ct.numeric_precision,
             flags: (ct.can_be_null as u8) |
                    (ct.has_index as u8) << 1 |
                    (ct.has_default as u8) << 2 |
@@ -228,8 +234,10 @@ impl ColumnTypeInFile {
                 1 => Type::Int(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 2 => Type::Float(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 3 => Type::Date(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
+                4 => Type::Numeric(if has_default {Some(unsafe{transmute(self.data)})} else {None}),
                 _ => unreachable!(),
             },
+            numeric_precision: self.numeric_precision,
             can_be_null: self.flags & 1 > 0,
             has_index: self.flags & 2 > 0,
             has_default: self.flags & 4 > 0,
