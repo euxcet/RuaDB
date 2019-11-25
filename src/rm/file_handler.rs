@@ -164,22 +164,15 @@ impl FileHandler {
             t = sp.strs[t.offset as usize].next.clone();
         }
         offset -= slot_index * SLOT_LENGTH;
-        // while offset >= t.len as usize {
-        //     offset -= t.len as usize;
-        //     let sp = unsafe{self.sp(t.page)};
-        //     t = sp.strs[t.offset as usize].next.clone();
-        // }
 
         let mut done: usize = 0;
         while done < data.len() {
-            // let len = min(data.len() - done, t.len as usize - offset);
             let sp = unsafe{self.sp_mut(t.page)};
-
             let slot_len = min(sp.strs[t.offset as usize].len as usize, SLOT_LENGTH);
             let copy_len = min(slot_len - offset, data.len() - done);
-
             assert!(copy_len > 0);
             copy_bytes_u8_offset(&mut sp.strs[t.offset as usize].bytes, &data[done .. done + copy_len], offset);
+            t = sp.strs[t.offset as usize].next.clone();
             done += copy_len;
             offset = 0;
         }
