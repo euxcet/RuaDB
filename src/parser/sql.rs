@@ -12,16 +12,15 @@ pub fn parse_sql<'input>(input: &'input str) -> Result<ast::Sql, ParseError<'inp
     Ok(sql)
 }
 
-pub fn parse(input: &str) {
-    let res = parse_sql(input);
-    if let Ok(sql) = res {
-        for s in &sql.stmt_list {
-            println!("{:?}", s);
-        }
-    } else {
-        println!("parse error!");
-    }
-}
+// pub fn parse(input: &str) -> Option<ast::Sql> {
+//     let res = parse_sql(input);
+//     if let Ok(sql) = res {
+//         Some(sql)
+//     } else {
+//         println!("Invalid syntax");
+//         None
+//     }
+// }
 
 
 #[cfg(test)]

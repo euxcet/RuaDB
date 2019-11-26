@@ -4,6 +4,8 @@ extern crate config;
 pub mod bytevec;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate prettytable;
 
 // pub mod parser;
 // pub mod ast;
@@ -12,8 +14,11 @@ extern crate serde_derive;
 mod utils;
 mod index;
 mod rm;
+mod sm;
+mod logger;
 mod settings;
 mod parser;
+mod executor;
 
 use settings::Settings;
 use std::io;
@@ -35,16 +40,28 @@ fn print_prompt() {
 
 fn main() {
     initalize();
+    let rua = logger::logger::RuaLogger::new();
+    let mut exe = executor::Executor::new();
 
     loop {
         print_prompt();
-        let mut sql = String::new();
+        let mut input = String::new();
 
-        io::stdin().read_line(&mut sql).expect("Failed to read line.");
-        if sql.trim() == "exit" {
+        io::stdin().read_line(&mut input).expect("Failed to read line.");
+        if input.trim() == "exit" {
             println!("bye!");
             break;
         }
-        sql::parse(&sql);
+        match sql::parse_sql(&input) {
+            Ok(sql) => {
+                for stmt in &sql.stmt_list {
+                    let res = exe.exe(stmt);
+                    rua.rua(&res);
+                }
+            },
+            Err(e) => {
+                println!("Invalid syntax");
+            }
+        }
     }
 }
