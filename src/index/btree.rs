@@ -470,7 +470,20 @@ impl<'a> BTreeNode<'a> {
             }
         }
         else if modified {
-            self.th.update_btree_node_(&mut self_ptr, self, node_capacity);
+            match self.ty {
+                BTreeNodeType::Leaf => {
+                    unsafe {
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity + 1).into_bytes());
+                    }
+                }
+                BTreeNodeType::Internal => {
+                    unsafe {
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity + 1).into_bytes());
+                    }
+                }
+            }
         }
 
         self_ptr
@@ -614,9 +627,6 @@ impl<'a> BTreeNode<'a> {
                         }
                         if bucket.data.is_empty() {
                             modified = true;
-                            self.key.remove(i);
-                            self.bucket.remove(i);
-
                             let prev_bucket = if i > 0 {self.bucket[i - 1]} else {0u64};
                             let next_bucket = if i + 1 < self.bucket.len() {self.bucket[i + 1]} else {0u64};
                             let prev_bucket = if prev_bucket == 0 && next_bucket != 0 {self.th.get_bucket_(next_bucket).prev} else {prev_bucket};
@@ -629,6 +639,8 @@ impl<'a> BTreeNode<'a> {
                                     self.th.update_sub_(next_bucket, Bucket::get_offset_prev(), convert::u64_to_vec_u8(prev_bucket));
                                 }
                             }
+                            self.key.remove(i);
+                            self.bucket.remove(i);
                         }
                         else {
                             self.th.update_bucket_(&mut self.bucket[i], &bucket);
@@ -664,7 +676,20 @@ impl<'a> BTreeNode<'a> {
             self_ptr = self.son[0];
         }
         else if modified || father.is_none() {
-            self.th.update_btree_node_(&mut self_ptr, self, node_capacity);
+            match self.ty {
+                BTreeNodeType::Leaf => {
+                    unsafe {
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity + 1).into_bytes());
+                    }
+                }
+                BTreeNodeType::Internal => {
+                    unsafe {
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
+                        self.th.update_sub_(self_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity + 1).into_bytes());
+                    }
+                }
+            }
         }
 
         self_ptr

@@ -191,7 +191,7 @@ mod tests {
         let start_time = SystemTime::now();
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
-        const MAX_RECORD_NUMBER: usize = 10000;
+        const MAX_RECORD_NUMBER: usize = 1000;
         const BTREE_NODE_CAPACITY: u32 = 20;
 
         let mut r = RecordManager::new();
@@ -217,7 +217,6 @@ mod tests {
         th.close();
         println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-
         let th = r.open_table("alloc_btree_test.rua");
         let btree = BTree::new(&th, BTREE_NODE_CAPACITY, vec![0]);
         let btree_ptr = th.insert_btree(&btree);
@@ -234,18 +233,6 @@ mod tests {
         }
 
         println!("btree insert {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
-
-        /*
-
-        let mut bucket = btree_.first_bucket();
-        while bucket.is_some() {
-            let bucket_ = bucket.unwrap();
-            for ptr in &bucket_.data {
-                println!("{:?}", th.get_record_(*ptr).0);
-            }
-            bucket = bucket_.next_bucket(&th);
-        }
-        */
 
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);

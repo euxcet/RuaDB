@@ -44,7 +44,7 @@ impl FileHandler {
     unsafe fn header<'b>(&self) -> &'b FileHeader { self.page_mut(0, false) } 
     unsafe fn sp_mut<'b>(&self, page_id: u32) -> &'b mut StringPage { self.page_mut(page_id, true) }
     unsafe fn sp<'b>(&self, page_id: u32) -> &'b StringPage { self.page_mut(page_id, false) }
-    unsafe fn ph_mut<'b>(&self, page_id: u32) -> &'b mut PageHeader { self.page_mut(page_id, false) }
+    unsafe fn ph_mut<'b>(&self, page_id: u32) -> &'b mut PageHeader { self.page_mut(page_id, true) }
     unsafe fn ph<'b>(&self, page_id: u32) -> &'b PageHeader { self.page_mut(page_id, false) }
     unsafe fn page_mut<'b, T>(&self, page_id: u32, dirty: bool) -> &'b mut T {
         let (page, index) = self.cache.borrow_mut().get_page(self.fd, page_id as i32);
