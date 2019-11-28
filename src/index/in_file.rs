@@ -55,7 +55,7 @@ impl BTreeInFile {
     pub fn from(th: &TableHandler, btree: &BTree) -> Self {
         Self {
             root: btree.root,
-            node_capacity: btree.node_capacity,
+            node_capacity: btree.node_capacity as u32,
             index_col: unsafe{convert::vec_u32_to_string(&btree.index_col)},
         }
     }
@@ -64,7 +64,8 @@ impl BTreeInFile {
         BTree {
             th: th,
             root: self.root,
-            node_capacity: self.node_capacity,
+            raw_root: None,
+            node_capacity: self.node_capacity as usize,
             index_col: unsafe{convert::string_to_vec_u32(&self.index_col)},
         }
     }
@@ -89,12 +90,13 @@ impl BTreeNodeInFile {
         }
     }
     
-    pub fn to_btree_node<'a>(&self, th: &'a TableHandler) -> BTreeNode<'a> {
+    pub fn to_btree_node<'a>(&self, th: &'a TableHandler, node_capacity: usize) -> BTreeNode<'a> {
         BTreeNode {
             th: th, 
             ty: if self.flags & 1 > 0 {BTreeNodeType::Internal} else {BTreeNodeType::Leaf},
             key: unsafe{convert::string_to_vec_u64(&self.key)},
             son: if self.flags & 1 > 0 {unsafe{convert::string_to_vec_u64(&self.next)}} else {Vec::new()},
+            raw_son: BTreeNode::empty_raw_son(node_capacity),
             bucket: if self.flags & 1 > 0 {Vec::new()} else {unsafe{convert::string_to_vec_u64(&self.next)}},
         }
     }
@@ -192,7 +194,7 @@ mod tests {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
         const MAX_RECORD_NUMBER: usize = 1000;
-        const BTREE_NODE_CAPACITY: u32 = 20;
+        const BTREE_NODE_CAPACITY: usize = 4;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -219,29 +221,36 @@ mod tests {
 
         let th = r.open_table("alloc_btree_test.rua");
         let btree = BTree::new(&th, BTREE_NODE_CAPACITY, vec![0]);
-        let btree_ptr = th.insert_btree(&btree);
+        let mut btree_ptr = th.insert_btree(&btree);
         th.close();
 
+
         let th = r.open_table("alloc_btree_test.rua");
-
         let mut btree_ = th.get_btree(&btree_ptr);
-
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             btree_.insert_record(&index, ptrs[i].to_u64());
         }
+        th.update_btree(&mut btree_ptr, &btree_);
+        th.close();
 
         println!("btree insert {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
+        let th = r.open_table("alloc_btree_test.rua");
+        let mut btree_ = th.get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
         }
+        th.update_btree(&mut btree_ptr, &btree_);
+        th.close();
 
         println!("btree search {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
+        let th = r.open_table("alloc_btree_test.rua");
+        let mut btree_ = th.get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
@@ -251,8 +260,9 @@ mod tests {
                 assert!(!result.unwrap().data.contains(&ptrs[i].to_u64()));
             }
         }
-        println!("btree delete {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
-
+        th.update_btree(&mut btree_ptr, &btree_);
         th.close();
+
+        println!("btree delete {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
     }
 }

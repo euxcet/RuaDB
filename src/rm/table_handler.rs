@@ -131,12 +131,12 @@ impl TableHandler {
         self.fh.insert::<BTreeNodeInFile, u32>(&BTreeNodeInFile::from(self, node, node_capacity))
     }
 
-    pub fn get_btree_node(&self, ptr: &StrPointer) -> BTreeNode {
-        self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self)
+    pub fn get_btree_node(&self, ptr: &StrPointer, node_capacity: usize) -> BTreeNode {
+        self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self, node_capacity)
     }
 
-    pub fn get_btree_node_(&self, ptr: u64) -> BTreeNode {
-        self.fh.get::<BTreeNodeInFile, u32>(&StrPointer::new(ptr)).to_btree_node(self)
+    pub fn get_btree_node_(&self, ptr: u64, node_capacity: usize) -> BTreeNode {
+        self.fh.get::<BTreeNodeInFile, u32>(&StrPointer::new(ptr)).to_btree_node(self, node_capacity)
     }
 
     pub fn update_btree_node(&self, ptr: &mut StrPointer, node: &BTreeNode, node_capacity: usize) {
