@@ -127,14 +127,20 @@ impl TableHandler {
     }
 
     // for BTreeNode
-    pub fn insert_btree_node(&self, node: &BTreeNode, node_capacity: usize) -> StrPointer {
-        self.fh.insert::<BTreeNodeInFile, u32>(&BTreeNodeInFile::from(self, node, node_capacity))
+    pub fn insert_btree_node(&self, node: &BTreeNode) -> StrPointer {
+        self.fh.alloc(&node.to_vec_u8())
     }
 
-    pub fn get_btree_node(&self, ptr: &StrPointer) -> BTreeNode {
-        self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self)
+    pub fn get_btree_node(&self, ptr: &StrPointer) -> &mut BTreeNode {
+        self.fh.get_btree_node(ptr)
+        // self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self)
     }
 
+    pub fn get_btree_node_(&self, ptr: u64) -> &BTreeNode {
+        self.fh.get_btree_node(&StrPointer::new(ptr))
+    }
+
+    /*
     pub fn get_btree_node_(&self, ptr: u64) -> BTreeNode {
         self.fh.get::<BTreeNodeInFile, u32>(&StrPointer::new(ptr)).to_btree_node(self)
     }
@@ -148,6 +154,7 @@ impl TableHandler {
         self.fh.update::<BTreeNodeInFile, u32>(&mut s_ptr, &BTreeNodeInFile::from(self, node, node_capacity));
         *ptr = s_ptr.to_u64();
     }
+    */
 
     // for index
     pub fn insert_index(&self, index: &Index) -> StrPointer {

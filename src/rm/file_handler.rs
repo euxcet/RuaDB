@@ -7,6 +7,7 @@ use std::collections::HashSet;
 use crate::utils::bit::*;
 use crate::utils::string::*;
 use crate::bytevec;
+use crate::index::btree::*;
 
 use super::pagedef::*;
 use super::filesystem::bufmanager::buf_page_manager::BufPageManager;
@@ -81,7 +82,7 @@ impl FileHandler {
     }
 
     // alloc a string in the file, return a pointer.
-    fn alloc(&self, s: &Vec<u8>) -> StrPointer {
+    pub fn alloc(&self, s: &Vec<u8>) -> StrPointer {
         let slot_num = (s.len() + SLOT_LENGTH - 1) / SLOT_LENGTH;
         let mut spt = StrPointer::new(0);
 
@@ -144,6 +145,14 @@ impl FileHandler {
             t = sp.strs[t.offset as usize].next.clone();
         }
         T::decode::<Size>(&res).unwrap()
+    }
+
+    pub fn get_btree_node(&self, ptr: &StrPointer) -> &mut BTreeNode {
+        let sp = unsafe{self.sp(ptr.page)};
+        let ss = &sp.strs[ptr.offset as usize];
+        let ptr = ss.bytes.as_ptr() as *const BTreeNode;
+        let t: &mut BTreeNode = unsafe{&mut *ptr};
+        t
     }
 
     // update a struct in the file
