@@ -189,4 +189,15 @@ impl FileHandler {
     pub fn delete(&self, ptr: &mut StrPointer) {
         self.free(ptr);
     }
+
+    pub fn get_column_types_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.column_types_ptr
+    }
+
+    pub fn set_column_types_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.column_types_ptr = ptr;
+    }
+
 }

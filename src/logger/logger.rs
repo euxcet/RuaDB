@@ -21,6 +21,14 @@ impl RuaResult {
             res: Err(e)
         }
     }
+
+    pub fn is_ok(&self) -> bool {
+        self.res.is_ok()
+    }
+    
+    pub fn is_err(&self) -> bool {
+        self.res.is_err()
+    }
 }
 
 pub struct RuaLogger {
@@ -31,7 +39,7 @@ impl RuaLogger {
         Self {}
     }
 
-    pub fn rua(&self, r: &RuaResult) {
+    pub fn log(&self, r: &RuaResult) {
         match &r.res {
             Ok(e) => {
                 let (t, e) = e;

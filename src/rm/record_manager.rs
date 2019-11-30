@@ -8,36 +8,25 @@ use super::table_handler::*;
 
 pub struct RecordManager {
     bpm: Rc<RefCell<BufPageManager>>,
-    root_dir: String,
 }
 
 impl RecordManager {
     pub fn new() -> Self {
-        let settings = settings::Settings::new().unwrap();
-
-        #[cfg(target_os = "macos")]
-        let rd = settings.database.rd_macos;
-        #[cfg(target_os = "windows")]
-        let rd = settings.database.rd_windows;
-        #[cfg(target_os = "linux")]
-        let rd = settings.database.rd_linux;
-
         Self {
             bpm: Rc::new(RefCell::new(BufPageManager::new())),
-            root_dir: rd,
         }
     }
 
     pub fn create_table(&mut self, path: &str) {
-        assert!(self.bpm.borrow_mut().file_manager.create_file((self.root_dir.clone() + path).as_str()).is_ok());
+        assert!(self.bpm.borrow_mut().file_manager.create_file(path).is_ok());
     }
 
     pub fn delete_table(&mut self, path: &str) {
-        assert!(self.bpm.borrow_mut().file_manager.delete_file((self.root_dir.clone() + path).as_str()).is_ok());
+        assert!(self.bpm.borrow_mut().file_manager.delete_file(path).is_ok());
     }
 
     pub fn open_table(&mut self, path: &str) -> TableHandler {
-        let fd = self.bpm.borrow_mut().file_manager.open_file((self.root_dir.clone() + path).as_str());
+        let fd = self.bpm.borrow_mut().file_manager.open_file(path);
         TableHandler::new(FileHandler::new(fd, self.bpm.clone()))
     }
 }
@@ -111,7 +100,7 @@ mod tests {
         }
     }
 
-    #[test]
+    // #[test]
     fn alloc_record() {
         let mut gen = random::Generator::new(false);
         const MAX_STRING_LENGTH: usize = 10;

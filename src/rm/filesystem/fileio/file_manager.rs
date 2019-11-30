@@ -23,7 +23,7 @@ impl FileManager {
     }
 
     fn _open_file(&mut self, name: &str, file_id: i32) -> io::Result<()> {
-        OpenOptions::new().create(true).read(true).write(true).open(name)?;
+        OpenOptions::new().create(false).read(true).write(true).open(name)?;
         self.fd[file_id as usize] = Some(name.to_owned());
         Ok(())
     }

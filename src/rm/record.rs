@@ -1,3 +1,5 @@
+use crate::parser::ast;
+
 #[derive(PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
@@ -33,6 +35,7 @@ pub struct ColumnType {
     pub default_null: bool,
     pub foreign_table_name: String,
 }
+
 
 #[derive(Debug)]
 pub struct ColumnData {

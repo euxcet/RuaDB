@@ -23,6 +23,8 @@ mod executor;
 use settings::Settings;
 use std::io;
 use std::io::prelude::*;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 use parser::sql;
 
@@ -39,9 +41,16 @@ fn print_prompt() {
 
 
 fn main() {
+    use crate::sm::system_manager::SystemManager;
+    use crate::rm::record_manager::RecordManager;
+
     initalize();
-    let rua = logger::logger::RuaLogger::new();
-    let mut exe = executor::Executor::new();
+
+    let logger = logger::logger::RuaLogger::new();
+    let rm = Rc::new(RefCell::new(RecordManager::new()));
+    let sm = Rc::new(RefCell::new(SystemManager::new(rm.clone())));
+    let mut executor = executor::executor::Executor::new(rm.clone(), sm.clone());
+    // let mut checker = executor::checker::Checker::new(rm.clone(), sm.clone());
 
     loop {
         print_prompt();
@@ -55,8 +64,13 @@ fn main() {
         match sql::parse_sql(&input) {
             Ok(sql) => {
                 for stmt in &sql.stmt_list {
-                    let res = exe.exe(stmt);
-                    rua.rua(&res);
+                    let res = executor.check(stmt);
+                    if res.is_ok() {
+                        let res = executor.execute(stmt);
+                        logger.log(&res);
+                    } else {
+                        logger.log(&res);
+                    }
                 }
             },
             Err(e) => {

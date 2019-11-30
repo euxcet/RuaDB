@@ -156,7 +156,8 @@ pub enum Field {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
-    Int(i64),
+    // 1, 2, 3, 4
+    Int(i64), 
     Varchar(i64),
     Date,
     Float,
@@ -164,9 +165,11 @@ pub enum Type {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
+    // 1, 2, 3, 4, 5
     Int(String),
     Str(String),
     Float(String),
+    Date(String),
     Null,
 }
 

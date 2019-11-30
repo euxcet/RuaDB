@@ -4,6 +4,7 @@ use super::in_file::*;
 use super::pagedef::*;
 use crate::index::in_file::*;
 use crate::index::btree::*;
+use crate::utils::convert;
 use std::fmt;
 
 pub struct TableHandler {
@@ -62,6 +63,22 @@ impl TableHandler {
     // for ColumnType
     pub fn insert_column_type(&self, ct: &ColumnType) -> StrPointer {
         self.fh.insert::<ColumnTypeInFile, u32>(&ColumnTypeInFile::from(self, ct))
+    }
+
+    pub fn insert_column_types(&self, cts: &Vec<ColumnType>) {
+        let mut c_ptrs = Vec::new();
+        for ct in cts {
+            c_ptrs.push(self.insert_column_type(ct).to_u64());
+        }
+        let ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&c_ptrs)});
+        self.fh.set_column_types_ptr(ptr.to_u64());
+    }
+
+    pub fn get_column_types(&self) -> Vec<ColumnType> {
+        let ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let s = self.get_string(&ptr);
+        let c_ptrs = unsafe{convert::string_to_vec_u64(&s)};
+        c_ptrs.iter().map(|&p| self.get_column_type(&StrPointer::new(p))).collect()
     }
 
     pub fn get_column_type(&self, ptr: &StrPointer) -> ColumnType {

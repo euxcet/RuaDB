@@ -55,6 +55,8 @@ pub struct FileHeader {
     pub has_used: u32,
     pub free_page: u32,
     pub least_unused_page: u32,
+    pub column_types_ptr: u64,
+    pub btrees_ptr: u64,
 }
 
 
