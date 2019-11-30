@@ -127,8 +127,8 @@ impl TableHandler {
     }
 
     // for BTreeNode
-    pub fn insert_btree_node(&self, node: &BTreeNode) -> StrPointer {
-        self.fh.alloc(&node.to_vec_u8())
+    pub fn insert_btree_node(&self) -> StrPointer {
+        self.fh.alloc(&vec![0u8; BTreeNode::memory_length()], true)
     }
 
     pub fn get_btree_node(&self, ptr: &StrPointer) -> &mut BTreeNode {
@@ -136,7 +136,7 @@ impl TableHandler {
         // self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self)
     }
 
-    pub fn get_btree_node_(&self, ptr: u64) -> &BTreeNode {
+    pub fn get_btree_node_(&self, ptr: u64) -> &mut BTreeNode {
         self.fh.get_btree_node(&StrPointer::new(ptr))
     }
 

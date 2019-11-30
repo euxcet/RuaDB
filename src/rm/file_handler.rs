@@ -81,17 +81,36 @@ impl FileHandler {
         (page_id, fsi)
     }
 
+    fn alloc_large_slot(&self) -> (u32, u32) {
+        let max_number = LARGE_SLOT_PER_PAGE;
+        let header = unsafe{self.header_mut()};
+        let need_new_page = header.free_large_page == 0;
+        if need_new_page {
+            header.free_large_page = self.add_page();
+        }
+        let page_id = header.free_large_page;
+        let ph = unsafe{self.ph_mut(page_id)};
+        let fsi = get_free_index(ph.free_slot);
+        assert!(fsi < max_number as u32);
+        set_used(&mut ph.free_slot, fsi);
+        if all_used(ph.free_slot, max_number) {
+            unsafe{self.header_mut()}.free_large_page = ph.next_free_page;
+        }
+        (page_id, fsi)
+    }
+
     // alloc a string in the file, return a pointer.
-    pub fn alloc(&self, s: &Vec<u8>) -> StrPointer {
-        let slot_num = (s.len() + SLOT_LENGTH - 1) / SLOT_LENGTH;
+    pub fn alloc(&self, s: &Vec<u8>, is_large: bool) -> StrPointer {
+        let length = if is_large {LARGE_SLOT_LENGTH} else {SLOT_LENGTH};
+        let slot_num = (s.len() + length - 1) / length;
         let mut spt = StrPointer::new(0);
 
         for i in (0..slot_num).rev() {
-            let (page_id, offset) = self.alloc_slot();
+            let (page_id, offset) = if is_large {self.alloc_large_slot()} else {self.alloc_slot()};
             let sp = unsafe{self.sp_mut(page_id)}; 
-            let len = if i == slot_num - 1 {s.len() - (slot_num - 1) * SLOT_LENGTH} else {SLOT_LENGTH};
+            let len = if i == slot_num - 1 {s.len() - (slot_num - 1) * length} else {length};
             sp.strs[offset as usize].next = spt;
-            let begin = i * SLOT_LENGTH;
+            let begin = i * length;
             sp.strs[offset as usize].len = (s.len() - begin) as u64;
             copy_bytes_u8(&mut sp.strs[offset as usize].bytes, &s[begin .. begin + len]);
             spt = StrPointer { page: page_id, offset: offset };
@@ -127,7 +146,7 @@ impl FileHandler {
         where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
               Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
         let bytes = data.encode::<Size>().unwrap();
-        self.alloc(&bytes)
+        self.alloc(&bytes, false)
     }
 
     // get a struct from the file
@@ -148,11 +167,8 @@ impl FileHandler {
     }
 
     pub fn get_btree_node(&self, ptr: &StrPointer) -> &mut BTreeNode {
-        let sp = unsafe{self.sp(ptr.page)};
-        let ss = &sp.strs[ptr.offset as usize];
-        let ptr = ss.bytes.as_ptr() as *const BTreeNode;
-        let t: &mut BTreeNode = unsafe{&mut *ptr};
-        t
+        let sp = unsafe{self.sp_mut(ptr.page)};
+        unsafe{transmute(sp.strs[ptr.offset as usize].bytes.as_mut_ptr())}
     }
 
     // update a struct in the file
