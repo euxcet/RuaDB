@@ -149,43 +149,29 @@ impl<'a> BTree<'a> {
     }
 
     pub fn insert_record(&mut self, key: &RawIndex, data: u64) {
-        let mut root = self.th.get_btree_node_(self.root);
+        let root = self.th.get_btree_node_(self.root);
         self.root = root.insert(self.th, key, data, None, 0, self.root);
     }
 
-    /*
     pub fn delete_record(&mut self, key: &RawIndex, data: u64) {
-        let mut root = self.th.get_btree_node_(self.root);
-        self.root = root.delete(key, data, self.node_capacity as usize, None, 0, self.root);
+        let root = self.th.get_btree_node_(self.root);
+        self.root = root.delete(self.th, key, data, None, 0, self.root);
     }
-    */
 
     pub fn search_record(&self, key: &RawIndex) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
         root.search(self.th, key)
     }
 
-    /*
-    pub fn traverse(&self) {
-        let root = self.th.get_btree_node_(self.root);
-        root.traverse(self.root);
-    }
-
     pub fn first_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
-        root.first_bucket()
+        root.first_bucket(self.th)
     }
 
     pub fn last_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
-        root.last_bucket()
+        root.last_bucket(self.th)
     }
-
-    pub fn get_height(&self) -> usize {
-        let root = self.th.get_btree_node_(self.root);
-        root.get_height()
-    }
-    */
 }
 
 #[derive(Debug)]
@@ -271,31 +257,6 @@ impl BTreeNode {
         size_of::<BTreeNode>()
     }
 
-    // offset
-    pub fn get_offset_ty() -> usize {
-        4 * 3 // [flags key next]
-    }
-
-    pub fn get_offset_key(pos: usize) -> usize {
-        4 * 3 // [flags key next]
-        + 1 // flags
-        + pos * 8 // key
-    }
-
-    pub fn get_offset_son(pos: usize, node_capacity: usize) -> usize {
-        4 * 3 // [flags key next]
-        + 1 // flags
-        + (node_capacity + 1) * 8 // key
-        + pos * 8 // son
-    }
-
-    pub fn get_offset_bucket(pos: usize, node_capacity: usize) -> usize {
-        4 * 3 // [flags key next]
-        + 1 // flags
-        + (node_capacity + 1) * 8 // key
-        + pos * 8 // bucket
-    }
-    
     pub fn to_raw(&self, th: &TableHandler, key: u64) -> RawIndex {
         RawIndex::from(&th.get_index_(key))
     }
@@ -373,6 +334,15 @@ impl BTreeNode {
         a[pos] = val;
     }
 
+    pub fn remove(a: &mut[u64], pos: usize, len: usize) -> u64 {
+        let res = a[pos];
+        for i in pos..len - 1 {
+            a[i] = a[i + 1];
+        }
+        a[len - 1] = 0;
+        res
+    }
+
     pub fn split_off(a: &mut[u64], pos: usize, len: usize) -> [u64; BTREE_NODE_CAPACITY + 2] {
         let mut res = [0; BTREE_NODE_CAPACITY + 2];
         for i in pos..len {
@@ -397,6 +367,13 @@ impl BTreeNode {
         a[len] = val;
     }
 
+    pub fn append(a: &mut[u64], len_a: usize, b: &mut[u64], len_b: usize) {
+        for i in 0..len_b {
+            a[len_a + i] = b[i];
+            b[i] = 0;
+        }
+    }
+
     pub fn split(&mut self, th: &TableHandler, father: &mut BTreeNode, pos: usize) {
         let mid = BTREE_NODE_CAPACITY / 2;
         let len = self.get_len();
@@ -406,22 +383,24 @@ impl BTreeNode {
                 let mid_key = self.key[mid];
                 let new_node_ptr = th.insert_btree_node();
                 let mut new_node = th.get_btree_node(&new_node_ptr);
-                new_node.key = BTreeNode::split_off(&mut self.key, mid, len);
-                new_node.bucket = BTreeNode::split_off(&mut self.bucket, mid, len);
-
-                BTreeNode::insert_array(&mut father.key, pos, mid_key, father_len);
-                BTreeNode::insert_array(&mut father.son, pos + 1, new_node_ptr.to_u64(), father_len + 1);
+                unsafe {
+                    new_node.key = BTreeNode::split_off(&mut self.key, mid, len);
+                    new_node.bucket = BTreeNode::split_off(&mut self.bucket, mid, len);
+                    BTreeNode::insert_array(&mut father.key, pos, mid_key, father_len);
+                    BTreeNode::insert_array(&mut father.son, pos + 1, new_node_ptr.to_u64(), father_len + 1);
+                }
             }
             BTreeNodeType::Internal => {
                 let new_node_ptr = th.insert_btree_node();
                 let mut new_node = th.get_btree_node(&new_node_ptr);
                 new_node.ty = BTreeNodeType::Internal;
-                new_node.key = BTreeNode::split_off(&mut self.key, mid + 1, len);
-                new_node.son = BTreeNode::split_off(&mut self.son, mid + 1, len + 1);
-
-                let mid_key = BTreeNode::pop(&mut self.key, mid + 1);
-                BTreeNode::insert_array(&mut father.key, pos, mid_key.unwrap(), father_len);
-                BTreeNode::insert_array(&mut father.son, pos + 1, new_node_ptr.to_u64(), father_len + 1);
+                unsafe {
+                    new_node.key = BTreeNode::split_off(&mut self.key, mid + 1, len);
+                    new_node.son = BTreeNode::split_off(&mut self.son, mid + 1, len + 1);
+                    let mid_key = BTreeNode::pop(&mut self.key, mid + 1);
+                    BTreeNode::insert_array(&mut father.key, pos, mid_key.unwrap(), father_len);
+                    BTreeNode::insert_array(&mut father.son, pos + 1, new_node_ptr.to_u64(), father_len + 1);
+                }
             }
         }
     }
@@ -433,8 +412,8 @@ impl BTreeNode {
                 let key_ptr = th.insert_index(&Index::from(th, key)).to_u64();
                 let i = self.lower_bound(th, key, len);
                 if i == len {
-                    BTreeNode::push(&mut self.key, key_ptr, len);
-                    let prev_bucket = *self.bucket.last().unwrap_or(&0u64);
+                    BTreeNode::push(unsafe{&mut self.key}, key_ptr, len);
+                    let prev_bucket = unsafe{*self.bucket.last().unwrap_or(&0u64)};
                     let next_bucket = if prev_bucket == 0 {0} else {th.get_bucket_(prev_bucket).next};
 
                     let mut bucket = Bucket::new();
@@ -443,27 +422,33 @@ impl BTreeNode {
                     bucket.next = next_bucket;
 
                     let ptr = th.insert_bucket(&bucket).to_u64();
-                    BTreeNode::push(&mut self.bucket, ptr, len);
+                    unsafe {
+                        BTreeNode::push(&mut self.bucket, ptr, len);
+                    }
                 }
                 else if let Some(cmp) = self.to_raw(th, self.key[i]).partial_cmp(key) {
                     match cmp {
                         Ordering::Equal => {
                             let mut bucket = th.get_bucket_(self.bucket[i]);
                             bucket.data.push(data);
-                            th.update_bucket_(&mut self.bucket[i], &bucket);
+                            unsafe {
+                                th.update_bucket_(&mut self.bucket[i], &bucket);
+                            }
                         },
                         Ordering::Greater => {
                             let next_bucket = self.bucket[i];
                             let prev_bucket = th.get_bucket_(next_bucket).prev;
-
-                            BTreeNode::insert_array(&mut self.key, i, key_ptr, len);
+                            unsafe {
+                                BTreeNode::insert_array(&mut self.key, i, key_ptr, len);
+                            }
                             let mut bucket = Bucket::new();
                             bucket.data.push(data);
                             bucket.prev = prev_bucket;
                             bucket.next = next_bucket;
-
                             let ptr = th.insert_bucket(&bucket).to_u64();
-                            BTreeNode::insert_array(&mut self.bucket, i, ptr, len);
+                            unsafe {
+                                BTreeNode::insert_array(&mut self.bucket, i, ptr, len);
+                            }
                         },
                         _ => {}
                     }
@@ -472,7 +457,7 @@ impl BTreeNode {
             BTreeNodeType::Internal => {
                 let son_pos = self.upper_bound(th, key, len);
                 let son_ptr = self.son[son_pos];
-                let mut son_node = th.get_btree_node_(son_ptr);
+                let son_node = th.get_btree_node_(son_ptr);
                 son_node.insert(th, key, data, Some((self, self_ptr)), son_pos, son_ptr);
             }
         }
@@ -488,7 +473,7 @@ impl BTreeNode {
                     let new_root_ptr = th.insert_btree_node();
                     let mut new_root = th.get_btree_node(&new_root_ptr);
                     new_root.ty = BTreeNodeType::Internal;
-                    BTreeNode::push(&mut new_root.son, self_ptr, 0);
+                    BTreeNode::push(unsafe{&mut new_root.son}, self_ptr, 0);
                     self.split(th, &mut new_root, pos);
                     return new_root_ptr.to_u64();
                 }
@@ -498,137 +483,110 @@ impl BTreeNode {
         self_ptr
     }
 
-    /*
-    pub fn combine_internal(&mut self, node_capacity: usize, father: &mut BTreeNode, father_ptr: u64, pos: usize, self_ptr: &mut u64) {
+    pub fn combine_internal(&mut self, th: &TableHandler, father: &mut BTreeNode, pos: usize) {
+        let len = self.get_len();
+        let father_len = father.get_len();
         if pos > 0 { // left sibling
-            let mut sibling = self.th.get_btree_node_(father.son[pos - 1]);
-            if sibling.key.len() > node_capacity / 2 {
-                let key = sibling.key.pop().unwrap();
-                self.key.insert(0, father.key[pos - 1]);
-                let son = sibling.son.pop().unwrap();
-                self.son.insert(0, son);
+            let sibling = th.get_btree_node_(father.son[pos - 1]);
+            let sibling_len = sibling.get_len();
+            if sibling_len > BTREE_NODE_CAPACITY / 2 {
                 unsafe {
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&sibling.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&sibling.son, node_capacity + 1).into_bytes());
+                    let key = BTreeNode::pop(&mut sibling.key, sibling_len).unwrap();
+                    BTreeNode::insert_array(&mut self.key, 0, father.key[pos - 1], len);
+                    let son = BTreeNode::pop(&mut sibling.son, sibling_len + 1).unwrap();
+                    BTreeNode::insert_array(&mut self.son, 0, son, len + 1);
+                    father.key[pos - 1] = key;
                 }
-                father.key[pos - 1] = key;
             }
             else {
-                sibling.key.push(father.key[pos - 1]);
-                sibling.key.append(&mut self.key);
-                sibling.son.append(&mut self.son);
                 unsafe {
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&sibling.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&sibling.son, node_capacity + 1).into_bytes());
+                    BTreeNode::push(&mut sibling.key, father.key[pos - 1], sibling_len);
+                    BTreeNode::append(&mut sibling.key, sibling_len + 1, &mut self.key, len);
+                    BTreeNode::append(&mut sibling.son, sibling_len + 1, &mut self.son, len + 1);
+                    BTreeNode::remove(&mut father.key, pos - 1, father_len);
+                    BTreeNode::remove(&mut father.son, pos, father_len + 1);
                 }
-                father.key.remove(pos - 1);
-                father.son.remove(pos);
             }
         }
-        else if pos < father.son.len() - 1 { // right sibling
-            let mut sibling = self.th.get_btree_node_(father.son[pos + 1]);
-            if sibling.key.len() > node_capacity / 2 {
-                let key = sibling.key.remove(0);
-                self.key.push(father.key[pos]);
-                let son = sibling.son.remove(0);
-                self.son.push(son);
+        else if pos < father_len { // right sibling
+            let sibling = th.get_btree_node_(father.son[pos + 1]);
+            let sibling_len = sibling.get_len();
+            if sibling_len > BTREE_NODE_CAPACITY / 2 {
                 unsafe {
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos + 1], BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&sibling.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos + 1], BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&sibling.son, node_capacity + 1).into_bytes());
+                    let key = BTreeNode::remove(&mut sibling.key, 0, sibling_len);
+                    BTreeNode::push(&mut self.key, father.key[pos], len);
+                    let son = BTreeNode::remove(&mut sibling.son, 0, sibling_len + 1);
+                    BTreeNode::push(&mut self.son, son, len + 1);
+                    father.key[pos] = key;
                 }
-                father.key[pos] = key;
             }
             else {
-                self.key.push(father.key[pos]);
-                self.key.append(&mut sibling.key);
-                self.son.append(&mut sibling.son);
                 unsafe {
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&self.son, node_capacity + 1).into_bytes());
+                    BTreeNode::push(&mut self.key, father.key[pos], len);
+                    BTreeNode::append(&mut self.key, len + 1, &mut sibling.key, sibling_len);
+                    BTreeNode::append(&mut self.son, len + 1, &mut sibling.son, sibling_len + 1);
+                    BTreeNode::remove(&mut father.key, pos, father_len);
+                    BTreeNode::remove(&mut father.son, pos + 1, father_len + 1);
                 }
-                father.key.remove(pos);
-                father.son.remove(pos + 1);
-            }
-        }
-        if father.key.len() >= node_capacity / 2 {
-            unsafe {
-                self.th.update_sub_(father_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity + 1).into_bytes());
-                self.th.update_sub_(father_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity + 1).into_bytes());
             }
         }
     }
 
-    pub fn combine_leaf(&mut self, node_capacity: usize, father: &mut BTreeNode, father_ptr: u64, pos: usize, self_ptr: &mut u64) {
+    pub fn combine_leaf(&mut self, th: &TableHandler, father: &mut BTreeNode, pos: usize) {
+        let len = self.get_len();
+        let father_len = father.get_len();
         if pos > 0 { // left sibling
-            let mut sibling = self.th.get_btree_node_(father.son[pos - 1]);
-            if sibling.key.len() > node_capacity / 2 {
-                let key = sibling.key.pop().unwrap();
-                self.key.insert(0, key);
-                self.bucket.insert(0, sibling.bucket.pop().unwrap());
+            let sibling = th.get_btree_node_(father.son[pos - 1]);
+            let sibling_len = sibling.get_len();
+            if sibling_len > BTREE_NODE_CAPACITY / 2 {
                 unsafe {
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&sibling.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&sibling.bucket, node_capacity + 1).into_bytes());
+                    let key = BTreeNode::pop(&mut sibling.key, sibling_len).unwrap();
+                    BTreeNode::insert_array(&mut self.key, 0, key, len);
+                    let bucket = BTreeNode::pop(&mut sibling.bucket, sibling_len).unwrap();
+                    BTreeNode::insert_array(&mut self.bucket, 0, bucket, len);
+                    father.key[pos - 1] = key;
                 }
-                father.key[pos - 1] = key;
             }
             else {
-                sibling.key.append(&mut self.key);
-                sibling.bucket.append(&mut self.bucket);
                 unsafe {
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&sibling.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos - 1], BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&sibling.bucket, node_capacity + 1).into_bytes());
+                    BTreeNode::append(&mut sibling.key, sibling_len, &mut self.key, len);
+                    BTreeNode::append(&mut sibling.bucket, sibling_len, &mut self.bucket, len);
+                    BTreeNode::remove(&mut father.key, pos - 1, father_len);
+                    BTreeNode::remove(&mut father.son, pos, father_len + 1);
                 }
-                father.key.remove(pos - 1);
-                father.son.remove(pos);
             }
         }
-        else if pos < father.son.len() - 1 { // right sibling
-            let mut sibling = self.th.get_btree_node_(father.son[pos + 1]);
-            if sibling.key.len() > node_capacity / 2 {
-                let key = sibling.key.remove(0);
-                self.key.push(key);
-                self.bucket.push(sibling.bucket.remove(0));
+        else if pos < father_len { // right sibling
+            let sibling = th.get_btree_node_(father.son[pos + 1]);
+            let sibling_len = sibling.get_len();
+            if sibling_len > BTREE_NODE_CAPACITY / 2 {
                 unsafe {
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos + 1], BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&sibling.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(father.son[pos + 1], BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&sibling.bucket, node_capacity + 1).into_bytes());
+                    let key = BTreeNode::remove(&mut sibling.key, 0, sibling_len);
+                    BTreeNode::push(&mut self.key, key, len);
+                    let bucket = BTreeNode::remove(&mut sibling.bucket, 0, sibling_len);
+                    BTreeNode::push(&mut self.bucket, bucket, len);
+                    father.key[pos] = key;
                 }
-                father.key[pos] = key;
             }
             else {
-                self.key.append(&mut sibling.key);
-                self.bucket.append(&mut sibling.bucket);
                 unsafe {
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&self.key, node_capacity + 1).into_bytes());
-                    self.th.update_sub_(*self_ptr, BTreeNode::get_offset_bucket(0, node_capacity), convert::vec_u64_to_string_len(&self.bucket, node_capacity + 1).into_bytes());
+                    BTreeNode::append(&mut self.key, len, &mut sibling.key, sibling_len);
+                    BTreeNode::append(&mut self.bucket, len, &mut sibling.bucket, sibling_len);
+                    BTreeNode::remove(&mut father.key, pos, father_len);
+                    BTreeNode::remove(&mut father.son, pos + 1, father_len + 1);
                 }
-                father.key.remove(pos);
-                father.son.remove(pos + 1);
-            }
-        }
-        if father.key.len() >= node_capacity / 2 {
-            unsafe {
-                self.th.update_sub_(father_ptr, BTreeNode::get_offset_key(0), convert::vec_u64_to_string_len(&father.key, node_capacity + 1).into_bytes());
-                self.th.update_sub_(father_ptr, BTreeNode::get_offset_son(0, node_capacity), convert::vec_u64_to_string_len(&father.son, node_capacity + 1).into_bytes());
             }
         }
     }
 
-    pub fn delete(&mut self, key: &RawIndex, data: u64, node_capacity: usize, father: Option<(&mut BTreeNode, &mut u64)>, pos: usize, self_ptr: u64) -> u64 {
+    pub fn delete(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<(&mut BTreeNode, &mut u64)>, pos: usize, self_ptr: u64) -> u64 {
         let mut self_ptr = self_ptr;
-        let mut modified = false;
+        let len = self.get_len();
         match self.ty {
             BTreeNodeType::Leaf => {
-                for i in 0..self.key.len() {
-                    if self.to_raw(self.key[i]) == *key {
-                        let mut bucket = self.th.get_bucket_(self.bucket[i]);
+                for i in 0..len {
+                    if self.to_raw(th, self.key[i]) == *key {
+                        let mut bucket = th.get_bucket_(self.bucket[i]);
                         for j in 0..bucket.data.len() {
                             if bucket.data[j] == data {
                                 bucket.data.remove(j);
@@ -636,27 +594,26 @@ impl BTreeNode {
                             }
                         }
                         if bucket.data.is_empty() {
-                            modified = true;
-                            self.key.remove(i);
-                            self.bucket.remove(i);
-
                             let prev_bucket = if i > 0 {self.bucket[i - 1]} else {0u64};
-                            let next_bucket = if i + 1 < self.bucket.len() {self.bucket[i + 1]} else {0u64};
-                            let prev_bucket = if prev_bucket == 0 && next_bucket != 0 {self.th.get_bucket_(next_bucket).prev} else {prev_bucket};
-                            let next_bucket = if next_bucket == 0 && prev_bucket != 0 {self.th.get_bucket_(prev_bucket).next} else {next_bucket};
+                            let next_bucket = if i + 1 < len {self.bucket[i + 1]} else {0u64};
+                            let prev_bucket = if prev_bucket == 0 && next_bucket != 0 {th.get_bucket_(next_bucket).prev} else {prev_bucket};
+                            let next_bucket = if next_bucket == 0 && prev_bucket != 0 {th.get_bucket_(prev_bucket).next} else {next_bucket};
                             unsafe {
                                 if prev_bucket != 0 {
-                                    self.th.update_sub_(prev_bucket, Bucket::get_offset_next(), convert::u64_to_vec_u8(next_bucket));
+                                    th.update_sub_(prev_bucket, Bucket::get_offset_next(), convert::u64_to_vec_u8(next_bucket));
                                 }
                                 if next_bucket != 0 {
-                                    self.th.update_sub_(next_bucket, Bucket::get_offset_prev(), convert::u64_to_vec_u8(prev_bucket));
+                                    th.update_sub_(next_bucket, Bucket::get_offset_prev(), convert::u64_to_vec_u8(prev_bucket));
                                 }
+                            }
+                            unsafe {
+                                BTreeNode::remove(&mut self.key, i, len);
+                                BTreeNode::remove(&mut self.bucket, i, len);
                             }
                         }
                         else {
-                            self.th.update_bucket_(&mut self.bucket[i], &bucket);
                             unsafe {
-                                self.th.update_sub_(self_ptr, BTreeNode::get_offset_bucket(i, node_capacity), convert::u64_to_vec_u8(self.bucket[i]));
+                                th.update_bucket_(&mut self.bucket[i], &bucket);
                             }
                         }
                         break;
@@ -664,38 +621,34 @@ impl BTreeNode {
                 }
             }
             BTreeNodeType::Internal => {
-                let son_pos = self.upper_bound(key);
+                let son_pos = self.upper_bound(th, key, len);
                 let son_ptr = self.son[son_pos];
-                let mut son_node = self.th.get_btree_node_(son_ptr);
-                son_node.delete(key, data, node_capacity, Some((self, &mut self_ptr)), son_pos, son_ptr);
+                let son_node = th.get_btree_node_(son_ptr);
+                son_node.delete(th, key, data, Some((self, &mut self_ptr)), son_pos, son_ptr);
             }
         }
 
+        let len = self.get_len();
         // combine
-        if self.key.len() < node_capacity / 2 && father.is_some() {
+        if len < BTREE_NODE_CAPACITY / 2 && father.is_some() {
             let father = father.unwrap();
             match self.ty {
                 BTreeNodeType::Leaf => {
-                    self.combine_leaf(node_capacity, father.0, *father.1, pos, &mut self_ptr);
+                    self.combine_leaf(th, father.0, pos);
                 }
                 BTreeNodeType::Internal => {
-                    self.combine_internal(node_capacity, father.0, *father.1, pos, &mut self_ptr);
+                    self.combine_internal(th, father.0, pos);
                 }
             }
         }
-        else if father.is_none() && self.key.is_empty() && !self.son.is_empty() { // delete root
+        else if father.is_none() && self.key[0] == 0 && self.son[0] != 0 && self.son[1] == 0 { // delete root
             self_ptr = self.son[0];
-        }
-        else if modified || father.is_none() {
-            self.th.update_btree_node_(&mut self_ptr, self, node_capacity);
         }
 
         self_ptr
     }
-    */
 
     pub fn search(&self, th: &TableHandler, key: &RawIndex) -> Option<Bucket> {
-        // println!("search {:?} {:?} {:?} {:?}   key {:?}", self.ty, self.key.to_vec(), self.son.to_vec(), self.bucket.to_vec(), key);
         let len = self.get_len();
         match self.ty {
             BTreeNodeType::Leaf => {
@@ -712,52 +665,35 @@ impl BTreeNode {
         None
     }
 
-    /*
-    pub fn get_height(&self) -> usize {
+    pub fn first_bucket(&self, th: &TableHandler) -> Option<Bucket> {
         match self.ty {
             BTreeNodeType::Leaf => {
-                0
-            }
-            BTreeNodeType::Internal => {
-                self.th.get_btree_node_(self.son[0]).get_height() + 1
-            }
-        }
-    }
-
-    pub fn traverse(&self, self_ptr: u64) {
-        match self.ty {
-            BTreeNodeType::Leaf => {
-                assert_eq!(self.key.len(), self.bucket.len());
-            }
-            BTreeNodeType::Internal => {
-                assert_eq!(self.key.len() + 1, self.son.len());
-                for i in 0..self.son.len() {
-                    self.th.get_btree_node_(self.son[i]).traverse(self.son[i]);
+                if self.bucket[0] == 0 {
+                    None
+                }
+                else {
+                    Some(th.get_bucket_(self.bucket[0]))
                 }
             }
-        }
-    }
-
-    pub fn first_bucket(&self) -> Option<Bucket> {
-        match self.ty {
-            BTreeNodeType::Leaf => {
-                self.bucket.first().map(|x| self.th.get_bucket_(*x))
-            }
             BTreeNodeType::Internal => {
-                self.th.get_btree_node_(*self.son.first().unwrap()).first_bucket()
+                th.get_btree_node_(self.son[0]).first_bucket(th)
             }
         }
     }
 
-    pub fn last_bucket(&self) -> Option<Bucket> {
+    pub fn last_bucket(&self, th: &TableHandler) -> Option<Bucket> {
         match self.ty {
             BTreeNodeType::Leaf => {
-                self.bucket.last().map(|x| self.th.get_bucket_(*x))
+                if self.bucket[0] == 0 {
+                    None
+                }
+                else {
+                    Some(th.get_bucket_(self.bucket[self.get_len() - 1]))
+                }
             }
             BTreeNodeType::Internal => {
-                self.th.get_btree_node_(*self.son.last().unwrap()).first_bucket()
+                th.get_btree_node_(self.son[self.get_len()]).first_bucket(th)
             }
         }
     }
-    */
 }

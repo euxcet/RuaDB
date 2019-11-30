@@ -161,8 +161,8 @@ mod tests {
         let start_time = SystemTime::now();
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
-        const MAX_RECORD_NUMBER: usize = 10000;
-        const BTREE_NODE_CAPACITY: u32 = 100;
+        const MAX_RECORD_NUMBER: usize = 1000;
+        const BTREE_NODE_CAPACITY: u32 = 20;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
@@ -203,10 +203,9 @@ mod tests {
         th.close();
 
         println!("btree insert {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
-        /*
 
         let th = r.open_table("alloc_btree_test.rua");
-        let mut btree_ = th.get_btree(&btree_ptr);
+        let btree_ = th.get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
@@ -232,6 +231,5 @@ mod tests {
         th.close();
 
         println!("btree delete {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
-        */
     }
 }
