@@ -3,6 +3,10 @@ use std::mem::size_of;
 pub const SLOT_PER_PAGE: usize = 30;
 pub const SLOT_LENGTH: usize = 256;
 
+pub const LARGE_SLOT_PER_PAGE: usize = 1;
+pub const LARGE_SLOT_LENGTH: usize= 4096;
+
+
 pub const PAGE_SIZE: usize = 8192;
 pub const PAGE_SIZE_IDX: i32 = 13;
 
@@ -49,11 +53,25 @@ pub struct StringPage {
     pub strs: [StringSlice; SLOT_PER_PAGE],
 }
 
+#[repr(C)]
+pub struct LargeStringSlice {
+    pub len: u64,
+    pub bytes: [u8; LARGE_SLOT_LENGTH],
+    pub next: StrPointer,
+}
+
+#[repr(C)]
+pub struct LargeSlotPage {
+    pub header: PageHeader,
+    pub strs: [StringSlice; LARGE_SLOT_PER_PAGE],
+}
+
 #[derive(Default, Debug)]
 #[repr(C)]
 pub struct FileHeader {
     pub has_used: u32,
     pub free_page: u32,
+    pub free_large_page: u32,
     pub least_unused_page: u32,
 }
 
