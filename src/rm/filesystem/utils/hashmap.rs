@@ -14,7 +14,7 @@ pub struct Hashmap {
 
 impl Hashmap {
     fn hash(&self, k1: i32, k2: i32) -> i32 {
-        ((k1 + k2) * (k1 + k2 + 1) / 2 + k2) % self.modd
+        (((k1 + k2) as i64 * (k1 + k2 + 1) as i64 / 2 + k2 as i64) % self.modd as i64) as i32
     }
 
     pub fn print(&self) {
