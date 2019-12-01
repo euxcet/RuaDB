@@ -118,16 +118,14 @@ impl PartialEq for RawIndex {
 pub struct BTree<'a> {
     pub th: &'a TableHandler,
     pub root: u64,
-    pub node_capacity: u32,
     pub index_col: Vec<u32>, // should be orderly
 }
 
 impl<'a> BTree<'a> {
-    pub fn new(th: &'a TableHandler, node_capacity: u32, index_col: Vec<u32>) -> Self {
+    pub fn new(th: &'a TableHandler, index_col: Vec<u32>) -> Self {
         Self {
             th: th,
             root: th.insert_btree_node().to_u64(),
-            node_capacity: node_capacity,
             index_col: index_col,
         }
     }
