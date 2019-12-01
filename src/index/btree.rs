@@ -430,7 +430,7 @@ impl BTreeNode {
                             let mut bucket = th.get_bucket_(self.bucket[i]);
                             bucket.data.push(data);
                             unsafe {
-                                th.update_bucket_(&mut self.bucket[i], &bucket);
+                                th.update_bucket_(self.bucket[i], &bucket);
                             }
                         },
                         Ordering::Greater => {
@@ -611,7 +611,7 @@ impl BTreeNode {
                         }
                         else {
                             unsafe {
-                                th.update_bucket_(&mut self.bucket[i], &bucket);
+                                th.update_bucket_(self.bucket[i], &bucket);
                             }
                         }
                         break;
