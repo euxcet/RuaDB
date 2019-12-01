@@ -31,6 +31,9 @@ impl FileHandler {
             header.has_used = 1;
             header.free_page = 0;
             header.least_unused_page = 1;
+            header.btrees_ptr = 0;
+            header.column_types_ptr = 0;
+            header.btree = 0;
         }
         s
     }
@@ -137,7 +140,7 @@ impl FileHandler {
     }
 
     // free a string in the file
-    fn free(&self, strp: &mut StrPointer) {
+    pub fn free(&self, strp: &mut StrPointer) {
         while !strp.is_null() {
             self.free_slot(strp);
         }
@@ -227,5 +230,35 @@ impl FileHandler {
     // delete a struct in the file
     pub fn delete(&self, ptr: &mut StrPointer) {
         self.free(ptr);
+    }
+
+    pub fn get_column_types_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.column_types_ptr
+    }
+
+    pub fn set_column_types_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.column_types_ptr = ptr;
+    }
+
+    pub fn set_btrees_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.btrees_ptr = ptr;
+    }
+
+    pub fn get_btrees_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.btrees_ptr
+    }
+
+    pub fn get_born_btree_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.btree
+    }
+
+    pub fn set_born_btree_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.btree = ptr;
     }
 }
