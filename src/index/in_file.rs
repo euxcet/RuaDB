@@ -5,7 +5,6 @@ use super::btree::*;
 bytevec_decl! {
     pub struct BTreeInFile {
         root: u64, // StrPointer
-        node_capacity: u32,
         index_col: String
     }
 
@@ -55,7 +54,6 @@ impl BTreeInFile {
     pub fn from(th: &TableHandler, btree: &BTree) -> Self {
         Self {
             root: btree.root,
-            node_capacity: btree.node_capacity,
             index_col: unsafe{convert::vec_u32_to_string(&btree.index_col)},
         }
     }
@@ -64,7 +62,6 @@ impl BTreeInFile {
         BTree {
             th: th,
             root: self.root,
-            node_capacity: self.node_capacity,
             index_col: unsafe{convert::string_to_vec_u32(&self.index_col)},
         }
     }
@@ -162,13 +159,12 @@ mod tests {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
         const MAX_RECORD_NUMBER: usize = 1000;
-        const BTREE_NODE_CAPACITY: u32 = 20;
 
         let mut r = RecordManager::new();
         r.create_table("alloc_btree_test.rua");
 
         let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
-        let th = r.open_table("alloc_btree_test.rua");
+        let th = r.open_table("alloc_btree_test.rua", false);
         for c in &columns {
             th.insert_column_type(c);
         }
@@ -176,7 +172,7 @@ mod tests {
 
         let mut ptrs = Vec::new();
 
-        let th = r.open_table("alloc_btree_test.rua");
+        let th = r.open_table("alloc_btree_test.rua", false);
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             let insert_times: usize = gen.gen_range(1, 2);
@@ -187,37 +183,39 @@ mod tests {
         th.close();
         println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-        let th = r.open_table("alloc_btree_test.rua");
-        let btree = BTree::new(&th, BTREE_NODE_CAPACITY, vec![0]);
-        let mut btree_ptr = th.insert_btree(&btree);
+        let th = r.open_table("alloc_btree_test.rua", false);
+        let btree = BTree::new(&th, vec![0]);
+        let btree_ptr = th.__insert_btree(&btree);
         th.close();
 
-        let th = r.open_table("alloc_btree_test.rua");
-        let mut btree_ = th.get_btree(&btree_ptr);
+        let th = r.open_table("alloc_btree_test.rua", false);
+
+        let mut btree_ = th.__get_btree(&btree_ptr);
+
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             btree_.insert_record(&index, ptrs[i].to_u64());
         }
-        th.update_btree(&mut btree_ptr, &btree_);
+        th.update_btree(&btree_ptr, &btree_);
         th.close();
 
         println!("btree insert {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-        let th = r.open_table("alloc_btree_test.rua");
-        let btree_ = th.get_btree(&btree_ptr);
+        let th = r.open_table("alloc_btree_test.rua", false);
+        let btree_ = th.__get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             assert!(btree_.search_record(&index).unwrap().data.contains(&ptrs[i].to_u64()));
         }
-        th.update_btree(&mut btree_ptr, &btree_);
+        th.update_btree(&btree_ptr, &btree_);
         th.close();
 
         println!("btree search {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-        let th = r.open_table("alloc_btree_test.rua");
-        let mut btree_ = th.get_btree(&btree_ptr);
+        let th = r.open_table("alloc_btree_test.rua", false);
+        let mut btree_ = th.__get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
@@ -227,7 +225,7 @@ mod tests {
                 assert!(!result.unwrap().data.contains(&ptrs[i].to_u64()));
             }
         }
-        th.update_btree(&mut btree_ptr, &btree_);
+        th.update_btree(&btree_ptr, &btree_);
         th.close();
 
         println!("btree delete {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());

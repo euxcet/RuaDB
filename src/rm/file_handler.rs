@@ -31,6 +31,9 @@ impl FileHandler {
             header.has_used = 1;
             header.free_page = 0;
             header.least_unused_page = 1;
+            header.btrees_ptr = 0;
+            header.column_types_ptr = 0;
+            header.btree = 0;
         }
         s
     }
@@ -100,22 +103,24 @@ impl FileHandler {
     }
 
     // alloc a string in the file, return a pointer.
-    pub fn alloc(&self, s: &Vec<u8>, is_large: bool) -> StrPointer {
+    pub fn alloc(&self, data: &Vec<u8>, is_large: bool) -> StrPointer {
         let length = if is_large {LARGE_SLOT_LENGTH} else {SLOT_LENGTH};
-        let slot_num = (s.len() + length - 1) / length;
-        let mut spt = StrPointer::new(0);
-
-        for i in (0..slot_num).rev() {
-            let (page_id, offset) = if is_large {self.alloc_large_slot()} else {self.alloc_slot()};
-            let sp = unsafe{self.sp_mut(page_id)}; 
-            let len = if i == slot_num - 1 {s.len() - (slot_num - 1) * length} else {length};
-            sp.strs[offset as usize].next = spt;
-            let begin = i * length;
-            sp.strs[offset as usize].len = (s.len() - begin) as u64;
-            copy_bytes_u8(&mut sp.strs[offset as usize].bytes, &s[begin .. begin + len]);
-            spt = StrPointer { page: page_id, offset: offset };
+        let mut d_offset = 0;
+        let mut slot = if is_large {self.alloc_large_slot()} else {self.alloc_slot()};
+        let ptr = StrPointer { page: slot.0, offset: slot.1 };
+        while d_offset < data.len() {
+            let sp = unsafe{self.sp_mut(slot.0)};
+            let ss = &mut sp.strs[slot.1 as usize];
+            let len = min(data.len() - d_offset, length);
+            ss.len = (data.len() - d_offset) as u64;
+            copy_bytes_u8(&mut ss.bytes, &data[d_offset .. d_offset + len]);
+            d_offset += len;
+            if d_offset < data.len() {
+                slot = if is_large {self.alloc_large_slot()} else {self.alloc_slot()};
+                ss.next = StrPointer { page: slot.0, offset: slot.1 };
+            }
         }
-        spt
+        ptr
     }
 
     // free a slot
@@ -135,7 +140,7 @@ impl FileHandler {
     }
 
     // free a string in the file
-    fn free(&self, strp: &mut StrPointer) {
+    pub fn free(&self, strp: &mut StrPointer) {
         while !strp.is_null() {
             self.free_slot(strp);
         }
@@ -154,57 +159,106 @@ impl FileHandler {
         where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
               Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
         let mut res: Vec<u8> = Vec::new();
-        let mut t = ptr.clone();
+        let mut t = ptr;
         while !t.is_null() {
             let sp = unsafe{self.sp(t.page)};
             let ss = &sp.strs[t.offset as usize];
             let len = min(ss.len as usize, SLOT_LENGTH);
             let bytes = &ss.bytes[..len];
             res.extend_from_slice(bytes);
-            t = sp.strs[t.offset as usize].next.clone();
+            t = &ss.next;
         }
         T::decode::<Size>(&res).unwrap()
     }
 
-    pub fn get_btree_node(&self, ptr: &StrPointer) -> &mut BTreeNode {
+    pub fn get_mut<T>(&self, ptr: &StrPointer) -> &mut T {
         let sp = unsafe{self.sp_mut(ptr.page)};
         unsafe{transmute(sp.strs[ptr.offset as usize].bytes.as_mut_ptr())}
     }
 
     // update a struct in the file
-    pub fn update<T, Size>(&self, ptr: &mut StrPointer, data: &T)
+    pub fn update<T, Size>(&self, ptr: &StrPointer, data: &T)
         where T: bytevec::ByteEncodable + bytevec::ByteDecodable,
               Size: bytevec::BVSize + bytevec::ByteEncodable + bytevec::ByteDecodable {
-        self.free(ptr);
-        *ptr = self.insert::<T, Size>(data);
+        let length = SLOT_LENGTH;
+        let data = data.encode::<Size>().unwrap();
+        let mut d_offset = 0; 
+        let mut t = ptr;
+        while d_offset < data.len() {
+            let sp = unsafe{self.sp_mut(t.page)};
+            let ss = &mut sp.strs[t.offset as usize];
+            let len = min(data.len() - d_offset, length);
+            ss.len = (data.len() - d_offset) as u64;
+            copy_bytes_u8(&mut ss.bytes, &data[d_offset .. d_offset + len]);
+            d_offset += len;
+            if d_offset < data.len() && ss.next.to_u64() == 0 {
+                let slot = self.alloc_slot();
+                ss.next = StrPointer { page: slot.0, offset: slot.1 };
+            }
+            else if d_offset == data.len() && ss.next.to_u64() != 0 {
+                self.free(&mut ss.next);
+            }
+            t = &ss.next;
+        }
     }
 
     pub fn update_sub(&self, ptr: &StrPointer, offset: usize, data: Vec<u8>) {
+        let length = SLOT_LENGTH;
         let mut offset = offset;
-        let mut t = ptr.clone();
-
-        let slot_index = offset / SLOT_LENGTH;
-        for _ in 0..slot_index {
+        let mut t = ptr;
+        while offset > length {
             let sp = unsafe{self.sp(t.page)};
-            t = sp.strs[t.offset as usize].next.clone();
+            t = &sp.strs[t.offset as usize].next;
+            offset -= length;
         }
-        offset -= slot_index * SLOT_LENGTH;
-
-        let mut done: usize = 0;
-        while done < data.len() {
+        let mut d_offset: usize = 0;
+        while d_offset < data.len() {
             let sp = unsafe{self.sp_mut(t.page)};
-            let slot_len = min(sp.strs[t.offset as usize].len as usize, SLOT_LENGTH);
-            let copy_len = min(slot_len - offset, data.len() - done);
-            assert!(copy_len > 0);
-            copy_bytes_u8_offset(&mut sp.strs[t.offset as usize].bytes, &data[done .. done + copy_len], offset);
-            t = sp.strs[t.offset as usize].next.clone();
-            done += copy_len;
+            let ss = &mut sp.strs[t.offset as usize];
+            let len = min(data.len() - d_offset, length);
+            copy_bytes_u8_offset(&mut ss.bytes, &data[d_offset .. d_offset + len], offset);
             offset = 0;
+            d_offset += len;
+            if d_offset < data.len() && ss.next.to_u64() == 0 {
+                let slot = self.alloc_slot();
+                ss.next = StrPointer { page: slot.0, offset: slot.1 };
+            }
+            t = &ss.next;
         }
     }
 
     // delete a struct in the file
     pub fn delete(&self, ptr: &mut StrPointer) {
         self.free(ptr);
+    }
+
+    pub fn get_column_types_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.column_types_ptr
+    }
+
+    pub fn set_column_types_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.column_types_ptr = ptr;
+    }
+
+    pub fn set_btrees_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.btrees_ptr = ptr;
+    }
+
+    pub fn get_btrees_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.btrees_ptr
+    }
+
+    pub fn get_born_btree_ptr(&self) -> u64 {
+        let header = unsafe { self.header_mut() };
+        header.btree
+    }
+
+    pub fn set_born_btree_ptr(&self, ptr: u64) {
+        let header = unsafe { self.header_mut() };
+        header.btree = ptr;
     }
 }

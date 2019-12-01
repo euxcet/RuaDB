@@ -1,3 +1,21 @@
+use crate::parser::ast;
+
+pub const TYPE_INT: i32 = 1;
+pub const TYPE_STR: i32 = 2;
+pub const TYPE_FLOAT: i32 = 3;
+pub const TYPE_DATE: i32 = 4;
+pub const TYPE_NUMERIC: i32 = 5;
+
+pub fn datatype2int(ty: &Type) -> i32 {
+    match ty {
+        Type::Int(_) => TYPE_INT,
+        Type::Str(_) => TYPE_STR,
+        Type::Float(_) => TYPE_FLOAT,
+        Type::Date(_) => TYPE_DATE,
+        Type::Numeric(_) => TYPE_NUMERIC,
+    }
+}
+
 #[derive(PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
@@ -35,7 +53,9 @@ pub struct ColumnType {
     pub is_foreign: bool,
     pub default_null: bool,
     pub foreign_table_name: String,
+    pub foreign_table_column: String,
 }
+
 
 #[derive(Debug)]
 pub struct ColumnData {

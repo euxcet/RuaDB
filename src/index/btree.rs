@@ -118,16 +118,14 @@ impl PartialEq for RawIndex {
 pub struct BTree<'a> {
     pub th: &'a TableHandler,
     pub root: u64,
-    pub node_capacity: u32,
     pub index_col: Vec<u32>, // should be orderly
 }
 
 impl<'a> BTree<'a> {
-    pub fn new(th: &'a TableHandler, node_capacity: u32, index_col: Vec<u32>) -> Self {
+    pub fn new(th: &'a TableHandler, index_col: Vec<u32>) -> Self {
         Self {
             th: th,
             root: th.insert_btree_node().to_u64(),
-            node_capacity: node_capacity,
             index_col: index_col,
         }
     }
@@ -405,7 +403,7 @@ impl BTreeNode {
         }
     }
 
-    pub fn insert(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<(&mut BTreeNode, u64)>, pos: usize, self_ptr: u64) -> u64 {
+    pub fn insert(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<&mut BTreeNode>, pos: usize, self_ptr: u64) -> u64 {
         let len = self.get_len();
         match self.ty {
             BTreeNodeType::Leaf => {
@@ -432,7 +430,7 @@ impl BTreeNode {
                             let mut bucket = th.get_bucket_(self.bucket[i]);
                             bucket.data.push(data);
                             unsafe {
-                                th.update_bucket_(&mut self.bucket[i], &bucket);
+                                th.update_bucket_(self.bucket[i], &bucket);
                             }
                         },
                         Ordering::Greater => {
@@ -458,7 +456,7 @@ impl BTreeNode {
                 let son_pos = self.upper_bound(th, key, len);
                 let son_ptr = self.son[son_pos];
                 let son_node = th.get_btree_node_(son_ptr);
-                son_node.insert(th, key, data, Some((self, self_ptr)), son_pos, son_ptr);
+                son_node.insert(th, key, data, Some(self), son_pos, son_ptr);
             }
         }
         
@@ -467,7 +465,7 @@ impl BTreeNode {
         if len > BTREE_NODE_CAPACITY {
             match father {
                 Some(father) => {
-                    self.split(th, father.0, pos);
+                    self.split(th, father, pos);
                 }
                 None => {
                     let new_root_ptr = th.insert_btree_node();
@@ -579,7 +577,7 @@ impl BTreeNode {
         }
     }
 
-    pub fn delete(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<(&mut BTreeNode, &mut u64)>, pos: usize, self_ptr: u64) -> u64 {
+    pub fn delete(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<&mut BTreeNode>, pos: usize, self_ptr: u64) -> u64 {
         let mut self_ptr = self_ptr;
         let len = self.get_len();
         match self.ty {
@@ -613,7 +611,7 @@ impl BTreeNode {
                         }
                         else {
                             unsafe {
-                                th.update_bucket_(&mut self.bucket[i], &bucket);
+                                th.update_bucket_(self.bucket[i], &bucket);
                             }
                         }
                         break;
@@ -624,20 +622,19 @@ impl BTreeNode {
                 let son_pos = self.upper_bound(th, key, len);
                 let son_ptr = self.son[son_pos];
                 let son_node = th.get_btree_node_(son_ptr);
-                son_node.delete(th, key, data, Some((self, &mut self_ptr)), son_pos, son_ptr);
+                son_node.delete(th, key, data, Some(self), son_pos, son_ptr);
             }
         }
 
         let len = self.get_len();
         // combine
         if len < BTREE_NODE_CAPACITY / 2 && father.is_some() {
-            let father = father.unwrap();
             match self.ty {
                 BTreeNodeType::Leaf => {
-                    self.combine_leaf(th, father.0, pos);
+                    self.combine_leaf(th, father.unwrap(), pos);
                 }
                 BTreeNodeType::Internal => {
-                    self.combine_internal(th, father.0, pos);
+                    self.combine_internal(th, father.unwrap(), pos);
                 }
             }
         }

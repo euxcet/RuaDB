@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::PathBuf;
 
 pub fn get_database_list(path: &str) -> Vec<String> {
     let files = fs::read_dir(path).unwrap();
@@ -26,3 +27,4 @@ pub fn drop_table(path: String) -> std::io::Result<()> {
     fs::remove_dir(path)?;
     Ok(())
 }
+
