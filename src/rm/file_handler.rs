@@ -200,26 +200,27 @@ impl FileHandler {
     }
 
     pub fn update_sub(&self, ptr: &StrPointer, offset: usize, data: Vec<u8>) {
+        let length = SLOT_LENGTH;
         let mut offset = offset;
         let mut t = ptr;
-
-        let slot_index = offset / SLOT_LENGTH;
-        for _ in 0..slot_index {
+        while offset > length {
             let sp = unsafe{self.sp(t.page)};
             t = &sp.strs[t.offset as usize].next;
+            offset -= length;
         }
-        offset -= slot_index * SLOT_LENGTH;
-
-        let mut done: usize = 0;
-        while done < data.len() {
+        let mut d_offset: usize = 0;
+        while d_offset < data.len() {
             let sp = unsafe{self.sp_mut(t.page)};
-            let slot_len = min(sp.strs[t.offset as usize].len as usize, SLOT_LENGTH);
-            let copy_len = min(slot_len - offset, data.len() - done);
-            assert!(copy_len > 0);
-            copy_bytes_u8_offset(&mut sp.strs[t.offset as usize].bytes, &data[done .. done + copy_len], offset);
-            t = &sp.strs[t.offset as usize].next;
-            done += copy_len;
+            let ss = &mut sp.strs[t.offset as usize];
+            let len = min(data.len() - d_offset, length);
+            copy_bytes_u8_offset(&mut ss.bytes, &data[d_offset .. d_offset + len], offset);
             offset = 0;
+            d_offset += len;
+            if d_offset < data.len() && ss.next.to_u64() == 0 {
+                let slot = self.alloc_slot();
+                ss.next = StrPointer { page: slot.0, offset: slot.1 };
+            }
+            t = &ss.next;
         }
     }
 
