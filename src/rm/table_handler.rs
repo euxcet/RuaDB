@@ -5,11 +5,13 @@ use super::pagedef::*;
 use crate::index::in_file::*;
 use crate::index::btree::*;
 use crate::utils::convert;
+
 use std::fmt;
+use std::collections::HashMap;
 
 pub struct TableHandler {
     // TODO: support multiple filehandlers
-    fh: FileHandler,
+    pub fh: FileHandler,
 }
 
 impl fmt::Debug for TableHandler {
@@ -81,6 +83,17 @@ impl TableHandler {
         c_ptrs.iter().map(|&p| self.get_column_type(&StrPointer::new(p))).collect()
     }
 
+    pub fn get_column_types_as_hashmap(&self) -> HashMap<String, ColumnType> {
+        let ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let s = self.get_string(&ptr);
+        let c_ptrs = unsafe{ convert::string_to_vec_u64(&s) };
+
+        c_ptrs.iter().map(|&p| {
+            let c = self.get_column_type(&StrPointer::new(p));
+            (c.name.clone(), c)
+        }).collect()
+    }
+
     pub fn get_column_type(&self, ptr: &StrPointer) -> ColumnType {
         self.fh.get::<ColumnTypeInFile, u32>(ptr).to_column_type(self)
     }
@@ -90,12 +103,62 @@ impl TableHandler {
     }
 
     // for BTree
-    pub fn insert_btree(&self, btree: &BTree) -> StrPointer {
+    // TODO: use u8 instead of string, use iterator instead of copy
+    pub fn __insert_btree(&self, btree: &BTree) -> StrPointer {
         self.fh.insert::<BTreeInFile, u32>(&BTreeInFile::from(self, btree))
     }
 
-    pub fn get_btree(&self, ptr: &StrPointer) -> BTree {
+    pub fn init_btrees(&self) {
+        let dummy: Vec<u64> = Vec::new();
+        let ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&dummy)});
+        self.fh.set_btrees_ptr(ptr.to_u64());
+    }
+
+    pub fn insert_born_btree(&self, btree: &BTree) {
+        let p = self.__insert_btree(btree);
+        self.fh.set_born_btree_ptr(p.to_u64());
+    }
+
+    pub fn get_born_btree(&self, btree: &BTree) -> (StrPointer, BTree) {
+        let p = StrPointer::new(self.fh.get_born_btree_ptr());
+        (p, self.__get_btree(&p))
+    }
+
+    pub fn insert_btree(&self, btree: &BTree) {
+        // TODO update
+        let mut ptrs = self.__get_btree_ptrs();
+
+        let mut ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        self.fh.free(&mut ptrs_ptr);
+
+        let btree = self.__insert_btree(btree);
+        ptrs.push(btree.to_u64());
+        let new_btrees_ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&ptrs)});
+        self.fh.set_btrees_ptr(new_btrees_ptr.to_u64());
+    }
+
+    fn __get_btree_ptrs(&self) -> Vec<u64> {
+        let ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let s = self.get_string(&ptr);
+        let b_ptrs = unsafe{convert::string_to_vec_u64(&s)};
+        b_ptrs
+    }
+
+    pub fn get_btrees(&self) -> Vec<BTree> {
+        let ptrs = self.__get_btree_ptrs();
+        ptrs.iter().map(|&p| self.__get_btree(&StrPointer::new(p))).collect()
+    }
+
+    pub fn __get_btree(&self, ptr: &StrPointer) -> BTree {
         self.fh.get::<BTreeInFile, u32>(ptr).to_btree(self)
+    }
+
+    fn get_btree_from_index(&self, index: usize) -> (StrPointer, BTree) {
+        let ptrs = self.__get_btree_ptrs();
+        assert!(index < ptrs.len());
+        let p = StrPointer::new(ptrs[index]);
+
+        (p, self.__get_btree(&p))
     }
 
     pub fn update_btree(&self, ptr: &mut StrPointer, btree: &BTree) {

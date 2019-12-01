@@ -156,7 +156,6 @@ pub enum Field {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
-    // 1, 2, 3, 4
     Int(i64), 
     Varchar(i64),
     Date,

@@ -10,6 +10,7 @@ bytevec_decl! {
     pub struct ColumnTypeInFile {
         pub name: u64, // StrPointer
         pub foreign_table_name: u64, // StrPointer
+        pub foreign_table_column: u64,
         pub index: u32,
         /*
             data_type [bit0, bit1, bit2, 0, 0, 0, 0, 0]
@@ -191,6 +192,7 @@ impl ColumnTypeInFile {
         Self {
             name: th.insert_string(&ct.name).to_u64(),
             foreign_table_name: th.insert_string(&ct.foreign_table_name).to_u64(),
+            foreign_table_column: th.insert_string(&ct.foreign_table_column).to_u64(),
             index: ct.index,
             data_type: match ct.data_type {
                 Type::Str(_) => 0,
@@ -222,6 +224,7 @@ impl ColumnTypeInFile {
         ColumnType {
             name: th.get_string(&StrPointer::new(self.name)),
             foreign_table_name: th.get_string(&StrPointer::new(self.foreign_table_name)),
+            foreign_table_column: th.get_string(&StrPointer::new(self.foreign_table_column)),
             index: self.index,
             data_type: match self.data_type {
                 0 => Type::Str(if has_default {Some(th.get_string(&StrPointer::new(self.data)))} else {None}),

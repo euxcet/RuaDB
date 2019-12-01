@@ -3,6 +3,10 @@ use crate::rm::record_manager::*;
 use crate::settings;
 use crate::parser::ast::*;
 use crate::rm::table_handler::TableHandler;
+use crate::index::btree::*;
+
+use super::check;
+use super::convert;
 
 use std::path::PathBuf;
 use std::fs;
@@ -53,7 +57,7 @@ impl SystemManager {
 
         let path: PathBuf = [self.root_dir.clone(), db_name.clone()].iter().collect();
         assert!(fs::create_dir(path).is_ok());
-        RuaResult::default()
+        RuaResult::ok(None, "database created".to_string())
     }
 
     pub fn drop_database(&mut self, db_name: &String) -> RuaResult {
@@ -73,7 +77,7 @@ impl SystemManager {
             }
         }
         assert!(fs::remove_dir_all(path).is_ok());
-        RuaResult::default()
+        RuaResult::ok(None, "database dropped".to_string())
     }
 
     pub fn use_database(&mut self, db_name: &String) -> RuaResult {
@@ -121,7 +125,7 @@ impl SystemManager {
 
         let cdb = self.current_database.as_ref().unwrap();
         let path: PathBuf = [self.root_dir.clone(), cdb.clone()].iter().collect();
-        let mut t = vec![vec!["Tables".to_string()]];
+        let mut t = vec![vec![format!("Tables_in_{}", cdb)]];
 
         let tables: Vec<String> = fs::read_dir(path).unwrap()
             .map(|e| e.unwrap().path())
@@ -134,6 +138,7 @@ impl SystemManager {
         RuaResult::ok(Some(t), format!("{} row(s) in set", count))
     }
 
+    // TODO: foreign key
     pub fn create_table(&self, tb_name: &String, field_list: &Vec<Field>) -> RuaResult {
         if self.check {
             if let Some(ref cdb) = self.current_database {
@@ -142,22 +147,97 @@ impl SystemManager {
                 if path.is_file() {
                     return RuaResult::err("table exists".to_string());
                 }
+                if !check::valid_field_list(field_list, self) {
+                    return RuaResult::err("table field invalid".to_string());
+                }
             } else {
                 return RuaResult::err("not use any database".to_string());
             }
         }
-        RuaResult::default()
+
+        let cdb = self.current_database.as_ref().unwrap();
+        let mut path: PathBuf = [self.root_dir.clone(), cdb.clone(), tb_name.clone()].iter().collect();
+        path.set_extension("rua");
+
+        let cts = convert::column_types_from_fields(field_list);
+        let primary_index = convert::primary_index_from_column_types(&cts);
+
+        let th = self.rm.borrow_mut().open_table(path.to_str().unwrap(), true);
+        th.insert_column_types(&cts);
+
+        th.init_btrees();
+
+        let btree = BTree::new(&th, 4, vec![]);
+        th.insert_born_btree(&btree);
+
+        if primary_index.len() > 0 {
+            let btree = BTree::new(&th, 4, primary_index);
+            th.insert_btree(&btree);
+        }
+
+        th.close();
+        RuaResult::ok(None, "table created".to_string())
     }
 
     pub fn open_table(&self, tb_name: &String) -> Option<TableHandler>{
         if let Some(ref cdb) = self.current_database {
             let mut path: PathBuf = [self.root_dir.clone(), cdb.clone(), tb_name.clone()].iter().collect();
             path.set_extension("rua");
-            let th = self.rm.borrow_mut().open_table(path.to_str().unwrap());
+            let th = self.rm.borrow_mut().open_table(path.to_str().unwrap(), false);
             Some(th)
         } else {
             return None;
         }
+    }
+
+    fn check_table_exist(&self, tb_name: &String) -> RuaResult {
+        if let Some(ref cdb) = self.current_database {
+            let mut path: PathBuf = [self.root_dir.clone(), cdb.clone(), tb_name.clone()].iter().collect();
+            path.set_extension("rua");
+            if !path.is_file() {
+                return RuaResult::err("table doesn't exist".to_string());
+            } else {
+                return RuaResult::default();
+            }
+        } else {
+            return RuaResult::err("not use any database".to_string());
+        }
+    }
+
+    // TODO: foreign key
+    pub fn drop_table(&self, tb_name: &String) -> RuaResult {
+        if self.check {
+            return self.check_table_exist(tb_name);
+        }
+        let cdb = self.current_database.as_ref().unwrap();
+        let mut path: PathBuf = [self.root_dir.clone(), cdb.clone(), tb_name.clone()].iter().collect();
+        path.set_extension("rua");
+
+        assert!(fs::remove_file(path).is_ok());
+        RuaResult::ok(None, "table dropped".to_string())
+    }
+
+    pub fn desc(&self, tb_name: &String) -> RuaResult {
+        if self.check {
+            return self.check_table_exist(tb_name);
+        }
+
+        let cdb = self.current_database.as_ref().unwrap();
+        let mut path: PathBuf = [self.root_dir.clone(), cdb.clone(), tb_name.clone()].iter().collect();
+        path.set_extension("rua");
+
+        let th = self.rm.borrow_mut().open_table(path.to_str().unwrap(), true);
+        let cts = th.get_column_types();
+
+        let title = vec!["Field".to_string(),
+                         "Type".to_string(), 
+                         "Null".to_string(),
+                         "Key".to_string(),
+                         "Default".to_string(),];
+    
+        let print_content = convert::print_from_column_types(&cts);
+        th.close();
+        RuaResult::ok(Some(vec![title, print_content]), format!("{} row(s) in set", cts.len()))
     }
 }
 

@@ -1,37 +1,11 @@
 use crate::parser::ast::*;
 use crate::sm::system_manager::SystemManager;
+use crate::rm::record;
+
+use super::convert::*;
 
 use std::collections::HashMap;
-
-pub const TYPE_INT: i32 = 1;
-pub const TYPE_VARCHAR: i32 = 2;
-pub const TYPE_FLOAT: i32 = 3;
-pub const TYPE_DATE: i32 = 4;
-
-pub const VALUE_INT: i32 = 1;
-pub const VALUE_STR: i32 = 2;
-pub const VALUE_FLOAT: i32 = 3;
-pub const VALUE_DATE: i32 = 4;
-pub const VALUE_NULL: i32 = 5;
-
-pub fn type2int(ty: &Type) -> i32 {
-    match ty {
-        Type::Int(_) => TYPE_INT,
-        Type::Varchar(_) => TYPE_VARCHAR,
-        Type::Float(_) => TYPE_FLOAT,
-        Type::Date(_) => TYPE_DATE,
-    }
-}
-
-pub fn value2int(value: &Value) -> i32 {
-    match value {
-        Value::Int(_) => VALUE_INT,
-        Value::Str(_) => VALUE_STR,
-        Value::Float(_) => VALUE_FLOAT,
-        Value::Date(_) => VALUE_DATE,
-        Value::Null(_) => VALUE_NULL,
-    }
-}
+use std::collections::HashSet;
 
 pub fn valid_type_value(ty: &Type, value: &Value) -> bool {
     let v = value2int(value);
@@ -39,27 +13,32 @@ pub fn valid_type_value(ty: &Type, value: &Value) -> bool {
     v == t || v == VALUE_NULL
 }
 
-pub valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
+pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
-    let mut primary_key: Vec<Vec<Name>> = Vec::new();
+    let mut primary_key: Vec<&Vec<String>> = Vec::new();
     let mut name_foreign_key = HashMap::new();
 
     for field in field_list {
         match field {
-            Field::ColumnField {col_name, ty, not_null, dv} => {
+            Field::ColumnField {col_name, ty, not_null, default_value} => {
                 if name_field.contains_key(col_name) {
                     return false;
                 }
-                if let Some(ref v) = dv {
-                    if !valid_type_value(ty, v) return false;
+                if let Some(ref v) = default_value {
+                    if !valid_type_value(ty, v) {
+                        return false;
+                    }
                 }
-                name_field.insert(col_name, (col_name, ty, not_null, dv));
+                name_field.insert(col_name, (col_name, ty, not_null, default_value));
             },
             Field::PrimaryKeyField {column_list} => {
                 primary_key.push(column_list);
             },
             Field::ForeignKeyField {col_name, foreign_tb_name, foreign_col_name } => {
-                name_foreign_key(col_name, (col_name, foreign_tb_name, foreign_col_name));
+                if name_foreign_key.contains_key(col_name) {
+                    return false;
+                }
+                name_foreign_key.insert(col_name, (col_name, foreign_tb_name, foreign_col_name));
             }
         }
     }
@@ -70,7 +49,7 @@ pub valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
 
     if primary_key.len() == 1 {
         let primary_key = primary_key[0];
-        for key_name in &primary_key {
+        for col_name in primary_key {
             if !name_field.contains_key(col_name) {
                 return false;
             }
@@ -81,13 +60,37 @@ pub valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         if !name_field.contains_key(name) {
             return false;
         }
+        // has foreign table
         if let Some(th) = sm.open_table(fk.1) {
-            let cts = th.get_column_types();
-            // valid type 
-            // column must be primary
+            let ct_map = th.get_column_types_as_hashmap();
+            // has foreign column
+            if let Some(foreign_col) = ct_map.get(fk.2) {
+                let this_field = name_field.get(name).unwrap();
+                let f_ty = &foreign_col.data_type;
+                let t_ty = this_field.1;
+                // has same type
+                if !valid_type_datatype(t_ty, f_ty) {
+                    return false;
+                }
+                // foreign column must be primary
+                // if primary_set_from_column_types_hashmap(&ct_map) != vec![foreign_col.name.clone()].iter().collect() {
+                //     return false;
+                // }
+            }
+            else {
+                return false
+            }
+            th.close();
         } else {
             return false;
         }
     }
+
+    true
+}
+
+
+pub fn valid_type_datatype(ty: &Type, data_type: &record::Type) -> bool {
+    type2int(ty) == record::datatype2int(data_type)
 }
 

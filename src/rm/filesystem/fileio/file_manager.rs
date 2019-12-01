@@ -12,7 +12,7 @@ use super::super::utils::bitmap::*;
 pub struct FileManager {
     fd: Vec<Option<String>>,
     fm: Box<Bitmap>,
-    tm: Box<Bitmap>,
+    // tm: Box<Bitmap>,
 }
 
 impl FileManager {
@@ -22,8 +22,8 @@ impl FileManager {
         Ok(())
     }
 
-    fn _open_file(&mut self, name: &str, file_id: i32) -> io::Result<()> {
-        OpenOptions::new().create(false).read(true).write(true).open(name)?;
+    fn _open_file(&mut self, name: &str, file_id: i32, create: bool) -> io::Result<()> {
+        OpenOptions::new().create(create).read(true).write(true).open(name)?;
         self.fd[file_id as usize] = Some(name.to_owned());
         Ok(())
     }
@@ -32,12 +32,11 @@ impl FileManager {
         fs::remove_file(name)
     }
 
-
     pub fn new() -> Self {
         Self {
             fd: vec![None; MAX_FILE_NUM],
             fm: Box::new(Bitmap::new(MAX_FILE_NUM, 1)),
-            tm: Box::new(Bitmap::new(MAX_TYPE_NUM, 1)),
+            // tm: Box::new(Bitmap::new(MAX_TYPE_NUM, 1)),
         }
     }
 
@@ -84,20 +83,20 @@ impl FileManager {
         self._delete_file(name)
     }
 
-    pub fn open_file(&mut self, name: &str) -> i32 {
+    pub fn open_file(&mut self, name: &str, create: bool) -> i32 {
         let file_id = self.fm.find_left_one();
         self.fm.set_bit(file_id, 0);
-        assert!(self._open_file(name, file_id).is_ok());
+        assert!(self._open_file(name, file_id, create).is_ok());
         file_id
     }
     
-    pub fn new_type(&mut self) -> i32 {
-        let t = self.tm.find_left_one();
-        self.tm.set_bit(t, 0);
-        t
-    }
+    // pub fn new_type(&mut self) -> i32 {
+    //     let t = self.tm.find_left_one();
+    //     self.tm.set_bit(t, 0);
+    //     t
+    // }
 
-    pub fn close_type(&mut self, type_id: i32) {
-        self.tm.set_bit(type_id, 1);
-    }
+    // pub fn close_type(&mut self, type_id: i32) {
+    //     self.tm.set_bit(type_id, 1);
+    // }
 }

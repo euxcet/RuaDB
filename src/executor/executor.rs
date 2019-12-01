@@ -33,6 +33,14 @@ impl Executor {
                     DatabaseStmt::ShowTables => self.sm.borrow_mut().show_tables(),
                 }
             },
+            Stmt::Table(ref s) => {
+                match s {
+                    TableStmt::CreateTable { tb_name, field_list } => self.sm.borrow_mut().create_table(&tb_name, &field_list),
+                    TableStmt::DropTable { tb_name } => self.sm.borrow_mut().drop_table(&tb_name),
+                    TableStmt::Desc { tb_name } => self.sm.borrow_mut().desc(&tb_name),
+                    _ => unreachable!(),
+                }
+            },
             _ => unreachable!(),
         }
     }
