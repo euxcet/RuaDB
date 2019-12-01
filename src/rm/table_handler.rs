@@ -45,14 +45,12 @@ impl TableHandler {
         self.fh.get::<String, u32>(&StrPointer::new(ptr))
     }
 
-    pub fn update_string(&self, ptr: &mut StrPointer, s: &String) {
+    pub fn update_string(&self, ptr: &StrPointer, s: &String) {
         self.fh.update::<String, u32>(ptr, &s);
     }
 
-    pub fn update_string_(&self, ptr: &mut u64, s: &String) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<String, u32>(&mut s_ptr, &s);
-        *ptr = s_ptr.to_u64();
+    pub fn update_string_(&self, ptr: u64, s: &String) {
+        self.fh.update::<String, u32>(&StrPointer::new(ptr), &s);
     }
 
     // for Record
@@ -70,14 +68,12 @@ impl TableHandler {
         (in_file.to_record(self), in_file)
     }
 
-    pub fn update_record(&self, ptr: &mut StrPointer, record: &Record) {
+    pub fn update_record(&self, ptr: &StrPointer, record: &Record) {
         self.fh.update::<RecordInFile, u32>(ptr, &RecordInFile::from(self, record));
     }
 
-    pub fn update_record_(&self, ptr: &mut u64, record: &Record) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<RecordInFile, u32>(&mut s_ptr, &RecordInFile::from(self, record));
-        *ptr = s_ptr.to_u64();
+    pub fn update_record_(&self, ptr: u64, record: &Record) {
+        self.fh.update::<RecordInFile, u32>(&StrPointer::new(ptr), &RecordInFile::from(self, record));
     }
 
     // for ColumnType
@@ -93,14 +89,12 @@ impl TableHandler {
         self.fh.get::<ColumnTypeInFile, u32>(&StrPointer::new(ptr)).to_column_type(self)
     }
 
-    pub fn update_column_type(&self, ptr: &mut StrPointer, ct: &ColumnType) {
+    pub fn update_column_type(&self, ptr: &StrPointer, ct: &ColumnType) {
         self.fh.update::<ColumnTypeInFile, u32>(ptr, &ColumnTypeInFile::from(self, ct))
     }
 
-    pub fn update_column_type_(&self, ptr: &mut u64, ct: &ColumnType) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<ColumnTypeInFile, u32>(&mut s_ptr, &ColumnTypeInFile::from(self, ct));
-        *ptr = s_ptr.to_u64();
+    pub fn update_column_type_(&self, ptr: u64, ct: &ColumnType) {
+        self.fh.update::<ColumnTypeInFile, u32>(&StrPointer::new(ptr), &ColumnTypeInFile::from(self, ct));
     }
 
     // for BTree
@@ -116,45 +110,27 @@ impl TableHandler {
         self.fh.get::<BTreeInFile, u32>(&StrPointer::new(ptr)).to_btree(self)
     }
 
-    pub fn update_btree(&self, ptr: &mut StrPointer, btree: &BTree) {
+    pub fn update_btree(&self, ptr: &StrPointer, btree: &BTree) {
         self.fh.update::<BTreeInFile, u32>(ptr, &BTreeInFile::from(self, btree))
     }
 
-    pub fn update_btree_(&self, ptr: &mut u64, btree: &BTree) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<BTreeInFile, u32>(&mut s_ptr, &BTreeInFile::from(self, btree));
-        *ptr = s_ptr.to_u64();
+    pub fn update_btree_(&self, ptr: u64, btree: &BTree) {
+        self.fh.update::<BTreeInFile, u32>(&StrPointer::new(ptr), &BTreeInFile::from(self, btree));
     }
 
     // for BTreeNode
     pub fn insert_btree_node(&self) -> StrPointer {
-        self.fh.alloc(&vec![0u8; BTreeNode::memory_length()], true)
+        use std::mem::size_of;
+        self.fh.alloc(&vec![0u8; size_of::<BTreeNode>()], true)
     }
 
     pub fn get_btree_node(&self, ptr: &StrPointer) -> &mut BTreeNode {
-        self.fh.get_btree_node(ptr)
-        // self.fh.get::<BTreeNodeInFile, u32>(ptr).to_btree_node(self)
+        self.fh.get_mut(ptr)
     }
 
     pub fn get_btree_node_(&self, ptr: u64) -> &mut BTreeNode {
-        self.fh.get_btree_node(&StrPointer::new(ptr))
+        self.fh.get_mut(&StrPointer::new(ptr))
     }
-
-    /*
-    pub fn get_btree_node_(&self, ptr: u64) -> BTreeNode {
-        self.fh.get::<BTreeNodeInFile, u32>(&StrPointer::new(ptr)).to_btree_node(self)
-    }
-
-    pub fn update_btree_node(&self, ptr: &mut StrPointer, node: &BTreeNode, node_capacity: usize) {
-        self.fh.update::<BTreeNodeInFile, u32>(ptr, &BTreeNodeInFile::from(self, node, node_capacity))
-    }
-
-    pub fn update_btree_node_(&self, ptr: &mut u64, node: &BTreeNode, node_capacity: usize) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<BTreeNodeInFile, u32>(&mut s_ptr, &BTreeNodeInFile::from(self, node, node_capacity));
-        *ptr = s_ptr.to_u64();
-    }
-    */
 
     // for index
     pub fn insert_index(&self, index: &Index) -> StrPointer {
@@ -169,16 +145,13 @@ impl TableHandler {
         self.fh.get::<IndexInFile, u32>(&StrPointer::new(ptr)).to_index(self)
     }
 
-    pub fn update_index(&self, ptr: &mut StrPointer, index: &Index) {
+    pub fn update_index(&self, ptr: &StrPointer, index: &Index) {
         self.fh.update::<IndexInFile, u32>(ptr, &IndexInFile::from(self, index))
     }
 
-    pub fn update_index_(&self, ptr: &mut u64, index: &Index) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<IndexInFile, u32>(&mut s_ptr, &IndexInFile::from(self, index));
-        *ptr = s_ptr.to_u64();
+    pub fn update_index_(&self, ptr: u64, index: &Index) {
+        self.fh.update::<IndexInFile, u32>(&StrPointer::new(ptr), &IndexInFile::from(self, index));
     }
-
 
     // for bucket
     pub fn insert_bucket(&self, bucket: &Bucket) -> StrPointer {
@@ -193,14 +166,12 @@ impl TableHandler {
         self.fh.get::<BucketInFile, u32>(&StrPointer::new(ptr)).to_bucket(self)
     }
 
-    pub fn update_bucket(&self, ptr: &mut StrPointer, bucket: &Bucket) {
+    pub fn update_bucket(&self, ptr: &StrPointer, bucket: &Bucket) {
         self.fh.update::<BucketInFile, u32>(ptr, &BucketInFile::from(self, bucket))
     }
 
-    pub fn update_bucket_(&self, ptr: &mut u64, bucket: &Bucket) {
-        let mut s_ptr = StrPointer::new(*ptr);
-        self.fh.update::<BucketInFile, u32>(&mut s_ptr, &BucketInFile::from(self, bucket));
-        *ptr = s_ptr.to_u64();
+    pub fn update_bucket_(&self, ptr: u64, bucket: &Bucket) {
+        self.fh.update::<BucketInFile, u32>(&StrPointer::new(ptr), &BucketInFile::from(self, bucket));
     }
 
     // for all

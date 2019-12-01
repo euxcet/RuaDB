@@ -30,7 +30,7 @@ impl StrPointer {
     }
 
     pub fn is_null(&self) -> bool {
-        self.page == 0
+        self.page == 0 && self.offset == 0
     }
 }
 
