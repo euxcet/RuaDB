@@ -79,6 +79,12 @@ impl RawIndex {
             index: data,
         }
     }
+
+    pub fn from_u64(index: u64) -> Self {
+        Self {
+            index: vec![Data::Int(unsafe{transmute(index)})],
+        }
+    }
 }
 
 impl PartialOrd for RawIndex {

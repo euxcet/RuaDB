@@ -172,6 +172,12 @@ pub enum Value {
     Null,
 }
 
+impl Value {
+    pub fn is_null(&self) -> bool {
+        *self == Value::Null
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum WhereClause {
     IsAssert {

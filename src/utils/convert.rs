@@ -82,6 +82,14 @@ pub unsafe fn string_to_vec_u64(data: &String) -> Vec<u64> {
     res
 }
 
+pub fn str2date(s: &str) -> u64 {
+    1575185880u64
+}
+
+pub fn date2str(date: u64) -> String {
+    "2019.12.01 15:38:00".to_string()
+}
+
 #[test]
 fn convert() {
     unsafe {

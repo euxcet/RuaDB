@@ -84,20 +84,18 @@ impl TableHandler {
         self.fh.insert::<ColumnTypeInFile, u32>(&ColumnTypeInFile::from(self, ct))
     }
 
-    pub fn insert_column_types(&self, cts: &Vec<ColumnType>) {
-        let mut c_ptrs = Vec::new();
-        for ct in cts {
-            c_ptrs.push(self.insert_column_type(ct).to_u64());
-        }
+    pub fn insert_column_types(&self, cts: &ColumnTypeVec) {
+        let c_ptrs = cts.cols.iter().map(|ct| self.insert_column_type(ct).to_u64()).collect();
         let ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&c_ptrs)});
         self.fh.set_column_types_ptr(ptr.to_u64());
     }
 
-    pub fn get_column_types(&self) -> Vec<ColumnType> {
+    pub fn get_column_types(&self) -> ColumnTypeVec {
         let ptr = StrPointer::new(self.fh.get_column_types_ptr());
-        let s = self.get_string(&ptr);
-        let c_ptrs = unsafe{convert::string_to_vec_u64(&s)};
-        c_ptrs.iter().map(|&p| self.get_column_type(&StrPointer::new(p))).collect()
+        let c_ptrs = unsafe{convert::string_to_vec_u64(&self.get_string(&ptr))};
+        ColumnTypeVec {
+            cols: c_ptrs.iter().map(|&p| self.get_column_type(&StrPointer::new(p))).collect(),
+        }
     }
 
     pub fn get_column_types_as_hashmap(&self) -> HashMap<String, ColumnType> {
@@ -140,13 +138,17 @@ impl TableHandler {
     }
 
     pub fn insert_born_btree(&self, btree: &BTree) {
-        let p = self.__insert_btree(btree);
-        self.fh.set_born_btree_ptr(p.to_u64());
+        self.fh.set_born_btree_ptr(self.__insert_btree(btree).to_u64());
     }
 
-    pub fn get_born_btree(&self, btree: &BTree) -> (StrPointer, BTree) {
-        let p = StrPointer::new(self.fh.get_born_btree_ptr());
-        (p, self.__get_btree(&p))
+    pub fn get_born_btree(&self) -> BTree {
+        let ptr = StrPointer::new(self.fh.get_born_btree_ptr());
+        self.__get_btree(&ptr)
+    }
+
+    pub fn update_born_btree(&self, btree: &BTree) {
+        let ptr = StrPointer::new(self.fh.get_born_btree_ptr());
+        self.update_btree(&ptr, btree);
     }
 
     pub fn insert_btree(&self, btree: &BTree) {
@@ -178,12 +180,10 @@ impl TableHandler {
         self.fh.get::<BTreeInFile, u32>(ptr).to_btree(self)
     }
 
-    fn get_btree_from_index(&self, index: usize) -> (StrPointer, BTree) {
+    pub fn get_btree_from_index(&self, index: usize) -> BTree {
         let ptrs = self.__get_btree_ptrs();
         assert!(index < ptrs.len());
-        let p = StrPointer::new(ptrs[index]);
-
-        (p, self.__get_btree(&p))
+        self.__get_btree(&StrPointer::new(ptrs[index]))
     }
 
     pub fn update_btree(&self, ptr: &StrPointer, btree: &BTree) {

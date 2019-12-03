@@ -2,11 +2,10 @@ use crate::parser::ast::*;
 use crate::sm::system_manager::SystemManager;
 use crate::rm::record;
 
-use super::convert::*;
-
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+/*
 pub fn valid_type_value(ty: &Type, value: &Value) -> bool {
     let v = value2int(value);
     let t = type2int(ty);
@@ -61,7 +60,7 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
             return false;
         }
         // has foreign table
-        if let Some(th) = sm.open_table(fk.1) {
+        if let Some(th) = sm.open_table(fk.1, false) {
             let ct_map = th.get_column_types_as_hashmap();
             // has foreign column
             if let Some(foreign_col) = ct_map.get(fk.2) {
@@ -94,3 +93,5 @@ pub fn valid_type_datatype(ty: &Type, data_type: &record::Type) -> bool {
     type2int(ty) == record::datatype2int(data_type)
 }
 
+
+*/
