@@ -8,6 +8,7 @@ use super::pagedef::*;
 bytevec_decl! {
     #[derive(PartialEq, Eq, Debug)]
     pub struct ColumnTypeInFile {
+        pub tb_name: u64, // StrPointer,
         pub name: u64, // StrPointer
         pub foreign_table_name: u64, // StrPointer
         pub foreign_table_column: u64,
@@ -135,7 +136,7 @@ impl RecordInFile {
     // Record to RecordInFile
     pub fn from(th: &TableHandler, record: &Record) -> Self {
         Self {
-            record: record.record.iter()
+            record: record.cols.iter()
                     .map(|c| ColumnDataInFile::from(th, c).to_string())
                     .fold(String::new(), |s, v| s + &v)
         }
@@ -146,9 +147,9 @@ impl RecordInFile {
         let r: &[u8] = self.record.as_bytes();
         let size_of_data = size_of::<ColumnDataInFile>();
         assert_eq!(r.len() % size_of_data, 0);
-        let mut result = Record{ record: vec![] };
+        let mut result = Record{ cols: vec![] };
         for offset in (0..r.len()).step_by(size_of_data) {
-            result.record.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]).to_column_data(th));
+            result.cols.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]).to_column_data(th));
         }
         result
     }
@@ -193,6 +194,7 @@ impl ColumnTypeInFile {
     // ColumnType to ColumnTypeInFile
     pub fn from(th: &TableHandler, ct: &ColumnType) -> Self {
         Self {
+            tb_name: th.insert_string(&ct.tb_name).to_u64(),
             name: th.insert_string(&ct.name).to_u64(),
             foreign_table_name: th.insert_string(&ct.foreign_table_name).to_u64(),
             foreign_table_column: th.insert_string(&ct.foreign_table_column).to_u64(),
@@ -228,6 +230,7 @@ impl ColumnTypeInFile {
     pub fn to_column_type(&self, th: &TableHandler) -> ColumnType {
         let has_default = self.flags & 4 > 0;
         ColumnType {
+            tb_name: th.get_string(&StrPointer::new(self.tb_name)),
             name: th.get_string(&StrPointer::new(self.name)),
             foreign_table_name: th.get_string(&StrPointer::new(self.foreign_table_name)),
             foreign_table_column: th.get_string(&StrPointer::new(self.foreign_table_column)),

@@ -31,6 +31,22 @@ impl RuaResult {
     }
 }
 
+impl std::ops::BitAnd for RuaResult {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        if self.is_err() {
+            self
+        }
+        else if rhs.is_err() {
+            rhs
+        }
+        else {
+            rhs
+        }
+    }
+}
+
 pub struct RuaLogger {
 }
 
