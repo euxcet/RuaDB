@@ -74,11 +74,29 @@ mod test {
         let cmds = vec![
             String::from("create database sql_select;"),
             String::from("use sql_select;"),
-            String::from("create table test(id int(4) default 3);"),
-            String::from("insert into test values (10);"),
+
+            String::from("create table test(id int(4) default 3, fuck varchar(10));"),
+            String::from("insert into test values (-10, \"123124\");"),
+            String::from("insert into test values (40, \"224\");"),
+            String::from("insert into test values (3, \"23124\");"),
+            String::from("insert into test values (4, \"12324\");"),
+
+            String::from("create table b_test(id int(4), rua float);"),
+            String::from("insert into b_test values (1, 1.23);"),
+            String::from("insert into b_test values (2, 3.0);"),
+            String::from("insert into b_test values (3, 42.12);"),
+            String::from("insert into b_test values (4, -4.2);"),
+
+            String::from("select * from test where id > 0;"),
+            String::from("select * from test where id < -1;"),
+            String::from("select * from test where id > 12;"),
+            String::from("select * from test where id > 12 and id < 32;"),
+            String::from("select * from b_test;"),
+            String::from("select * from test, b_test where test.id >= b_test.id;"),
+            String::from("select fuck from test;"),
+            
             String::from("desc test;"),
             String::from("drop database sql_select;"),
-            // String::from("select * from sql_select;"),
         ];
 
         for cmd in cmds {

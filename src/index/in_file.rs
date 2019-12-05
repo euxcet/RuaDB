@@ -122,10 +122,10 @@ mod tests {
     }
 
     fn gen_record(gen: &mut random::Generator, columns: &Vec<ColumnType>, max_string_length: usize) -> Record {
-        let mut record = Vec::new();
+        let mut cols = Vec::new();
         for c in columns.iter() {
             let default = if c.has_default {gen.gen()} else {false};
-            record.push(ColumnData {
+            cols.push(ColumnData {
                 index: c.index,
                 data: if default {
                     match &c.data_type {
@@ -149,7 +149,7 @@ mod tests {
             });
         }
         Record {
-            record: record
+            cols: cols
         }
     }
 

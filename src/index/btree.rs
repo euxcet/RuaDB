@@ -417,17 +417,21 @@ impl BTreeNode {
                 let i = self.lower_bound(th, key, len);
                 if i == len {
                     BTreeNode::push(unsafe{&mut self.key}, key_ptr, len);
-                    let prev_bucket = unsafe{*self.bucket.last().unwrap_or(&0u64)};
+                    let prev_bucket = if len == 0 {0} else {self.bucket[len - 1]};
                     let next_bucket = if prev_bucket == 0 {0} else {th.get_bucket_(prev_bucket).next};
-
                     let mut bucket = Bucket::new();
                     bucket.data.push(data);
                     bucket.prev = prev_bucket;
                     bucket.next = next_bucket;
-
                     let ptr = th.insert_bucket(&bucket).to_u64();
                     unsafe {
                         BTreeNode::push(&mut self.bucket, ptr, len);
+                        if prev_bucket != 0 {
+                            th.update_sub_(prev_bucket, Bucket::get_offset_next(), convert::u64_to_vec_u8(ptr));
+                        }
+                        if next_bucket != 0 {
+                            th.update_sub_(next_bucket, Bucket::get_offset_prev(), convert::u64_to_vec_u8(ptr));
+                        }
                     }
                 }
                 else if let Some(cmp) = self.to_raw(th, self.key[i]).partial_cmp(key) {
@@ -435,9 +439,7 @@ impl BTreeNode {
                         Ordering::Equal => {
                             let mut bucket = th.get_bucket_(self.bucket[i]);
                             bucket.data.push(data);
-                            unsafe {
-                                th.update_bucket_(self.bucket[i], &bucket);
-                            }
+                            th.update_bucket_(self.bucket[i], &bucket);
                         },
                         Ordering::Greater => {
                             let next_bucket = self.bucket[i];
@@ -452,6 +454,12 @@ impl BTreeNode {
                             let ptr = th.insert_bucket(&bucket).to_u64();
                             unsafe {
                                 BTreeNode::insert_array(&mut self.bucket, i, ptr, len);
+                                if prev_bucket != 0 {
+                                    th.update_sub_(prev_bucket, Bucket::get_offset_next(), convert::u64_to_vec_u8(ptr));
+                                }
+                                if next_bucket != 0 {
+                                    th.update_sub_(next_bucket, Bucket::get_offset_prev(), convert::u64_to_vec_u8(ptr));
+                                }
                             }
                         },
                         _ => {}

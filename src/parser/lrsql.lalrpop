@@ -155,10 +155,10 @@ ValueList: Vec<Value> = {
 Value: Value = {
     "null" => Value::Null,
     "StringLiteralDoubleQuote" => Value::Str(<>.to_owned()),
-    "+"? <"Integer"> => { Value::Int(<>.to_owned()) },
-    "-" <"Integer"> => { Value::Int(<>.to_owned()) },
-    "+"? <"Float"> => { Value::Float(<>.to_owned()) },
-    "-" <"Float"> => { Value::Float(<>.to_owned()) },
+    "+"? <"Integer"> => { Value::Int( <>.to_owned() ) },
+    "-" <"Integer"> => { Value::Int( format!("-{}", <>) ) },
+    "+"? <"Float"> => { Value::Float( <>.to_owned() ) },
+    "-" <"Float"> => { Value::Float( format!("-{}", <>) ) },
 };
 
 Type: Type = {

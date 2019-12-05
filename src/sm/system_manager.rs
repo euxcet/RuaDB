@@ -11,8 +11,8 @@ use super::query_tree::*;
 
 use std::path::PathBuf;
 use std::fs;
-use std::cell::RefCell;
 use std::rc::Rc;
+use std::cell::RefCell;
 
 
 pub struct SystemManager {
@@ -181,7 +181,7 @@ impl SystemManager {
             }
         }
         else {
-            let columns = ColumnTypeVec::from_fields(field_list);
+            let columns = ColumnTypeVec::from_fields(field_list, tb_name);
             let primary_index = columns.get_primary_index();
 
             let th = self.open_table(tb_name, true).unwrap();
@@ -247,9 +247,22 @@ impl SystemManager {
             table_list.iter().map(|tb_name| self.check_table_existence(tb_name, true)).fold(RuaResult::default(), |s, v| s & v)
         }
         else {
-            let tree = QueryTree::new(table_list, selector, where_clause);
-            tree.query();
-            unimplemented!();
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(table_list, selector, where_clause);
+            let record_list = tree.query();
+            let record_num = record_list.record.len();
+            if record_num == 0 {
+                RuaResult::ok(None, format!("Empty set"))
+            }
+            else if record_num == 1 {
+                let print_content = record_list.print();
+                RuaResult::ok(Some(print_content), format!("{} row in set", record_num))
+            }
+            else {
+                let print_content = record_list.print();
+                RuaResult::ok(Some(print_content), format!("{} rows in set", record_num))
+            }
         }
     }
 }

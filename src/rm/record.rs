@@ -18,7 +18,7 @@ pub fn datatype2int(ty: &Type) -> i32 {
     }
 }
 
-#[derive(PartialEq, PartialOrd, Debug)]
+#[derive(Clone, PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
     Int(i64),
@@ -36,6 +36,16 @@ impl Data {
             ast::Value::Date(s) => Some(Self::Date(convert::str2date(s))),
             ast::Value::Float(s) => Some(Self::Float(f64::from_str(s).unwrap())),
             ast::Value::Null => None,
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Data::Str(d) => d.clone(),
+            Data::Int(d) => d.to_string(),
+            Data::Float(d) => d.to_string(),
+            Data::Date(d) => d.to_string(),
+            Data::Numeric(d) => d.to_string(),
         }
     }
 }
@@ -118,6 +128,7 @@ impl Default for Type {
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ColumnType {
+    pub tb_name: String,
     pub name: String,
     pub index: u32,
     pub data_type: Type,
@@ -133,6 +144,12 @@ pub struct ColumnType {
 }
 
 impl ColumnType {
+    pub fn match_(&self, col: &ast::Column) -> bool {
+        match &col.tb_name {
+            Some(tb_name) => tb_name == &self.tb_name && col.col_name == self.name,
+            None => col.col_name == self.name,
+        }
+    }
     pub fn print(&self, is_mul: bool) -> Vec<String> {
         vec![
             self.name.clone(), // Field
@@ -149,7 +166,7 @@ pub struct ColumnTypeVec {
 }
 
 impl ColumnTypeVec {
-    pub fn from_fields(field_list: &Vec<ast::Field>) -> Self {
+    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> Self {
         let mut primary_key: &Vec<String> = &Vec::new();
         let mut foreign_key = Vec::new();
 
@@ -161,6 +178,7 @@ impl ColumnTypeVec {
                 ast::Field::ColumnField {col_name, ty, not_null, default_value} => {
                     map.insert(col_name.clone(), index);
                     cols.push(ColumnType {
+                        tb_name: tb_name.clone(),
                         name: col_name.clone(),
                         index: index as u32,
                         data_type: Type::from_type(&ty, &default_value),
@@ -223,7 +241,7 @@ impl ColumnTypeVec {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ColumnData {
     pub index: u32,
     pub default: bool,
@@ -236,23 +254,120 @@ impl PartialEq for ColumnData {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Record {
-    pub record: Vec<ColumnData>,
+    pub cols: Vec<ColumnData>,
 }
 
 impl Record {
+    pub fn print(&self) -> Vec<String> {
+        self.cols.iter().map(|x| {
+            match &x.data {
+                Some(d) => d.to_string(),
+                None => String::new(),
+            }
+        }).collect()
+    }
+
     pub fn from_value_lists(value_lists: &Vec<ast::Value>) -> Self {
-        let mut record = Vec::new();
+        let mut cols = Vec::new();
         for i in 0..value_lists.len() {
-            record.push(ColumnData {
+            cols.push(ColumnData {
                 index: i as u32,
                 default: false,
                 data: Data::from_value(&value_lists[i])
             });
         }
         Self {
-            record: record,
+            cols: cols,
         }
+    }
+
+    pub fn sub_record(&self, sub_cols: &Vec<usize>) -> Record {
+        let mut cols = Vec::new();
+        for pos in sub_cols {
+            cols.push(self.cols[*pos].clone());
+        }
+        Record {
+            cols: cols,
+        }
+    }
+
+    pub fn get_match_data(&self, col: &ast::Column, ty: &Vec<ColumnType>) -> Option<Data> {
+        for i in 0..ty.len() {
+            if ty[i].match_(col) {
+                return self.cols[i].data.clone();
+            }
+        }
+        None
+    }
+
+    pub fn match_(&self, condition: &ast::WhereClause, ty: &Vec<ColumnType>) -> bool {
+        match condition {
+            ast::WhereClause::IsAssert{col, null} => {
+                for i in 0..ty.len() {
+                    if ty[i].match_(col) {
+                        return (self.cols[i].data.is_none() && *null) || (self.cols[i].data.is_some() && !*null);
+                    }
+                }
+                true
+            },
+            ast::WhereClause::Comparison{col, op, expr} => {
+                let l_data = self.get_match_data(col, ty);
+                let r_data = match expr {
+                    ast::Expr::Value(ref value) => {
+                        Data::from_value(value)
+                    }
+                    ast::Expr::Column(ref r_col) => {
+                        self.get_match_data(r_col, ty)
+                    }
+                };
+                if l_data.is_none() || r_data.is_none() {
+                    false
+                }
+                else {
+                    let l_data = l_data.unwrap();
+                    let r_data = r_data.unwrap();
+                    match op {
+                        ast::Op::Equal => l_data == r_data,
+                        ast::Op::NotEqual => l_data != r_data,
+                        ast::Op::LessEqual => l_data <= r_data,
+                        ast::Op::GreaterEqual => l_data >= r_data,
+                        ast::Op::Less => l_data < r_data,
+                        ast::Op::Greater => l_data > r_data,
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub struct RecordList {
+    pub ty: Vec<ColumnType>,
+    pub record: Vec<Record>,
+}
+
+impl RecordList {
+    pub fn sub_record_list(&self, sub_cols: &Vec<usize>) -> RecordList {
+        let mut ty = Vec::new();
+        for pos in sub_cols {
+            ty.push(self.ty[*pos].clone());
+        }
+        RecordList {
+            ty: ty,
+            record: self.record.iter().map(|record| record.sub_record(sub_cols)).collect(),
+        }
+    }
+
+    pub fn print(&self) -> Vec<Vec<String>> {
+        let title: Vec<String> = self.ty.iter().map(|ty| ty.name.clone()).collect();
+        let mut res = vec![vec![]; title.len()];
+        for record in &self.record {
+            let content = record.print();
+            for i in 0..title.len() {
+                res[i].push(content[i].clone());
+            }
+        }
+        vec![title, res.iter().map(|x| x.join("\n")).collect()]
     }
 }
