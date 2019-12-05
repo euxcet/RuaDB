@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.17.2"
-// sha256: 5a9c84b2c72dd26370447566e6e3632f72496687d15b69dcdc9fd1c03d529661
+// sha256: 49728f5ee32a049211a7260fd49312d19f790937609df4851b5382a9dc4f91
 use super::tok::{self, Tok};
 use super::ast::*;
 use std::str::FromStr;
@@ -42470,7 +42470,7 @@ fn __action61<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Value
 {
-    { Value::Int(__0.to_owned()) }
+    { Value::Int( __0.to_owned() ) }
 }
 
 #[allow(unused_variables)]
@@ -42482,7 +42482,7 @@ fn __action62<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Value
 {
-    { Value::Int(__0.to_owned()) }
+    { Value::Int( format!("-{}", __0) ) }
 }
 
 #[allow(unused_variables)]
@@ -42494,7 +42494,7 @@ fn __action63<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Value
 {
-    { Value::Float(__0.to_owned()) }
+    { Value::Float( __0.to_owned() ) }
 }
 
 #[allow(unused_variables)]
@@ -42506,7 +42506,7 @@ fn __action64<
     (_, __0, _): (usize, &'input str, usize),
 ) -> Value
 {
-    { Value::Float(__0.to_owned()) }
+    { Value::Float( format!("-{}", __0) ) }
 }
 
 #[allow(unused_variables)]
