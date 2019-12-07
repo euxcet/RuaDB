@@ -164,7 +164,6 @@ pub enum Type {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
-    // 1, 2, 3, 4, 5
     Int(String),
     Str(String),
     Float(String),
@@ -172,9 +171,21 @@ pub enum Value {
     Null,
 }
 
+
 impl Value {
     pub fn is_null(&self) -> bool {
         *self == Value::Null
+    }
+
+    pub fn of_type(&self, ty: &Type) -> bool {
+        match (self, ty) {
+            (Value::Null, _) => true,
+            (Value::Int(_), Type::Int(_)) | 
+            (Value::Str(_), Type::Varchar(_)) | 
+            (Value::Float(_), Type::Float) | 
+            (Value::Date(_), Type::Date) => true,
+            (_, _) => false, 
+        }
     }
 }
 

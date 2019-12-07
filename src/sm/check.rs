@@ -5,12 +5,6 @@ use crate::rm::record;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-/*
-pub fn valid_type_value(ty: &Type, value: &Value) -> bool {
-    let v = value2int(value);
-    let t = type2int(ty);
-    v == t || v == VALUE_NULL
-}
 
 pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
@@ -24,7 +18,7 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
                     return false;
                 }
                 if let Some(ref v) = default_value {
-                    if !valid_type_value(ty, v) {
+                    if !v.of_type(ty) {
                         return false;
                     }
                 }
@@ -68,7 +62,7 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
                 let f_ty = &foreign_col.data_type;
                 let t_ty = this_field.1;
                 // has same type
-                if !valid_type_datatype(t_ty, f_ty) {
+                if !f_ty.of_same_type(t_ty) {
                     return false;
                 }
                 // foreign column must be primary
@@ -89,9 +83,4 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
 }
 
 
-pub fn valid_type_datatype(ty: &Type, data_type: &record::Type) -> bool {
-    type2int(ty) == record::datatype2int(data_type)
-}
 
-
-*/

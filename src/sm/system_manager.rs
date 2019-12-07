@@ -8,6 +8,7 @@ use crate::parser::ast::*;
 use crate::index::btree::*;
 
 use super::query_tree::*;
+use super::check;
 
 use std::path::PathBuf;
 use std::fs;
@@ -175,9 +176,15 @@ impl SystemManager {
     // TODO: foreign key
     pub fn create_table(&self, tb_name: &String, field_list: &Vec<Field>) -> RuaResult {
         if self.check {
-            match &self.current_database {
-                Some(database) => self.check_table_existence(database, false),
-                None => RuaResult::err("not use any database".to_string()),
+            let res = self.check_table_existence(tb_name, false);
+            if res.is_ok() {
+                if check::valid_field_list(field_list, &self) {
+                    RuaResult::default()
+                } else {
+                    RuaResult::err("invalid field".to_string())
+                }
+            } else {
+                res
             }
         }
         else {

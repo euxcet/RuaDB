@@ -60,6 +60,17 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn of_same_type(&self, ty: &ast::Type) -> bool {
+        match (self, ty) {
+            (Type::Int(_), ast::Type::Int(_)) | 
+            (Type::Str(_), ast::Type::Varchar(_)) | 
+            (Type::Float(_), ast::Type::Float) | 
+            (Type::Date(_), ast::Type::Date) => true,
+            (Type::Numeric(_), _) => false,
+            (_, _) => false, 
+        }
+    }
+
     pub fn from_type(ty: &ast::Type, value: &Option<ast::Value>) -> Self {
         use std::str::FromStr; 
         match ty {
