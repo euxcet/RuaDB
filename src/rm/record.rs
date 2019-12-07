@@ -2,22 +2,6 @@ use std::collections::HashMap;
 use crate::parser::ast;
 use crate::utils::convert;
 
-pub const TYPE_INT: i32 = 1;
-pub const TYPE_STR: i32 = 2;
-pub const TYPE_FLOAT: i32 = 3;
-pub const TYPE_DATE: i32 = 4;
-pub const TYPE_NUMERIC: i32 = 5;
-
-pub fn datatype2int(ty: &Type) -> i32 {
-    match ty {
-        Type::Int(_) => TYPE_INT,
-        Type::Str(_) => TYPE_STR,
-        Type::Float(_) => TYPE_FLOAT,
-        Type::Date(_) => TYPE_DATE,
-        Type::Numeric(_) => TYPE_NUMERIC,
-    }
-}
-
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
@@ -68,6 +52,16 @@ impl Type {
             (Type::Date(_), ast::Type::Date) => true,
             (Type::Numeric(_), _) => false,
             (_, _) => false, 
+        }
+    }
+
+    pub fn valid_value(&self, value: &ast::Value) -> bool {
+        match (self, value) {
+            (Type::Int(_), ast::Value::Int(_)) |
+            (Type::Str(_), ast::Value::Str(_)) |
+            (Type::Float(_), ast::Value::Float(_)) |
+            (Type::Date(_), ast::Value::Date(_)) => true,
+            (_, _) => false,
         }
     }
 
@@ -236,12 +230,12 @@ impl ColumnTypeVec {
         ).collect()
     }
 
-    pub fn print(&self, col_num: usize) -> Vec<String> {
-        let mut res = vec![vec![]; col_num];
+    pub fn print(&self) -> Vec<String> {
+        let mut res = vec![vec![]; 5];
         let mut non_primary_col_number = 0;
         for col in &self.cols {
             let content = col.print(non_primary_col_number == 0);
-            for i in 0..col_num {
+            for i in 0..5 {
                 res[i].push(content[i].clone());
             }
             if !col.is_primary {

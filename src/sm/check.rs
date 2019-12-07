@@ -1,6 +1,6 @@
 use crate::parser::ast::*;
 use crate::sm::system_manager::SystemManager;
-use crate::rm::record;
+use crate::rm::record::*;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -83,4 +83,23 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
 }
 
 
+// TODO: foreign key
+pub fn valid_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec, sm: &SystemManager) -> bool {
+    let cols = &cts.cols;
+    let col_num = cols.len();
+    for values in value_lists {
+        if values.len() != col_num {
+            return false;
+        }
+        for i in 0..col_num {
+            if !cols[i].data_type.valid_value(&values[i]) {
+                return false;
+            }
+            if values[i].is_null() && !cols[i].can_be_null {
+                return false;
+            }
+        }
+    }
+    true
+}
 

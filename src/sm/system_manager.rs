@@ -225,14 +225,26 @@ impl SystemManager {
             let cts = th.get_column_types();
             th.close();
             let title = vec!["Field", "Type", "Null", "Key", "Default"].iter().map(|x| x.to_string()).collect();
-            let print_content = cts.print(5);
+            let print_content = cts.print();
             RuaResult::ok(Some(vec![title, print_content]), format!("{} row(s) in set", cts.cols.len()))
         }
     }
 
     pub fn insert(&self, tb_name: &String, value_lists: &Vec<Vec<Value>>) -> RuaResult {
         if self.check {
-            self.check_table_existence(tb_name, true)
+            let res = self.check_table_existence(tb_name, true);
+            let th = self.open_table(tb_name, false).unwrap();
+            let cts = th.get_column_types();
+            th.close();
+            if res.is_ok() {
+                if check::valid_insert_value(value_lists, &cts, &self) {
+                    RuaResult::default()
+                } else {
+                    RuaResult::err("invalid insert values".to_string())
+                }
+            } else {
+                res
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();
