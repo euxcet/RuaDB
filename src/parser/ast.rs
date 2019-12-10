@@ -162,6 +162,22 @@ pub enum Type {
     Float,
 }
 
+impl Type {
+    pub fn comparable(&self, other: &Self) -> bool {
+        self.same(other)
+    }
+
+    pub fn same(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Type::Int(_), Type::Int(_)) |
+            (Type::Varchar(_), Type::Varchar(_)) |
+            (Type::Date, Type::Date) |
+            (Type::Float, Type::Float) => true,
+            (_, _) => false,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
     Int(String),

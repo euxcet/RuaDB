@@ -55,6 +55,17 @@ impl Type {
         }
     }
 
+    pub fn comparable(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Type::Int(_), Type::Int(_)) | 
+            (Type::Str(_), Type::Str(_)) | 
+            (Type::Float(_), Type::Float(_)) | 
+            (Type::Date(_), Type::Date(_)) |
+            (Type::Numeric(_), Type::Numeric(_)) => true,
+            (_, _) => false, 
+        }
+    }
+
     pub fn valid_value(&self, value: &ast::Value) -> bool {
         match (self, value) {
             (Type::Int(_), ast::Value::Int(_)) |

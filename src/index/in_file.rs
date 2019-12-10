@@ -159,12 +159,22 @@ mod tests {
         let mut gen = random::Generator::new(true);
         const MAX_STRING_LENGTH: usize = 10;
         const MAX_RECORD_NUMBER: usize = 1000;
+        use crate::settings;
+
+        let settings = settings::Settings::new().unwrap();
+
+        #[cfg(target_os = "macos")]
+        let rd = settings.database.rd_macos;
+        #[cfg(target_os = "windows")]
+        let rd = settings.database.rd_windows;
+        #[cfg(target_os = "linux")]
+        let rd = settings.database.rd_linux;
 
         let mut r = RecordManager::new();
-        r.create_table("alloc_btree_test.rua");
+        r.create_table(&(rd.clone() + "alloc_btree_test.rua"));
 
         let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
-        let th = r.open_table("alloc_btree_test.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
         for c in &columns {
             th.insert_column_type(c);
         }
@@ -172,7 +182,7 @@ mod tests {
 
         let mut ptrs = Vec::new();
 
-        let th = r.open_table("alloc_btree_test.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             let insert_times: usize = gen.gen_range(1, 2);
@@ -183,12 +193,12 @@ mod tests {
         th.close();
         println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-        let th = r.open_table("alloc_btree_test.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
         let btree = BTree::new(&th, vec![0]);
         let btree_ptr = th.__insert_btree(&btree);
         th.close();
 
-        let th = r.open_table("alloc_btree_test.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
 
         let mut btree_ = th.__get_btree(&btree_ptr);
 
@@ -202,7 +212,7 @@ mod tests {
 
         println!("btree insert {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-        let th = r.open_table("alloc_btree_test.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
         let btree_ = th.__get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
@@ -214,7 +224,7 @@ mod tests {
 
         println!("btree search {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
-        let th = r.open_table("alloc_btree_test.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
         let mut btree_ = th.__get_btree(&btree_ptr);
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);

@@ -237,7 +237,7 @@ impl SystemManager {
             let cts = th.get_column_types();
             th.close();
             if res.is_ok() {
-                if check::valid_insert_value(value_lists, &cts, &self) {
+                if check::valid_insert_value(value_lists, &cts) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid insert values".to_string())
@@ -249,7 +249,7 @@ impl SystemManager {
         else {
             let database = self.current_database.as_ref().unwrap();
             let th = self.rm.borrow_mut().open_table(self.get_table_path(database, tb_name).to_str().unwrap(), false);
-            let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v)).collect();
+                let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v)).collect();
             let ptrs: Vec<StrPointer> = records.iter().map(|record| th.insert_record(record)).collect();
             let mut born_btree = th.get_born_btree();
             for ptr in ptrs {
@@ -263,7 +263,28 @@ impl SystemManager {
 
     pub fn select(&self, table_list: &Vec<Name>, selector: &Selector, where_clause: &Option<Vec<WhereClause>>) -> RuaResult {
         if self.check {
-            table_list.iter().map(|tb_name| self.check_table_existence(tb_name, true)).fold(RuaResult::default(), |s, v| s & v)
+            let repeat = !check::check_no_repeat(table_list);
+            if repeat {
+                return RuaResult::err("a single table cannot be selected twice".to_string())
+            }
+            let res = table_list.iter().map(|tb_name| self.check_table_existence(tb_name, true)).fold(RuaResult::default(), |s, v| s & v);
+            if res.is_err() {
+                res
+            } else {
+                let name_cols = table_list.iter()
+                                .map(|tb_name| {
+                                    let th = self.open_table(tb_name, false).unwrap();
+                                    let map = th.get_column_types_as_hashmap();
+                                    th.close();
+                                    (tb_name, map)
+                                }).collect();
+                let valid = check::valid_select(&name_cols, selector, where_clause);
+                if !valid {
+                    RuaResult::err("invalid select".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();
