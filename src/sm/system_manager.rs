@@ -228,10 +228,13 @@ impl SystemManager {
             self.check_table_existence(tb_name, true)
         }
         else {
-            let database = self.current_database.as_ref().unwrap();
-            let th = self.rm.borrow_mut().open_table(self.get_table_path(database, tb_name).to_str().unwrap(), false);
+            // let database = self.current_database.as_ref().unwrap();
+            // let th = self.rm.borrow_mut().open_table(self.get_table_path(database, tb_name).to_str().unwrap(), false);
+            let th = self.open_table(tb_name, false).unwrap();
             let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v)).collect();
             let ptrs: Vec<StrPointer> = records.iter().map(|record| th.insert_record(record)).collect();
+
+            // TODO: insert into every btree
             let mut born_btree = th.get_born_btree();
             for ptr in ptrs {
                 born_btree.insert_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64());
@@ -263,6 +266,29 @@ impl SystemManager {
                 let print_content = record_list.print();
                 RuaResult::ok(Some(print_content), format!("{} rows in set", record_num))
             }
+        }
+    }
+
+    pub fn delete(&self, tb_name: &String, where_clause: &Option<Vec<WhereClause>>) -> RuaResult {
+        if self.check {
+            self.check_table_existence(tb_name, true)
+        }
+        else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+            let record_list = tree.query();
+
+            // TODO: delete in every btree
+            let th = self.open_table(tb_name, false).unwrap();
+            let mut born_btree = th.get_born_btree();
+            for ptr in &record_list.ptrs {
+                println!("ptr {}", ptr.to_u64());
+                born_btree.delete_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64());
+            }
+            th.update_born_btree(&born_btree);
+            th.close();
+            RuaResult::default()
         }
     }
 }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::parser::ast;
 use crate::utils::convert;
+use super::pagedef::StrPointer;
 
 pub const TYPE_INT: i32 = 1;
 pub const TYPE_STR: i32 = 2;
@@ -345,6 +346,7 @@ impl Record {
 pub struct RecordList {
     pub ty: Vec<ColumnType>,
     pub record: Vec<Record>,
+    pub ptrs: Vec<StrPointer>,
 }
 
 impl RecordList {
@@ -356,6 +358,7 @@ impl RecordList {
         RecordList {
             ty: ty,
             record: self.record.iter().map(|record| record.sub_record(sub_cols)).collect(),
+            ptrs: self.ptrs.clone(),
         }
     }
 

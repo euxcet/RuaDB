@@ -40,6 +40,7 @@ impl Executor {
                     TableStmt::Desc { tb_name } => self.sm.borrow_mut().desc(&tb_name),
                     TableStmt::Insert { tb_name, value_lists } => self.sm.borrow_mut().insert(&tb_name, &value_lists),
                     TableStmt::Select { table_list, selector, where_clause } => self.sm.borrow_mut().select(&table_list, &selector, &where_clause),
+                    TableStmt::Delete { tb_name, where_clause } => self.sm.borrow_mut().delete(&tb_name, &where_clause),
                     _ => unreachable!(),
                 }
             },
@@ -94,6 +95,12 @@ mod test {
             String::from("select * from b_test;"),
             String::from("select * from test, b_test where test.id >= b_test.id;"),
             String::from("select fuck from test;"),
+
+            String::from("select * from test;"),
+            String::from("delete from test where id > 5;"),
+            String::from("select * from test;"),
+            String::from("delete from test where id < 4;"),
+            String::from("select * from test;"),
             
             String::from("desc test;"),
             String::from("drop database sql_select;"),
@@ -112,7 +119,7 @@ mod test {
                         }
                     }
                 },
-                Err(e) => {
+                Err(_) => {
                     println!("Invalid syntax");
                 }
             }
