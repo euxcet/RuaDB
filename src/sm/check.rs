@@ -5,8 +5,7 @@ use crate::rm::record::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-
-pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
+pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
     let mut primary_key: Vec<&Vec<String>> = Vec::new();
     let mut name_foreign_key = HashMap::new();
@@ -82,9 +81,8 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     true
 }
 
-
 // TODO: foreign key
-pub fn valid_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) -> bool {
+pub fn check_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) -> bool {
     let cols = &cts.cols;
     let col_num = cols.len();
     for values in value_lists {
@@ -114,7 +112,7 @@ pub fn check_no_repeat(names: &Vec<String>) -> bool {
     true
 }
 
-pub fn valid_select(tb_cols: &HashMap<&String, HashMap<String, ColumnType>>, selector: &Selector, where_clause: &Option<Vec<WhereClause>>) -> bool {
+pub fn check_select(tb_cols: &HashMap<&String, HashMap<String, ColumnType>>, selector: &Selector, where_clause: &Option<Vec<WhereClause>>) -> bool {
     let mut col_tbs: HashMap<&String, HashSet<&String>> =  HashMap::new();
     for (tb_name, cols) in tb_cols {
         for (col_name, _) in cols {
@@ -193,3 +191,102 @@ pub fn valid_select(tb_cols: &HashMap<&String, HashMap<String, ColumnType>>, sel
     true
 }
 
+pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_clause: &Option<Vec<WhereClause>>) -> bool {
+    let valid_qualified_col = |qualified_col: &Column| -> bool {
+        if let Some(ref tb) = qualified_col.tb_name {
+            tb == tb_name && map.contains_key(&qualified_col.col_name)
+        } else {
+            map.contains_key(&qualified_col.col_name)
+        }
+    };
+
+    let get_col = |qualified_col: &Column| -> &ColumnType {
+        map.get(&qualified_col.col_name).unwrap()
+    };
+
+    if let Some(where_clause) = where_clause {
+        for sub_where in where_clause {
+            match sub_where {
+                WhereClause::IsAssert {col, null: _} => {
+                    if !valid_qualified_col(col) {
+                        return false;
+                    }
+                },
+                WhereClause::Comparison {col, op: _, expr} => {
+                    if !valid_qualified_col(col) {
+                        return false;
+                    }
+                    let ct = get_col(col);
+                    match expr {
+                        Expr::Value(v) => {
+                            if !ct.data_type.valid_value(v) {
+                                return false;
+                            }
+                        },
+                        Expr::Column(c) => {
+                            let another_ct = get_col(c);
+                            if !ct.data_type.comparable(&another_ct.data_type) {
+                                return false;
+                            }
+                        }
+                    }
+                },
+            }
+        }
+    }
+    true
+}
+
+pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_clause: &Vec<SetClause>, where_clause: &Option<Vec<WhereClause>>) -> bool {
+    let valid_qualified_col = |qualified_col: &Column| -> bool {
+        if let Some(ref tb) = qualified_col.tb_name {
+            tb == tb_name && map.contains_key(&qualified_col.col_name)
+        } else {
+            map.contains_key(&qualified_col.col_name)
+        }
+    };
+
+    let get_col = |col_name: &String| -> &ColumnType {
+        map.get(col_name).unwrap()
+    };
+
+    if let Some(where_clause) = where_clause {
+        for sub_where in where_clause {
+            match sub_where {
+                WhereClause::IsAssert {col, null: _} => {
+                    if !valid_qualified_col(col) {
+                        return false;
+                    }
+                },
+                WhereClause::Comparison {col, op: _, expr} => {
+                    if !valid_qualified_col(col) {
+                        return false;
+                    }
+                    let ct = get_col(&col.col_name);
+                    match expr {
+                        Expr::Value(v) => {
+                            if !ct.data_type.valid_value(v) {
+                                return false;
+                            }
+                        },
+                        Expr::Column(c) => {
+                            let another_ct = get_col(&c.col_name);
+                            if !ct.data_type.comparable(&another_ct.data_type) {
+                                return false;
+                            }
+                        }
+                    }
+                },
+            }
+        }
+    }
+
+    for sub_set_clause in set_clause {
+        let ct = get_col(&sub_set_clause.col_name);
+        if !ct.data_type.valid_value(&sub_set_clause.value) {
+            return false;
+        }
+    }
+
+    true
+}

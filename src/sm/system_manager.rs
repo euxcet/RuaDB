@@ -178,7 +178,7 @@ impl SystemManager {
         if self.check {
             let res = self.check_table_existence(tb_name, false);
             if res.is_ok() {
-                if check::valid_field_list(field_list, &self) {
+                if check::check_field_list(field_list, &self) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid field".to_string())
@@ -237,7 +237,7 @@ impl SystemManager {
             let cts = th.get_column_types();
             th.close();
             if res.is_ok() {
-                if check::valid_insert_value(value_lists, &cts) {
+                if check::check_insert_value(value_lists, &cts) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid insert values".to_string())
@@ -281,7 +281,7 @@ impl SystemManager {
                                     th.close();
                                     (tb_name, map)
                                 }).collect();
-                let valid = check::valid_select(&name_cols, selector, where_clause);
+                let valid = check::check_select(&name_cols, selector, where_clause);
                 if !valid {
                     RuaResult::err("invalid select".to_string())
                 } else {
@@ -311,7 +311,21 @@ impl SystemManager {
 
     pub fn delete(&self, tb_name: &String, where_clause: &Option<Vec<WhereClause>>) -> RuaResult {
         if self.check {
-            self.check_table_existence(tb_name, true)
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+                th.close();
+
+                let valid = check::check_delete(tb_name, &map, where_clause);
+                if !valid {
+                    RuaResult::err("invalid delete".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();
