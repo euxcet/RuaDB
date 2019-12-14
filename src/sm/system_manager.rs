@@ -283,11 +283,32 @@ impl SystemManager {
             let th = self.open_table(tb_name, false).unwrap();
             let mut born_btree = th.get_born_btree();
             for ptr in &record_list.ptrs {
-                println!("ptr {}", ptr.to_u64());
                 born_btree.delete_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64());
             }
             th.update_born_btree(&born_btree);
             th.close();
+            RuaResult::default()
+        }
+    }
+
+    pub fn update(&self, tb_name: &String, set_clause: &Vec<SetClause>, where_clause: &Option<Vec<WhereClause>>) -> RuaResult {
+        if self.check {
+            self.check_table_existence(tb_name, true)
+        }
+        else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+            let mut record_list = tree.query();
+
+            let th = self.open_table(tb_name, false).unwrap();
+            for pair in record_list.record.iter_mut().zip(record_list.ptrs.iter()) {
+                let (record, ptr) = pair;
+                record.set_(set_clause, &record_list.ty);
+                th.update_record(ptr, record);
+            }
+            th.close();
+            // TODO: update in every related btree
             RuaResult::default()
         }
     }
