@@ -319,6 +319,16 @@ impl Record {
         None
     }
 
+    pub fn set_(&mut self, value_list: &Vec<ast::SetClause>, ty: &Vec<ColumnType>) {
+        for value in value_list {
+            for i in 0..ty.len() {
+                if ty[i].name == value.col_name {
+                    self.cols[i].data = Data::from_value(&value.value);
+                }
+            }
+        }
+    }
+
     pub fn match_(&self, condition: &ast::WhereClause, ty: &Vec<ColumnType>) -> bool {
         match condition {
             ast::WhereClause::IsAssert{col, null} => {

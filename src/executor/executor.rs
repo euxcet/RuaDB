@@ -41,6 +41,7 @@ impl Executor {
                     TableStmt::Insert { tb_name, value_lists } => self.sm.borrow_mut().insert(&tb_name, &value_lists),
                     TableStmt::Select { table_list, selector, where_clause } => self.sm.borrow_mut().select(&table_list, &selector, &where_clause),
                     TableStmt::Delete { tb_name, where_clause } => self.sm.borrow_mut().delete(&tb_name, &where_clause),
+                    TableStmt::Update { tb_name, set_clause, where_clause } => self.sm.borrow_mut().update(&tb_name, &set_clause, &where_clause),
                     _ => unreachable!(),
                 }
             },
@@ -100,6 +101,13 @@ mod test {
             String::from("delete from test where id > 5;"),
             String::from("select * from test;"),
             String::from("delete from test where id < 4;"),
+            String::from("select * from test;"),
+
+            String::from("insert into test values (-10, \"123124\");"),
+            String::from("insert into test values (40, \"224\");"),
+            String::from("insert into test values (3, \"23124\");"),
+
+            String::from("update test set id = 10 where id > 3;"),
             String::from("select * from test;"),
             
             String::from("desc test;"),
