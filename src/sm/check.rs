@@ -1,16 +1,10 @@
 use crate::parser::ast::*;
 use crate::sm::system_manager::SystemManager;
-use crate::rm::record;
+use crate::rm::record::*;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-/*
-pub fn valid_type_value(ty: &Type, value: &Value) -> bool {
-    let v = value2int(value);
-    let t = type2int(ty);
-    v == t || v == VALUE_NULL
-}
 
 pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
@@ -24,7 +18,7 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
                     return false;
                 }
                 if let Some(ref v) = default_value {
-                    if !valid_type_value(ty, v) {
+                    if !v.of_type(ty) {
                         return false;
                     }
                 }
@@ -68,7 +62,7 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
                 let f_ty = &foreign_col.data_type;
                 let t_ty = this_field.1;
                 // has same type
-                if !valid_type_datatype(t_ty, f_ty) {
+                if !f_ty.of_same_type(t_ty) {
                     return false;
                 }
                 // foreign column must be primary
@@ -89,9 +83,113 @@ pub fn valid_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
 }
 
 
-pub fn valid_type_datatype(ty: &Type, data_type: &record::Type) -> bool {
-    type2int(ty) == record::datatype2int(data_type)
+// TODO: foreign key
+pub fn valid_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) -> bool {
+    let cols = &cts.cols;
+    let col_num = cols.len();
+    for values in value_lists {
+        if values.len() != col_num {
+            return false;
+        }
+        for i in 0..col_num {
+            if !cols[i].data_type.valid_value(&values[i]) {
+                return false;
+            }
+            if values[i].is_null() && !cols[i].can_be_null {
+                return false;
+            }
+        }
+    }
+    true
 }
 
+pub fn check_no_repeat(names: &Vec<String>) -> bool {
+    let mut set = HashSet::new();
+    for name in names {
+        if set.contains(name) {
+            return false;
+        }
+        set.insert(name);
+    }
+    true
+}
 
-*/
+pub fn valid_select(tb_cols: &HashMap<&String, HashMap<String, ColumnType>>, selector: &Selector, where_clause: &Option<Vec<WhereClause>>) -> bool {
+    let mut col_tbs: HashMap<&String, HashSet<&String>> =  HashMap::new();
+    for (tb_name, cols) in tb_cols {
+        for (col_name, _) in cols {
+            let tbs_contains_this_col_name = col_tbs.entry(col_name).or_insert(HashSet::new());
+            tbs_contains_this_col_name.insert(*tb_name);
+        }
+    }
+
+    let valid_qualified_col = |qualified_col: &Column| -> bool {
+        let ts = col_tbs.get(&qualified_col.col_name);
+        if let Some(ref tb) = qualified_col.tb_name {
+            !ts.is_none() && ts.unwrap().contains(tb)
+        } else {
+            !ts.is_none() && ts.unwrap().len() == 1
+        }
+    };
+
+    let get_col = |qualified_col: &Column| -> &ColumnType {
+        let tb_name = {
+            if let Some(ref tb) = qualified_col.tb_name {
+                tb
+            } else {
+                let ts = col_tbs.get(&qualified_col.col_name).unwrap();
+                assert!(ts.len() == 1);
+                let mut v = Vec::new();
+                for t in ts {
+                    v.push(*t);
+                }
+                v[0]
+            }
+        };
+        tb_cols.get(tb_name).unwrap().get(&qualified_col.col_name).unwrap()
+    };
+
+    match selector {
+        Selector::Columns(qualified_cols) => {
+            for qualified_col in qualified_cols {
+                if !valid_qualified_col(qualified_col) {
+                    return false;
+                }
+            }
+        },
+        _ => {}, 
+    }
+
+    if let Some(where_clause) = where_clause {
+        for sub_where in where_clause {
+            match sub_where {
+                WhereClause::IsAssert {col, null: _} => {
+                    if !valid_qualified_col(col) {
+                        return false;
+                    }
+                },
+                WhereClause::Comparison {col, op: _, expr} => {
+                    if !valid_qualified_col(col) {
+                        return false;
+                    }
+                    let ct = get_col(col);
+                    match expr {
+                        Expr::Value(v) => {
+                            if !ct.data_type.valid_value(v) {
+                                return false;
+                            }
+                        },
+                        Expr::Column(c) => {
+                            let another_ct = get_col(c);
+                            if !ct.data_type.comparable(&another_ct.data_type) {
+                                return false;
+                            }
+                        }
+                    }
+                },
+            }
+        }
+    }
+    true
+}
+

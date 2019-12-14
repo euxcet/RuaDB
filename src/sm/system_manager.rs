@@ -8,6 +8,7 @@ use crate::parser::ast::*;
 use crate::index::btree::*;
 
 use super::query_tree::*;
+use super::check;
 
 use std::path::PathBuf;
 use std::fs;
@@ -175,9 +176,15 @@ impl SystemManager {
     // TODO: foreign key
     pub fn create_table(&self, tb_name: &String, field_list: &Vec<Field>) -> RuaResult {
         if self.check {
-            match &self.current_database {
-                Some(database) => self.check_table_existence(database, false),
-                None => RuaResult::err("not use any database".to_string()),
+            let res = self.check_table_existence(tb_name, false);
+            if res.is_ok() {
+                if check::valid_field_list(field_list, &self) {
+                    RuaResult::default()
+                } else {
+                    RuaResult::err("invalid field".to_string())
+                }
+            } else {
+                res
             }
         }
         else {
@@ -218,14 +225,26 @@ impl SystemManager {
             let cts = th.get_column_types();
             th.close();
             let title = vec!["Field", "Type", "Null", "Key", "Default"].iter().map(|x| x.to_string()).collect();
-            let print_content = cts.print(5);
+            let print_content = cts.print();
             RuaResult::ok(Some(vec![title, print_content]), format!("{} row(s) in set", cts.cols.len()))
         }
     }
 
     pub fn insert(&self, tb_name: &String, value_lists: &Vec<Vec<Value>>) -> RuaResult {
         if self.check {
-            self.check_table_existence(tb_name, true)
+            let res = self.check_table_existence(tb_name, true);
+            let th = self.open_table(tb_name, false).unwrap();
+            let cts = th.get_column_types();
+            th.close();
+            if res.is_ok() {
+                if check::valid_insert_value(value_lists, &cts) {
+                    RuaResult::default()
+                } else {
+                    RuaResult::err("invalid insert values".to_string())
+                }
+            } else {
+                res
+            }
         }
         else {
             // let database = self.current_database.as_ref().unwrap();
@@ -247,7 +266,28 @@ impl SystemManager {
 
     pub fn select(&self, table_list: &Vec<Name>, selector: &Selector, where_clause: &Option<Vec<WhereClause>>) -> RuaResult {
         if self.check {
-            table_list.iter().map(|tb_name| self.check_table_existence(tb_name, true)).fold(RuaResult::default(), |s, v| s & v)
+            let repeat = !check::check_no_repeat(table_list);
+            if repeat {
+                return RuaResult::err("a single table cannot be selected twice".to_string())
+            }
+            let res = table_list.iter().map(|tb_name| self.check_table_existence(tb_name, true)).fold(RuaResult::default(), |s, v| s & v);
+            if res.is_err() {
+                res
+            } else {
+                let name_cols = table_list.iter()
+                                .map(|tb_name| {
+                                    let th = self.open_table(tb_name, false).unwrap();
+                                    let map = th.get_column_types_as_hashmap();
+                                    th.close();
+                                    (tb_name, map)
+                                }).collect();
+                let valid = check::valid_select(&name_cols, selector, where_clause);
+                if !valid {
+                    RuaResult::err("invalid select".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();
