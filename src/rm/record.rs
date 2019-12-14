@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::parser::ast;
 use crate::utils::convert;
+use super::pagedef::StrPointer;
 
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
 pub enum Data {
@@ -361,6 +362,7 @@ impl Record {
 pub struct RecordList {
     pub ty: Vec<ColumnType>,
     pub record: Vec<Record>,
+    pub ptrs: Vec<StrPointer>,
 }
 
 impl RecordList {
@@ -372,6 +374,7 @@ impl RecordList {
         RecordList {
             ty: ty,
             record: self.record.iter().map(|record| record.sub_record(sub_cols)).collect(),
+            ptrs: self.ptrs.clone(),
         }
     }
 

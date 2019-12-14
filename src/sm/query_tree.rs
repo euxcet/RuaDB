@@ -1,7 +1,7 @@
 use crate::parser::ast;
 use crate::rm::record::*;
 use crate::rm::record_manager::*;
-use crate::rm::table_handler::*;
+use crate::rm::pagedef::*;
 use std::path::PathBuf;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -42,10 +42,12 @@ impl QueryNode for SelectNode {
                 let mut record_list = RecordList {
                     ty: son_record_list.ty,
                     record: Vec::new(),
+                    ptrs: Vec::new(),
                 };
-                for record in son_record_list.record {
-                    if self.is_valid(&record, &record_list.ty) {
-                        record_list.record.push(record);
+                for i in 0..son_record_list.record.len() {
+                    if self.is_valid(&son_record_list.record[i], &record_list.ty) {
+                        record_list.record.push(son_record_list.record[i].clone());
+                        record_list.ptrs.push(son_record_list.ptrs[i]);
                     }
                 }
                 record_list
@@ -60,6 +62,7 @@ impl QueryNode for SelectNode {
                 let mut record_list = RecordList {
                     ty: th.get_column_types().cols.clone(),
                     record: Vec::new(),
+                    ptrs: Vec::new(),
                 };
                 while bucket.is_some() {
                     let bucket_ = bucket.unwrap();
@@ -67,6 +70,7 @@ impl QueryNode for SelectNode {
                         let record = th.get_record_(*data).0;
                         if self.is_valid(&record, &record_list.ty) {
                             record_list.record.push(record);
+                            record_list.ptrs.push(StrPointer::new(*data));
                         }
                     }
                     bucket = if bucket_.next == 0 {None} else {Some(th.get_bucket_(bucket_.next))};
@@ -111,6 +115,7 @@ impl ProductNode {
     fn concat(records: &Vec<RecordList>, pos: usize, current_record: &mut Record, result: &mut RecordList) {
         if pos == records.len() {
             result.record.push(current_record.clone());
+            result.ptrs.push(StrPointer::new(0));
             return;
         }
         let record_list = &records[pos];
@@ -128,19 +133,25 @@ impl ProductNode {
 
 impl QueryNode for ProductNode {
     fn query(&self) -> RecordList {
-        let record_lists: Vec<RecordList> = self.son.iter().map(|node| node.query()).collect();
-        let mut ty = Vec::new();
-        for record_list in &record_lists {
-            for t in &record_list.ty {
-                ty.push(t.clone());
-            }
+        let mut record_lists: Vec<RecordList> = self.son.iter().map(|node| node.query()).collect();
+        if record_lists.len() == 1 {
+            record_lists.pop().unwrap()
         }
-        let mut result = RecordList {
-            ty: ty,
-            record: Vec::new(),
-        };
-        ProductNode::concat(&record_lists, 0, &mut Record{ cols: Vec::new(), }, &mut result);
-        result
+        else {
+            let mut ty = Vec::new();
+            for record_list in &record_lists {
+                for t in &record_list.ty {
+                    ty.push(t.clone());
+                }
+            }
+            let mut result = RecordList {
+                ty: ty,
+                record: Vec::new(),
+                ptrs: Vec::new(),
+            };
+            ProductNode::concat(&record_lists, 0, &mut Record{ cols: Vec::new(), }, &mut result);
+            result
+        }
     }
 }
 

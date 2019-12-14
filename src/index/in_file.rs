@@ -153,7 +153,7 @@ mod tests {
         }
     }
 
-    #[test]
+    // #[test]
     fn alloc_btree() {
         let start_time = SystemTime::now();
         let mut gen = random::Generator::new(true);

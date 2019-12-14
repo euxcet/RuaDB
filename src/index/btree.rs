@@ -606,10 +606,8 @@ impl BTreeNode {
                             }
                         }
                         if bucket.data.is_empty() {
-                            let prev_bucket = if i > 0 {self.bucket[i - 1]} else {0u64};
-                            let next_bucket = if i + 1 < len {self.bucket[i + 1]} else {0u64};
-                            let prev_bucket = if prev_bucket == 0 && next_bucket != 0 {th.get_bucket_(next_bucket).prev} else {prev_bucket};
-                            let next_bucket = if next_bucket == 0 && prev_bucket != 0 {th.get_bucket_(prev_bucket).next} else {next_bucket};
+                            let prev_bucket = bucket.prev;
+                            let next_bucket = bucket.next;
                             unsafe {
                                 if prev_bucket != 0 {
                                     th.update_sub_(prev_bucket, Bucket::get_offset_next(), convert::u64_to_vec_u8(next_bucket));
@@ -624,9 +622,7 @@ impl BTreeNode {
                             }
                         }
                         else {
-                            unsafe {
-                                th.update_bucket_(self.bucket[i], &bucket);
-                            }
+                            th.update_bucket_(self.bucket[i], &bucket);
                         }
                         break;
                     }
