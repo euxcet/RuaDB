@@ -32,6 +32,11 @@ impl StrPointer {
     pub fn is_null(&self) -> bool {
         self.page == 0 && self.offset == 0
     }
+
+    pub fn set_null(&mut self) {
+        self.page = 0;
+        self.offset = 0;
+    }
 }
 
 #[repr(C)]

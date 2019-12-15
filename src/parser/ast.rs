@@ -74,6 +74,7 @@ pub enum IndexStmt {
     }, 
     DropIndex {
         idx_name: Name,
+        tb_name: Name, 
     },
     AlterAddIndex {
         idx_name: Name,

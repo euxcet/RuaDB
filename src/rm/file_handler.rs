@@ -124,25 +124,30 @@ impl FileHandler {
     }
 
     // free a slot
-    fn free_slot(&self, strp: &mut StrPointer) {
+    fn free_slot(&self, strp: &StrPointer) -> StrPointer {
         let this_page = strp.page;
         let offset = strp.offset;
         let sp = unsafe{self.sp_mut(this_page)};
         assert!((strp.offset as usize) < SLOT_PER_PAGE);
+        assert!(is_used(sp.header.free_slot, strp.offset as usize));
         set_free(&mut sp.header.free_slot, strp.offset as u32);
-        *strp = sp.strs[offset as usize].next;
+        let next = sp.strs[offset as usize].next.clone();
+        sp.strs[offset as usize].len = 0;
+        sp.strs[offset as usize].next.set_null();
         if free_num(sp.header.free_slot, SLOT_PER_PAGE) == 1 {
             let header = unsafe{self.header_mut()};
             let stack_top = header.free_page;
             header.free_page = this_page;
             unsafe{self.sp_mut(this_page)}.header.next_free_page = stack_top;
         }
+        next
     }
 
     // free a string in the file
-    pub fn free(&self, strp: &mut StrPointer) {
-        while !strp.is_null() {
-            self.free_slot(strp);
+    pub fn free(&self, strp: &StrPointer) {
+        let mut p = strp.clone();
+        while !p.is_null() {
+            p = self.free_slot(&p);
         }
     }
 
@@ -195,8 +200,9 @@ impl FileHandler {
                 let slot = self.alloc_slot();
                 ss.next = StrPointer { page: slot.0, offset: slot.1 };
             }
-            else if d_offset == data.len() && ss.next.to_u64() != 0 {
-                self.free(&mut ss.next);
+            else if d_offset == data.len() && !ss.next.is_null() {
+                self.free(&ss.next);
+                ss.next.set_null();
             }
             t = &ss.next;
         }
@@ -228,7 +234,7 @@ impl FileHandler {
     }
 
     // delete a struct in the file
-    pub fn delete(&self, ptr: &mut StrPointer) {
+    pub fn delete(&self, ptr: &StrPointer) {
         self.free(ptr);
     }
 

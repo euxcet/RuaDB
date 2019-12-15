@@ -42,9 +42,14 @@ impl Executor {
                     TableStmt::Select { table_list, selector, where_clause } => self.sm.borrow_mut().select(&table_list, &selector, &where_clause),
                     TableStmt::Delete { tb_name, where_clause } => self.sm.borrow_mut().delete(&tb_name, &where_clause),
                     TableStmt::Update { tb_name, set_clause, where_clause } => self.sm.borrow_mut().update(&tb_name, &set_clause, &where_clause),
-                    _ => unreachable!(),
                 }
             },
+            Stmt::Index(ref s) => {
+                match s {
+                    IndexStmt::CreateIndex { idx_name, tb_name, column_list } => self.sm.borrow_mut().create_index(&idx_name, &tb_name, &column_list),
+                    _ => unreachable!(),
+                }
+            }
             _ => unreachable!(),
         }
     }

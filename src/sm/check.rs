@@ -1,6 +1,7 @@
 use crate::parser::ast::*;
 use crate::sm::system_manager::SystemManager;
 use crate::rm::record::*;
+use crate::index::btree::*;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -289,4 +290,11 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
     }
 
     true
+}
+
+pub fn check_create_index(idx_name: &String, map: &HashMap<String, ColumnType>, column_list: &Vec<String>, btrees: &Vec<BTree>) -> bool {
+    column_list.len() > 0 
+        && check_no_repeat(column_list)
+        && btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
+        && column_list.iter().fold(true, |found, column_name| found && map.contains_key(column_name))
 }
