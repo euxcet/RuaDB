@@ -125,6 +125,7 @@ pub struct BTree<'a> {
     pub th: &'a TableHandler,
     pub root: u64,
     pub index_col: Vec<u32>, // should be orderly
+    // default_name: 
     // "" : born btree,
     // "primary": primary btree,
     // "i[_(index)]+": costom index btree,
@@ -132,10 +133,6 @@ pub struct BTree<'a> {
 }
 
 impl<'a> BTree<'a> {
-    pub fn get_index_name(index_col: &Vec<u32>) -> String {
-        index_col.iter().fold(String::from("i"), |index_name, ci| index_name + format!("_{}", ci).as_str())
-    }
-
     pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str) -> Self {
         Self {
             th: th,
@@ -184,6 +181,10 @@ impl<'a> BTree<'a> {
     pub fn last_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
         root.last_bucket(self.th)
+    }
+
+    pub fn clear(&self) {
+        unimplemented!();
     }
 }
 

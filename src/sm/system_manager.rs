@@ -422,4 +422,31 @@ impl SystemManager {
         }
     }
 
+    pub fn drop_index(&self, idx_name: &String, tb_name: &String) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let btrees = th.get_btrees();
+                th.close();
+
+                let valid = check::check_drop_index(idx_name, &btrees);
+                if !valid {
+                    RuaResult::err("invalid drop index".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let btrees = th.get_btrees();
+            let i = btrees.iter().position(|&t| &t.index_name == idx_name).unwrap();
+            btrees[i].clear();
+            th.delete_btree_from_index(i);
+            th.close();
+            RuaResult::ok(None, "index created".to_string())
+        }
+    }
 }
