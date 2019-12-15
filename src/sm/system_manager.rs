@@ -442,7 +442,7 @@ impl SystemManager {
         } else {
             let th = self.open_table(tb_name, false).unwrap();
             let btrees = th.get_btrees();
-            let i = btrees.iter().position(|&t| &t.index_name == idx_name).unwrap();
+            let i = btrees.iter().position(|t| &t.index_name == idx_name).unwrap();
             btrees[i].clear();
             th.delete_btree_from_index(i);
             th.close();

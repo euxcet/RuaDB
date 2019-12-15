@@ -22,7 +22,7 @@ impl Executor {
     }
 
     fn process(&self, stmt: &Stmt, check: bool) -> RuaResult {
-        let sm = self.sm.borrow_mut();
+        let mut sm = self.sm.borrow_mut();
         sm.set_check(check);
         match stmt {
             Stmt::System(SystemStmt::ShowDatabases) => sm.show_databases(),
