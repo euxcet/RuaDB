@@ -8,6 +8,7 @@ use crate::utils::convert;
 
 use std::fmt;
 use std::collections::HashMap;
+use std::mem::size_of;
 
 pub struct TableHandler {
     // TODO: support multiple filehandlers
@@ -75,8 +76,23 @@ impl TableHandler {
         self.fh.update::<RecordInFile, u32>(ptr, &RecordInFile::from(self, record));
     }
 
+    pub fn update_record_in_file(&self, ptr: &StrPointer, record: &RecordInFile) {
+        self.fh.update::<RecordInFile, u32>(ptr, &record);
+    }
+
     pub fn update_record_(&self, ptr: u64, record: &Record) {
         self.fh.update::<RecordInFile, u32>(&StrPointer::new(ptr), &RecordInFile::from(self, record));
+    }
+
+    pub fn delete_record_data_column(&self, ptr: &StrPointer, i: usize) {
+        let (_, mut record_in_file) = self.get_record(ptr);
+        let size_of_data = size_of::<ColumnDataInFile>();
+        let data_str: String = record_in_file.record.drain(size_of_data * i .. size_of_data * (i + 1)).collect();
+        let data_in_file = ColumnDataInFile::new(data_str.as_bytes());
+        if data_in_file.get_type() == ColumnDataInFile::str_type() {
+            self.delete(&StrPointer::new(data_in_file.data));
+        }
+        self.update_record_in_file(ptr, &record_in_file);
     }
 
     // for ColumnType
@@ -152,17 +168,6 @@ impl TableHandler {
     }
 
     pub fn insert_btree(&self, btree: &BTree) {
-        // TODO update
-        // let mut ptrs = self.__get_btree_ptrs();
-
-        // let mut ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        // self.fh.free(&mut ptrs_ptr);
-
-        // let btree = self.__insert_btree(btree);
-        // ptrs.push(btree.to_u64());
-        // let new_btrees_ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&ptrs)});
-        // self.fh.set_btrees_ptr(new_btrees_ptr.to_u64());
-
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
         let mut ptrs = self.__get_btree_ptrs();
         let bp = self.__insert_btree(btree);

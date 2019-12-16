@@ -69,6 +69,14 @@ impl ColumnDataInFile {
         }
     }
 
+    pub fn get_type(&self) -> u8 {
+        (self.flags >> 2) & 0b111
+    }
+
+    pub fn str_type() -> u8 {
+        0u8
+    }
+
     // ColumnData to ColumnDataInFile
     pub fn from(th: &TableHandler, cd: &ColumnData) -> Self {
         match &cd.data {
