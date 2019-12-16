@@ -194,9 +194,9 @@ impl SystemManager {
             let th = self.open_table(tb_name, true).unwrap();
             th.insert_column_types(&columns);
             th.init_btrees();
-            th.insert_born_btree(&BTree::new(&th, vec![]));
+            th.insert_born_btree(&BTree::new(&th, vec![], ""));
             if primary_index.len() > 0 {
-                th.insert_btree(&BTree::new(&th, primary_index));
+                th.insert_btree(&BTree::new(&th, primary_index, "primary"));
             }
             th.close();
             RuaResult::ok(None, "table created".to_string())
@@ -347,7 +347,21 @@ impl SystemManager {
 
     pub fn update(&self, tb_name: &String, set_clause: &Vec<SetClause>, where_clause: &Option<Vec<WhereClause>>) -> RuaResult {
         if self.check {
-            self.check_table_existence(tb_name, true)
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+                th.close();
+
+                let valid = check::check_update(tb_name, &map, set_clause, where_clause);
+                if !valid {
+                    RuaResult::err("invalid update".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();
@@ -364,6 +378,75 @@ impl SystemManager {
             th.close();
             // TODO: update in every related btree
             RuaResult::default()
+        }
+    }
+
+    pub fn create_index(&self, idx_name: &String, tb_name: &String, column_list: &Vec<String>) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+                let btrees = th.get_btrees();
+                th.close();
+
+                let valid = check::check_create_index(idx_name, &map, column_list, &btrees);
+                if !valid {
+                    RuaResult::err("invalid create index".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        }
+        else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let map = th.get_column_types_as_hashmap();
+            let index_col: Vec<u32> = column_list.iter().map(|column_name| map.get(column_name).unwrap().index).collect();
+            let mut btree = BTree::new(&th, index_col.clone(), idx_name);
+
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let record_list = tree.query();
+            for ptr in &record_list.ptrs {
+                let (_, record_in_file) = th.get_record(ptr);
+                let record_index = record_in_file.get_index(&th, &index_col);
+                btree.insert_record(&RawIndex::from(&record_index), ptr.to_u64());
+            }
+            th.insert_btree(&btree);
+            th.close();
+            RuaResult::ok(None, "index created".to_string())
+        }
+    }
+
+    pub fn drop_index(&self, idx_name: &String, tb_name: &String) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let btrees = th.get_btrees();
+                th.close();
+
+                let valid = check::check_drop_index(idx_name, &btrees);
+                if !valid {
+                    RuaResult::err("invalid drop index".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let btrees = th.get_btrees();
+            let i = btrees.iter().position(|t| &t.index_name == idx_name).unwrap();
+            btrees[i].clear();
+            th.delete_btree_from_index(i);
+            th.close();
+            RuaResult::ok(None, "index created".to_string())
         }
     }
 }

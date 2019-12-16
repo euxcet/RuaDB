@@ -125,14 +125,20 @@ pub struct BTree<'a> {
     pub th: &'a TableHandler,
     pub root: u64,
     pub index_col: Vec<u32>, // should be orderly
+    // default_name: 
+    // "" : born btree,
+    // "primary": primary btree,
+    // "i[_(index)]+": costom index btree,
+    pub index_name: String, 
 }
 
 impl<'a> BTree<'a> {
-    pub fn new(th: &'a TableHandler, index_col: Vec<u32>) -> Self {
+    pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str) -> Self {
         Self {
             th: th,
             root: th.insert_btree_node().to_u64(),
             index_col: index_col,
+            index_name: index_name.to_string(),
         }
     }
 
@@ -175,6 +181,10 @@ impl<'a> BTree<'a> {
     pub fn last_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
         root.last_bucket(self.th)
+    }
+
+    pub fn clear(&self) {
+        unimplemented!();
     }
 }
 

@@ -31,7 +31,7 @@ impl TableHandler {
         self.fh.close();
     }
 
-    pub fn delete(&self, ptr: &mut StrPointer) {
+    pub fn delete(&self, ptr: &StrPointer) {
         self.fh.delete(ptr);
     }
 
@@ -153,15 +153,30 @@ impl TableHandler {
 
     pub fn insert_btree(&self, btree: &BTree) {
         // TODO update
+        // let mut ptrs = self.__get_btree_ptrs();
+
+        // let mut ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        // self.fh.free(&mut ptrs_ptr);
+
+        // let btree = self.__insert_btree(btree);
+        // ptrs.push(btree.to_u64());
+        // let new_btrees_ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&ptrs)});
+        // self.fh.set_btrees_ptr(new_btrees_ptr.to_u64());
+
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
         let mut ptrs = self.__get_btree_ptrs();
+        let bp = self.__insert_btree(btree);
+        ptrs.push(bp.to_u64());
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
+    }
 
-        let mut ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        self.fh.free(&mut ptrs_ptr);
-
-        let btree = self.__insert_btree(btree);
-        ptrs.push(btree.to_u64());
-        let new_btrees_ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&ptrs)});
-        self.fh.set_btrees_ptr(new_btrees_ptr.to_u64());
+    pub fn delete_btree_from_index(&self, index: usize) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let mut ptrs = self.__get_btree_ptrs();
+        assert!(index < ptrs.len());
+        self.delete(&StrPointer::new(ptrs[index]));
+        ptrs.remove(index);
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
     fn __get_btree_ptrs(&self) -> Vec<u64> {

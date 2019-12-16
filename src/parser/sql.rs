@@ -48,7 +48,7 @@ mod tests {
             "select * from tb;",
             "select tb.c1 from tb, tb2 where tb1.id = \"1\";",
             "create index idx on tb (c1, c2);",
-            "drop index idx;",
+            "drop index idx on tb;",
             "alter table tb add index idx (c1, c2);",
             "alter table tb drop index idx;",
             "alter table tb add c1 date not null default 1;",

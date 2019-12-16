@@ -58,7 +58,7 @@ IndexStmt: IndexStmt = {
     "create" "index" <idx_name: IndexName> "on" <tb_name: TableName> "(" <column_list: CommaList<ColName>> ")" => {
         IndexStmt::CreateIndex { <> }
     },
-    "drop" "index" <idx_name: IndexName> => IndexStmt::DropIndex { <> },
+    "drop" "index" <idx_name: IndexName> "on" <tb_name: TableName> => IndexStmt::DropIndex { <> },
     "alter" "table" <tb_name: TableName> "add" "index" <idx_name: IndexName> "(" <column_list: CommaList<ColName>> ")" => {
         IndexStmt::AlterAddIndex { <> }
     },

@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.17.2"
-// sha256: 49728f5ee32a049211a7260fd49312d19f790937609df4851b5382a9dc4f91
+// sha256: d2dbe0373d369c81d47f5c9d73f31d11a8cd5e962cce36ebfba1ef72428ea
 use super::tok::{self, Tok};
 use super::ast::*;
 use std::str::FromStr;
@@ -19435,21 +19435,14 @@ mod __parse__Sql {
     {
         let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
         match __lookahead {
-            Some((_, Tok::Semi, _)) => {
-                let __start = __sym0.0.clone();
-                let __end = __sym2.2.clone();
-                let __nt = super::__action23::<>(text, __sym0, __sym1, __sym2);
-                let __nt = __Nonterminal::IndexStmt((
-                    __start,
-                    __nt,
-                    __end,
-                ));
-                __result = (__lookahead, __nt);
+            Some((__loc1, __tok @ Tok::On, __loc2)) => {
+                let __sym3 = (__loc1, (__tok), __loc2);
+                __result = __state127(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
                 let __expected = vec![
-                    r###"";""###.to_string(),
+                    r###""on""###.to_string(),
                 ];
                 return Err(
                     match __lookahead {
@@ -19541,7 +19534,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Values, __loc2)) => {
                 let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state127(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state128(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -19585,7 +19578,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state128(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state129(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::From, _)) => {
@@ -20109,10 +20102,10 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cTableName_3e_20_22_2c_22_29_2b(__sym3) => {
-                    __result = __state129(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state130(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cTableName_3e(__sym3) => {
-                    __result = __state130(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state131(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym3) => {
@@ -20122,7 +20115,7 @@ mod __parse__Sql {
                     __result = __state31(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::TableName(__sym3) => {
-                    __result = __state131(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state132(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -20450,14 +20443,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym2) => {
-                    __result = __state132(text, __tokens, __lookahead, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state133(text, __tokens, __lookahead, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym2) => {
                     __result = __state30(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym2) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -20786,23 +20779,23 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cSetClause_3e_20_22_2c_22_29_2b(__sym3) => {
-                    __result = __state134(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::ColName(__sym3) => {
                     __result = __state135(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
+                __Nonterminal::ColName(__sym3) => {
+                    __result = __state136(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                }
                 __Nonterminal::CommaList_3cSetClause_3e(__sym3) => {
-                    __result = __state136(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state137(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym3) => {
                     __result = __state30(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym3) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::SetClause(__sym3) => {
-                    __result = __state137(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state138(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -20881,7 +20874,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Constraint, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state140(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state141(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
@@ -20938,7 +20931,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Index, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state141(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state142(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
@@ -20995,7 +20988,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Primary, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state142(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state143(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Query, __loc2)) => {
@@ -21150,17 +21143,17 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym4) => {
-                    __result = __state138(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state139(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColumnField(__sym4) => {
-                    __result = __state139(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state140(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym4) => {
                     __result = __state30(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym4) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -21490,14 +21483,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym4) => {
-                    __result = __state143(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state144(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym4) => {
                     __result = __state30(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym4) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -21616,7 +21609,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Foreign, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state145(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state146(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::If, __loc2)) => {
@@ -21633,7 +21626,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Index, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state146(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state147(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
@@ -21690,7 +21683,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Primary, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state147(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state148(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Query, __loc2)) => {
@@ -21845,14 +21838,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym4) => {
-                    __result = __state144(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state145(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym4) => {
                     __result = __state30(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym4) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -21883,7 +21876,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::To, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state148(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state149(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -22238,7 +22231,7 @@ mod __parse__Sql {
                     __result = __state31(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::TableName(__sym4) => {
-                    __result = __state149(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state150(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -22358,7 +22351,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Foreign, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state156(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state157(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::If, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
@@ -22426,7 +22419,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Primary, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state157(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state158(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Query, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
@@ -22579,32 +22572,32 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cField_3e_20_22_2c_22_29_2b(__sym4) => {
-                    __result = __state150(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::ColName(__sym4) => {
-                    __result = __state138(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::ColumnField(__sym4) => {
                     __result = __state151(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
+                __Nonterminal::ColName(__sym4) => {
+                    __result = __state139(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::ColumnField(__sym4) => {
+                    __result = __state152(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                }
                 __Nonterminal::CommaList_3cField_3e(__sym4) => {
-                    __result = __state152(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state153(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Field(__sym4) => {
-                    __result = __state153(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state154(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ForeignKeyField(__sym4) => {
-                    __result = __state154(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state155(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym4) => {
                     __result = __state30(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym4) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::PrimaryKeyField(__sym4) => {
-                    __result = __state155(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state156(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -22934,13 +22927,13 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cWhereClause_3e_20_22and_22_29_2b(__sym4) => {
-                    __result = __state158(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state159(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym4) => {
                     __result = __state93(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Column(__sym4) => {
-                    __result = __state159(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state160(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym4) => {
                     __result = __state30(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
@@ -22952,10 +22945,10 @@ mod __parse__Sql {
                     __result = __state98(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClause(__sym4) => {
-                    __result = __state160(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state161(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClauseList(__sym4) => {
-                    __result = __state161(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state162(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -22985,9 +22978,346 @@ mod __parse__Sql {
             None => None,
         };
         match __lookahead {
+            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
+                let __sym4 = (__loc1, (__tok0), __loc2);
+                __result = __state33(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state34(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state35(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::After, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state36(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state37(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state38(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state39(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state40(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state41(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::By, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state42(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state43(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state44(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state45(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state46(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state47(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state48(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state49(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::End, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state50(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state51(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state52(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state53(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::For, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state54(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::If, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state55(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state56(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state57(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state58(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state59(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state60(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state61(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state62(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state63(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state64(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::No, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state65(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state66(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state67(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state68(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state69(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state70(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state71(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state72(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state73(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state74(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state75(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state76(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state77(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state78(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state79(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state80(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state81(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state82(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state83(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state84(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::View, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state85(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state86(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
+                let __sym4 = (__loc1, (__tok), __loc2);
+                __result = __state87(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+            }
+            _ => {
+                let __expected = vec![
+                    r###""Id""###.to_string(),
+                    r###""abort""###.to_string(),
+                    r###""action""###.to_string(),
+                    r###""after""###.to_string(),
+                    r###""analyze""###.to_string(),
+                    r###""asc""###.to_string(),
+                    r###""attach""###.to_string(),
+                    r###""before""###.to_string(),
+                    r###""begin""###.to_string(),
+                    r###""by""###.to_string(),
+                    r###""cascade""###.to_string(),
+                    r###""conflict""###.to_string(),
+                    r###""cross""###.to_string(),
+                    r###""deferred""###.to_string(),
+                    r###""desc""###.to_string(),
+                    r###""detach""###.to_string(),
+                    r###""each""###.to_string(),
+                    r###""end""###.to_string(),
+                    r###""exclusive""###.to_string(),
+                    r###""explain""###.to_string(),
+                    r###""fail""###.to_string(),
+                    r###""for""###.to_string(),
+                    r###""if""###.to_string(),
+                    r###""ignore""###.to_string(),
+                    r###""immediate""###.to_string(),
+                    r###""indexed""###.to_string(),
+                    r###""initially""###.to_string(),
+                    r###""inner""###.to_string(),
+                    r###""instead""###.to_string(),
+                    r###""key""###.to_string(),
+                    r###""left""###.to_string(),
+                    r###""natural""###.to_string(),
+                    r###""no""###.to_string(),
+                    r###""of""###.to_string(),
+                    r###""offset""###.to_string(),
+                    r###""outer""###.to_string(),
+                    r###""plan""###.to_string(),
+                    r###""pragma""###.to_string(),
+                    r###""query""###.to_string(),
+                    r###""recursive""###.to_string(),
+                    r###""reindex""###.to_string(),
+                    r###""release""###.to_string(),
+                    r###""rename""###.to_string(),
+                    r###""replace""###.to_string(),
+                    r###""restrict""###.to_string(),
+                    r###""right""###.to_string(),
+                    r###""rollback""###.to_string(),
+                    r###""row""###.to_string(),
+                    r###""savepoint""###.to_string(),
+                    r###""temp""###.to_string(),
+                    r###""trigger""###.to_string(),
+                    r###""vacuum""###.to_string(),
+                    r###""view""###.to_string(),
+                    r###""virtual""###.to_string(),
+                    r###""without""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym3.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        loop {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::Id(__sym4) => {
+                    __result = __state30(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::Name(__sym4) => {
+                    __result = __state31(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::TableName(__sym4) => {
+                    __result = __state163(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    return Ok(__result);
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+    }
+
+    fn __state128<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state165(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state167(text, __tokens, __sym4, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -23016,14 +23346,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cValueList_3e_20_22_2c_22_29_2b(__sym4) => {
-                    __result = __state162(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state164(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cValueList_3e(__sym4) => {
-                    __result = __state163(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state165(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::ValueList(__sym4) => {
-                    __result = __state164(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state166(text, __tokens, __lookahead, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -23032,7 +23362,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state128<
+    fn __state129<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -23196,7 +23526,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state129<
+    fn __state130<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -23516,7 +23846,7 @@ mod __parse__Sql {
                     __result = __state31(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::TableName(__sym1) => {
-                    __result = __state166(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state168(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -23526,7 +23856,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state130<
+    fn __state131<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -23544,7 +23874,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Where, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state167(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state169(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) => {
@@ -23585,7 +23915,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state131<
+    fn __state132<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -23600,7 +23930,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state168(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state170(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) |
@@ -23643,7 +23973,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state132<
+    fn __state133<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -23715,7 +24045,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state133<
+    fn __state134<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -23905,7 +24235,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state134<
+    fn __state135<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -24219,16 +24549,16 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym1) => {
-                    __result = __state135(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state136(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym1) => {
                     __result = __state30(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym1) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::SetClause(__sym1) => {
-                    __result = __state169(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state171(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -24238,7 +24568,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state135<
+    fn __state136<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -24253,7 +24583,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Equals, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state170(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state172(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -24281,7 +24611,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state136<
+    fn __state137<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -24299,7 +24629,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Where, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state171(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state173(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) => {
@@ -24340,7 +24670,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state137<
+    fn __state138<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -24355,7 +24685,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state172(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state174(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) |
@@ -24398,7 +24728,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state138<
+    fn __state139<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -24413,19 +24743,19 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Date, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state174(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state176(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::FloatType, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state175(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state177(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Int, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state176(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state178(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Varchar, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state177(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state179(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -24457,7 +24787,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::Type(__sym1) => {
-                    __result = __state173(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state175(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -24467,7 +24797,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state139<
+    fn __state140<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -24517,341 +24847,6 @@ mod __parse__Sql {
                         }
                     }
                 )
-            }
-        }
-    }
-
-    fn __state140<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
-                let __sym5 = (__loc1, (__tok0), __loc2);
-                __result = __state33(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state34(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state35(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::After, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state36(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state37(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state38(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state39(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state40(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state41(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::By, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state42(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state43(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state44(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state45(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state46(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state47(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state48(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state49(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::End, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state50(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state51(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state52(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state53(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::For, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state54(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::If, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state55(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state56(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state57(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state58(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state59(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state60(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state61(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state62(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state63(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state64(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::No, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state65(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state66(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state67(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state68(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state69(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state70(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state71(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state72(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state73(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state74(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state75(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state76(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state77(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state78(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state79(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state80(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state81(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state82(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state83(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state84(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::View, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state85(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state86(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
-                let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state87(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
-            }
-            _ => {
-                let __expected = vec![
-                    r###""Id""###.to_string(),
-                    r###""abort""###.to_string(),
-                    r###""action""###.to_string(),
-                    r###""after""###.to_string(),
-                    r###""analyze""###.to_string(),
-                    r###""asc""###.to_string(),
-                    r###""attach""###.to_string(),
-                    r###""before""###.to_string(),
-                    r###""begin""###.to_string(),
-                    r###""by""###.to_string(),
-                    r###""cascade""###.to_string(),
-                    r###""conflict""###.to_string(),
-                    r###""cross""###.to_string(),
-                    r###""deferred""###.to_string(),
-                    r###""desc""###.to_string(),
-                    r###""detach""###.to_string(),
-                    r###""each""###.to_string(),
-                    r###""end""###.to_string(),
-                    r###""exclusive""###.to_string(),
-                    r###""explain""###.to_string(),
-                    r###""fail""###.to_string(),
-                    r###""for""###.to_string(),
-                    r###""if""###.to_string(),
-                    r###""ignore""###.to_string(),
-                    r###""immediate""###.to_string(),
-                    r###""indexed""###.to_string(),
-                    r###""initially""###.to_string(),
-                    r###""inner""###.to_string(),
-                    r###""instead""###.to_string(),
-                    r###""key""###.to_string(),
-                    r###""left""###.to_string(),
-                    r###""natural""###.to_string(),
-                    r###""no""###.to_string(),
-                    r###""of""###.to_string(),
-                    r###""offset""###.to_string(),
-                    r###""outer""###.to_string(),
-                    r###""plan""###.to_string(),
-                    r###""pragma""###.to_string(),
-                    r###""query""###.to_string(),
-                    r###""recursive""###.to_string(),
-                    r###""reindex""###.to_string(),
-                    r###""release""###.to_string(),
-                    r###""rename""###.to_string(),
-                    r###""replace""###.to_string(),
-                    r###""restrict""###.to_string(),
-                    r###""right""###.to_string(),
-                    r###""rollback""###.to_string(),
-                    r###""row""###.to_string(),
-                    r###""savepoint""###.to_string(),
-                    r###""temp""###.to_string(),
-                    r###""trigger""###.to_string(),
-                    r###""vacuum""###.to_string(),
-                    r###""view""###.to_string(),
-                    r###""virtual""###.to_string(),
-                    r###""without""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym4.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        loop {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::Id(__sym5) => {
-                    __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::Name(__sym5) => {
-                    __result = __state178(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
-                    return Ok(__result);
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
             }
         }
     }
@@ -25180,12 +25175,9 @@ mod __parse__Sql {
                 __Nonterminal::Id(__sym5) => {
                     __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
-                __Nonterminal::IndexName(__sym5) => {
-                    __result = __state179(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
-                    return Ok(__result);
-                }
                 __Nonterminal::Name(__sym5) => {
-                    __result = __state108(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state180(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    return Ok(__result);
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -25215,9 +25207,347 @@ mod __parse__Sql {
             None => None,
         };
         match __lookahead {
+            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
+                let __sym5 = (__loc1, (__tok0), __loc2);
+                __result = __state33(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state34(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state35(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::After, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state36(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state37(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state38(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state39(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state40(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state41(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::By, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state42(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state43(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state44(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state45(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state46(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state47(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state48(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state49(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::End, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state50(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state51(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state52(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state53(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::For, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state54(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::If, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state55(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state56(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state57(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state58(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state59(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state60(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state61(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
             Some((__loc1, __tok @ Tok::Key, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state180(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state62(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state63(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state64(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::No, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state65(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state66(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state67(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state68(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state69(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state70(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state71(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state72(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state73(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state74(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state75(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state76(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state77(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state78(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state79(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state80(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state81(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state82(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state83(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state84(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::View, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state85(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state86(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state87(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+            }
+            _ => {
+                let __expected = vec![
+                    r###""Id""###.to_string(),
+                    r###""abort""###.to_string(),
+                    r###""action""###.to_string(),
+                    r###""after""###.to_string(),
+                    r###""analyze""###.to_string(),
+                    r###""asc""###.to_string(),
+                    r###""attach""###.to_string(),
+                    r###""before""###.to_string(),
+                    r###""begin""###.to_string(),
+                    r###""by""###.to_string(),
+                    r###""cascade""###.to_string(),
+                    r###""conflict""###.to_string(),
+                    r###""cross""###.to_string(),
+                    r###""deferred""###.to_string(),
+                    r###""desc""###.to_string(),
+                    r###""detach""###.to_string(),
+                    r###""each""###.to_string(),
+                    r###""end""###.to_string(),
+                    r###""exclusive""###.to_string(),
+                    r###""explain""###.to_string(),
+                    r###""fail""###.to_string(),
+                    r###""for""###.to_string(),
+                    r###""if""###.to_string(),
+                    r###""ignore""###.to_string(),
+                    r###""immediate""###.to_string(),
+                    r###""indexed""###.to_string(),
+                    r###""initially""###.to_string(),
+                    r###""inner""###.to_string(),
+                    r###""instead""###.to_string(),
+                    r###""key""###.to_string(),
+                    r###""left""###.to_string(),
+                    r###""natural""###.to_string(),
+                    r###""no""###.to_string(),
+                    r###""of""###.to_string(),
+                    r###""offset""###.to_string(),
+                    r###""outer""###.to_string(),
+                    r###""plan""###.to_string(),
+                    r###""pragma""###.to_string(),
+                    r###""query""###.to_string(),
+                    r###""recursive""###.to_string(),
+                    r###""reindex""###.to_string(),
+                    r###""release""###.to_string(),
+                    r###""rename""###.to_string(),
+                    r###""replace""###.to_string(),
+                    r###""restrict""###.to_string(),
+                    r###""right""###.to_string(),
+                    r###""rollback""###.to_string(),
+                    r###""row""###.to_string(),
+                    r###""savepoint""###.to_string(),
+                    r###""temp""###.to_string(),
+                    r###""trigger""###.to_string(),
+                    r###""vacuum""###.to_string(),
+                    r###""view""###.to_string(),
+                    r###""virtual""###.to_string(),
+                    r###""without""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym4.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        loop {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::Id(__sym5) => {
+                    __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::IndexName(__sym5) => {
+                    __result = __state181(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    return Ok(__result);
+                }
+                __Nonterminal::Name(__sym5) => {
+                    __result = __state108(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+    }
+
+    fn __state143<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
+                let __sym5 = (__loc1, (__tok), __loc2);
+                __result = __state182(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -25245,7 +25575,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state143<
+    fn __state144<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -25563,17 +25893,17 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym5) => {
-                    __result = __state138(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state139(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColumnField(__sym5) => {
-                    __result = __state181(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state183(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym5) => {
                     __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym5) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -25582,7 +25912,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state144<
+    fn __state145<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -25636,7 +25966,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state145<
+    fn __state146<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -25659,7 +25989,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Key, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state182(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state184(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -25687,7 +26017,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state146<
+    fn __state147<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26012,7 +26342,7 @@ mod __parse__Sql {
                     __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::IndexName(__sym5) => {
-                    __result = __state183(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state185(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Name(__sym5) => {
@@ -26025,7 +26355,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state147<
+    fn __state148<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26048,7 +26378,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Key, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state184(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state186(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -26076,7 +26406,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state148<
+    fn __state149<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26404,7 +26734,7 @@ mod __parse__Sql {
                     __result = __state31(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::TableName(__sym5) => {
-                    __result = __state185(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state187(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -26414,7 +26744,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state149<
+    fn __state150<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26433,7 +26763,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state186(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state188(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -26461,7 +26791,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state150<
+    fn __state151<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26564,7 +26894,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Foreign, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state156(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state157(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::If, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
@@ -26632,7 +26962,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Primary, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state157(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state158(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Query, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
@@ -26785,26 +27115,26 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym1) => {
-                    __result = __state138(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state139(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColumnField(__sym1) => {
-                    __result = __state151(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state152(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Field(__sym1) => {
-                    __result = __state187(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state189(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::ForeignKeyField(__sym1) => {
-                    __result = __state154(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state155(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym1) => {
                     __result = __state30(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym1) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::PrimaryKeyField(__sym1) => {
-                    __result = __state155(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state156(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -26813,7 +27143,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state151<
+    fn __state152<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26865,7 +27195,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state152<
+    fn __state153<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26884,7 +27214,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state188(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state190(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -26912,7 +27242,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state153<
+    fn __state154<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -26927,7 +27257,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state189(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state191(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) => {
@@ -26968,7 +27298,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state154<
+    fn __state155<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27020,7 +27350,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state155<
+    fn __state156<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27072,53 +27402,6 @@ mod __parse__Sql {
         }
     }
 
-    fn __state156<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
-                let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state190(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""key""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym0.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
     fn __state157<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
@@ -27138,7 +27421,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Key, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state191(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state192(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -27167,6 +27450,53 @@ mod __parse__Sql {
     }
 
     fn __state158<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
+                let __sym1 = (__loc1, (__tok), __loc2);
+                __result = __state193(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""key""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym0.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state159<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27483,7 +27813,7 @@ mod __parse__Sql {
                     __result = __state93(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Column(__sym1) => {
-                    __result = __state159(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state160(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym1) => {
                     __result = __state30(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
@@ -27495,7 +27825,7 @@ mod __parse__Sql {
                     __result = __state98(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClause(__sym1) => {
-                    __result = __state192(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state194(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -27505,7 +27835,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state159<
+    fn __state160<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27520,31 +27850,31 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LessThan, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state194(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state196(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::LessEquals, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state195(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state197(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::NotEquals, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state196(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state198(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Equals, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state197(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state199(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::GreaterThan, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state198(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state200(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::GreaterEquals, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state199(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state201(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Is, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state200(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state202(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -27580,7 +27910,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::Op(__sym1) => {
-                    __result = __state193(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state195(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -27590,7 +27920,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state160<
+    fn __state161<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27605,7 +27935,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::And, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state201(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state203(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) => {
@@ -27646,7 +27976,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state161<
+    fn __state162<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27700,7 +28030,61 @@ mod __parse__Sql {
         }
     }
 
-    fn __state162<
+    fn __state163<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, Tok<'input>, usize)>,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Name, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        match __lookahead {
+            Some((_, Tok::Semi, _)) => {
+                let __start = __sym0.0.clone();
+                let __end = __sym4.2.clone();
+                let __nt = super::__action23::<>(text, __sym0, __sym1, __sym2, __sym3, __sym4);
+                let __nt = __Nonterminal::IndexStmt((
+                    __start,
+                    __nt,
+                    __end,
+                ));
+                __result = (__lookahead, __nt);
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###"";""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym4.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state164<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27715,7 +28099,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state165(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state167(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -27744,7 +28128,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ValueList(__sym1) => {
-                    __result = __state202(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state204(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -27754,7 +28138,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state163<
+    fn __state165<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27808,7 +28192,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state164<
+    fn __state166<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27823,7 +28207,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state203(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state205(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) => {
@@ -27864,7 +28248,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state165<
+    fn __state167<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27883,27 +28267,27 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Plus, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state207(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state209(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Minus, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state208(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state210(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Float(__tok0), __loc2)) => {
                 let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state209(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state211(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
                 let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state210(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state212(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::StringLiteralDoubleQuote(__tok0), __loc2)) => {
                 let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state211(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state213(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state212(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state214(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -27937,14 +28321,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cValue_3e_20_22_2c_22_29_2b(__sym1) => {
-                    __result = __state204(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state206(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cValue_3e(__sym1) => {
-                    __result = __state205(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state207(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Value(__sym1) => {
-                    __result = __state206(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state208(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -27953,7 +28337,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state166<
+    fn __state168<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -27969,7 +28353,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state213(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state215(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) |
@@ -28012,7 +28396,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state167<
+    fn __state169<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -28334,13 +28718,13 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cWhereClause_3e_20_22and_22_29_2b(__sym5) => {
-                    __result = __state158(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state159(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym5) => {
                     __result = __state93(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Column(__sym5) => {
-                    __result = __state159(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state160(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym5) => {
                     __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
@@ -28352,10 +28736,10 @@ mod __parse__Sql {
                     __result = __state98(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClause(__sym5) => {
-                    __result = __state160(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state161(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClauseList(__sym5) => {
-                    __result = __state214(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state216(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -28365,7 +28749,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state168<
+    fn __state170<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -28528,7 +28912,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state169<
+    fn __state171<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -28544,7 +28928,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state215(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state217(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) |
@@ -28587,7 +28971,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state170<
+    fn __state172<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -28607,27 +28991,27 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Plus, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state207(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state209(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Minus, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state208(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state210(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Float(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state209(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state211(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state210(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state212(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::StringLiteralDoubleQuote(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state211(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state213(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state212(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state214(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -28661,7 +29045,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::Value(__sym2) => {
-                    __result = __state216(text, __tokens, __lookahead, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state218(text, __tokens, __lookahead, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -28671,7 +29055,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state171<
+    fn __state173<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -28993,13 +29377,13 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cWhereClause_3e_20_22and_22_29_2b(__sym5) => {
-                    __result = __state158(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state159(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym5) => {
                     __result = __state93(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Column(__sym5) => {
-                    __result = __state159(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state160(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Id(__sym5) => {
                     __result = __state30(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
@@ -29011,10 +29395,10 @@ mod __parse__Sql {
                     __result = __state98(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClause(__sym5) => {
-                    __result = __state160(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state161(text, __tokens, __lookahead, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::WhereClauseList(__sym5) => {
-                    __result = __state217(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state219(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -29024,7 +29408,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state172<
+    fn __state174<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29187,7 +29571,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state173<
+    fn __state175<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29203,12 +29587,12 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Default, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state218(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state220(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Not, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state219(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state221(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) |
@@ -29254,7 +29638,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state174<
+    fn __state176<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29316,7 +29700,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state175<
+    fn __state177<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29378,101 +29762,101 @@ mod __parse__Sql {
         }
     }
 
-    fn __state176<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
-                let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state220(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""(""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym0.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state177<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
-                let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state221(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""(""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym0.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
     fn __state178<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
+                let __sym1 = (__loc1, (__tok), __loc2);
+                __result = __state222(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""(""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym0.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state179<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
+                let __sym1 = (__loc1, (__tok), __loc2);
+                __result = __state223(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""(""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym0.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state180<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29492,12 +29876,12 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Foreign, __loc2)) => {
                 let __sym6 = (__loc1, (__tok), __loc2);
-                __result = __state222(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state224(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Primary, __loc2)) => {
                 let __sym6 = (__loc1, (__tok), __loc2);
-                __result = __state223(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state225(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -29526,7 +29910,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state179<
+    fn __state181<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29546,7 +29930,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym6 = (__loc1, (__tok), __loc2);
-                __result = __state224(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state226(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -29574,7 +29958,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state180<
+    fn __state182<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29598,7 +29982,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym6 = (__loc1, (__tok), __loc2);
-                __result = __state225(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state227(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -29626,7 +30010,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state181<
+    fn __state183<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -29681,7 +30065,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state182<
+    fn __state184<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30007,7 +30391,7 @@ mod __parse__Sql {
                     __result = __state30(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym6) => {
-                    __result = __state226(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state228(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -30017,7 +30401,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state183<
+    fn __state185<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30072,7 +30456,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state184<
+    fn __state186<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30411,7 +30795,7 @@ mod __parse__Sql {
                     __result = __state30(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym6) => {
-                    __result = __state227(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state229(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -30421,7 +30805,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state185<
+    fn __state187<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30476,7 +30860,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state186<
+    fn __state188<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30799,20 +31183,20 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym6) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state230(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym6) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state231(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cColName_3e(__sym6) => {
-                    __result = __state230(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state232(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym6) => {
                     __result = __state30(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym6) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -30821,7 +31205,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state187<
+    fn __state189<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30837,7 +31221,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state231(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state233(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) => {
@@ -30878,7 +31262,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state188<
+    fn __state190<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -30937,7 +31321,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state189<
+    fn __state191<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -31104,103 +31488,103 @@ mod __parse__Sql {
         }
     }
 
-    fn __state190<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
-                let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state232(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""(""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym1.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state191<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
-                let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state233(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""(""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym1.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
     fn __state192<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
+                let __sym2 = (__loc1, (__tok), __loc2);
+                __result = __state234(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""(""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym1.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state193<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
+                let __sym2 = (__loc1, (__tok), __loc2);
+                __result = __state235(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""(""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym1.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state194<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -31216,7 +31600,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::And, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state234(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state236(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) => {
@@ -31257,7 +31641,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state193<
+    fn __state195<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -31273,15 +31657,15 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Plus, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state207(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state209(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Minus, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state208(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state210(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Float(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state209(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state211(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Id(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
@@ -31289,11 +31673,11 @@ mod __parse__Sql {
             }
             Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state210(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state212(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::StringLiteralDoubleQuote(__tok0), __loc2)) => {
                 let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state211(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state213(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
@@ -31425,7 +31809,7 @@ mod __parse__Sql {
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state212(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state214(text, __tokens, __sym2, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Of, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
@@ -31605,10 +31989,10 @@ mod __parse__Sql {
                     __result = __state93(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Column(__sym2) => {
-                    __result = __state235(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state237(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Expr(__sym2) => {
-                    __result = __state236(text, __tokens, __lookahead, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state238(text, __tokens, __lookahead, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym2) => {
@@ -31621,7 +32005,7 @@ mod __parse__Sql {
                     __result = __state98(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Value(__sym2) => {
-                    __result = __state237(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state239(text, __tokens, __lookahead, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -31630,7 +32014,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state194<
+    fn __state196<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -31804,7 +32188,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state195<
+    fn __state197<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -31978,7 +32362,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state196<
+    fn __state198<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32152,7 +32536,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state197<
+    fn __state199<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32326,7 +32710,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state198<
+    fn __state200<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32500,7 +32884,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state199<
+    fn __state201<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32674,7 +33058,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state200<
+    fn __state202<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32694,12 +33078,12 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Not, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state238(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state240(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state239(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state241(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -32728,7 +33112,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state201<
+    fn __state203<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32891,7 +33275,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state202<
+    fn __state204<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -32907,7 +33291,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state240(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state242(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::Semi, _)) => {
@@ -32948,7 +33332,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state203<
+    fn __state205<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33003,7 +33387,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state204<
+    fn __state206<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33018,27 +33402,27 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Plus, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state207(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state209(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Minus, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state208(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state210(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Float(__tok0), __loc2)) => {
                 let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state209(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state211(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
                 let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state210(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state212(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::StringLiteralDoubleQuote(__tok0), __loc2)) => {
                 let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state211(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state213(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state212(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state214(text, __tokens, __sym1, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -33072,7 +33456,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::Value(__sym1) => {
-                    __result = __state241(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state243(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -33082,7 +33466,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state205<
+    fn __state207<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33098,7 +33482,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state242(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state244(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -33126,7 +33510,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state206<
+    fn __state208<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33141,7 +33525,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state243(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state245(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) => {
@@ -33182,60 +33566,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state207<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, Tok::Float(__tok0), __loc2)) => {
-                let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state244(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
-                let __sym1 = (__loc1, (__tok0), __loc2);
-                __result = __state245(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""Float""###.to_string(),
-                    r###""Integer""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym0.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state208<
+    fn __state209<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33288,7 +33619,60 @@ mod __parse__Sql {
         }
     }
 
-    fn __state209<
+    fn __state210<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, Tok::Float(__tok0), __loc2)) => {
+                let __sym1 = (__loc1, (__tok0), __loc2);
+                __result = __state248(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
+                let __sym1 = (__loc1, (__tok0), __loc2);
+                __result = __state249(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""Float""###.to_string(),
+                    r###""Integer""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym0.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state211<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33350,7 +33734,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state210<
+    fn __state212<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33412,7 +33796,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state211<
+    fn __state213<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33474,7 +33858,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state212<
+    fn __state214<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33536,7 +33920,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state213<
+    fn __state215<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33700,7 +34084,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state214<
+    fn __state216<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33755,7 +34139,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state215<
+    fn __state217<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33919,7 +34303,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state216<
+    fn __state218<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -33975,7 +34359,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state217<
+    fn __state219<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -34030,7 +34414,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state218<
+    fn __state220<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -34051,27 +34435,27 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Plus, __loc2)) => {
                 let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state207(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state209(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Minus, __loc2)) => {
                 let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state208(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state210(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Float(__tok0), __loc2)) => {
                 let __sym3 = (__loc1, (__tok0), __loc2);
-                __result = __state209(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state211(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
                 let __sym3 = (__loc1, (__tok0), __loc2);
-                __result = __state210(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state212(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::StringLiteralDoubleQuote(__tok0), __loc2)) => {
                 let __sym3 = (__loc1, (__tok0), __loc2);
-                __result = __state211(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state213(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state212(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state214(text, __tokens, __sym3, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -34105,7 +34489,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::Value(__sym3) => {
-                    __result = __state248(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state250(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -34115,7 +34499,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state219<
+    fn __state221<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -34136,7 +34520,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state249(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state251(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -34164,102 +34548,6 @@ mod __parse__Sql {
         }
     }
 
-    fn __state220<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
-                let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state250(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""Integer""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym1.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state221<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
-                let __sym2 = (__loc1, (__tok0), __loc2);
-                __result = __state251(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""Integer""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym1.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
     fn __state222<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
@@ -34268,11 +34556,6 @@ mod __parse__Sql {
         __tokens: &mut __TOKENS,
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
     {
@@ -34283,14 +34566,14 @@ mod __parse__Sql {
             None => None,
         };
         match __lookahead {
-            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
-                let __sym7 = (__loc1, (__tok), __loc2);
-                __result = __state252(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+            Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
+                let __sym2 = (__loc1, (__tok0), __loc2);
+                __result = __state252(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
                 let __expected = vec![
-                    r###""key""###.to_string(),
+                    r###""Integer""###.to_string(),
                 ];
                 return Err(
                     match __lookahead {
@@ -34301,7 +34584,7 @@ mod __parse__Sql {
                             }
                         }
                         None => {
-                            let __location = __sym6.2.clone();
+                            let __location = __sym1.2.clone();
                             __lalrpop_util::ParseError::UnrecognizedEOF {
                                 location: __location,
                                 expected: __expected,
@@ -34321,6 +34604,54 @@ mod __parse__Sql {
         __tokens: &mut __TOKENS,
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
+                let __sym2 = (__loc1, (__tok0), __loc2);
+                __result = __state253(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""Integer""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym1.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state224<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Name, usize),
         __sym3: (usize, Tok<'input>, usize),
         __sym4: (usize, Tok<'input>, usize),
@@ -34338,7 +34669,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Key, __loc2)) => {
                 let __sym7 = (__loc1, (__tok), __loc2);
-                __result = __state253(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state254(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -34366,7 +34697,60 @@ mod __parse__Sql {
         }
     }
 
-    fn __state224<
+    fn __state225<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
+                let __sym7 = (__loc1, (__tok), __loc2);
+                __result = __state255(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###""key""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym6.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state226<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -34690,20 +35074,20 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym7) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state230(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym7) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state231(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cColName_3e(__sym7) => {
-                    __result = __state254(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state256(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym7) => {
                     __result = __state30(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym7) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -34712,7 +35096,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state225<
+    fn __state227<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35036,20 +35420,20 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym7) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state230(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym7) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state231(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cColName_3e(__sym7) => {
-                    __result = __state255(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state257(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym7) => {
                     __result = __state30(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym7) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -35058,7 +35442,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state226<
+    fn __state228<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35114,7 +35498,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state227<
+    fn __state229<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35170,7 +35554,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state228<
+    fn __state230<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35484,14 +35868,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym1) => {
-                    __result = __state256(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state258(text, __tokens, __lookahead, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym1) => {
                     __result = __state30(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym1) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -35500,7 +35884,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state229<
+    fn __state231<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35515,7 +35899,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym1 = (__loc1, (__tok), __loc2);
-                __result = __state257(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state259(text, __tokens, __sym0, __sym1, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) => {
@@ -35556,7 +35940,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state230<
+    fn __state232<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35577,7 +35961,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym7 = (__loc1, (__tok), __loc2);
-                __result = __state258(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state260(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -35605,7 +35989,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state231<
+    fn __state233<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -35773,7 +36157,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state232<
+    fn __state234<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36093,14 +36477,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym3) => {
-                    __result = __state259(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state261(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym3) => {
                     __result = __state30(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym3) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -36109,7 +36493,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state233<
+    fn __state235<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36429,20 +36813,20 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym3) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state230(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym3) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state231(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cColName_3e(__sym3) => {
-                    __result = __state260(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state262(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym3) => {
                     __result = __state30(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym3) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -36451,7 +36835,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state234<
+    fn __state236<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36615,7 +36999,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state235<
+    fn __state237<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36667,7 +37051,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state236<
+    fn __state238<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36721,7 +37105,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state237<
+    fn __state239<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36773,7 +37157,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state238<
+    fn __state240<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36794,7 +37178,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state261(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state263(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -36822,7 +37206,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state239<
+    fn __state241<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36880,7 +37264,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state240<
+    fn __state242<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36936,7 +37320,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state241<
+    fn __state243<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -36952,7 +37336,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state262(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state264(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) => {
@@ -36993,7 +37377,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state242<
+    fn __state244<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37051,7 +37435,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state243<
+    fn __state245<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37116,7 +37500,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state244<
+    fn __state246<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37179,7 +37563,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state245<
+    fn __state247<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37242,7 +37626,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state246<
+    fn __state248<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37305,7 +37689,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state247<
+    fn __state249<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37368,7 +37752,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state248<
+    fn __state250<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37425,7 +37809,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state249<
+    fn __state251<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -37447,7 +37831,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Default, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state263(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state265(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) |
@@ -37492,104 +37876,6 @@ mod __parse__Sql {
         }
     }
 
-    fn __state250<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, &'input str, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
-                let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state264(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###"")""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym2.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state251<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, &'input str, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
-                let __sym3 = (__loc1, (__tok), __loc2);
-                __result = __state265(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###"")""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym2.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
     fn __state252<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
@@ -37598,12 +37884,7 @@ mod __parse__Sql {
         __tokens: &mut __TOKENS,
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Tok<'input>, usize),
+        __sym2: (usize, &'input str, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
     {
@@ -37614,14 +37895,14 @@ mod __parse__Sql {
             None => None,
         };
         match __lookahead {
-            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
-                let __sym8 = (__loc1, (__tok), __loc2);
-                __result = __state266(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
+            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+                let __sym3 = (__loc1, (__tok), __loc2);
+                __result = __state266(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
                 let __expected = vec![
-                    r###""(""###.to_string(),
+                    r###"")""###.to_string(),
                 ];
                 return Err(
                     match __lookahead {
@@ -37632,7 +37913,7 @@ mod __parse__Sql {
                             }
                         }
                         None => {
-                            let __location = __sym7.2.clone();
+                            let __location = __sym2.2.clone();
                             __lalrpop_util::ParseError::UnrecognizedEOF {
                                 location: __location,
                                 expected: __expected,
@@ -37652,6 +37933,55 @@ mod __parse__Sql {
         __tokens: &mut __TOKENS,
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, &'input str, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+                let __sym3 = (__loc1, (__tok), __loc2);
+                __result = __state267(text, __tokens, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###"")""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym2.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state254<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Name, usize),
         __sym3: (usize, Tok<'input>, usize),
         __sym4: (usize, Tok<'input>, usize),
@@ -37670,62 +38000,12 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym8 = (__loc1, (__tok), __loc2);
-                __result = __state267(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###""(""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym7.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state254<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, Tok<'input>, usize)>,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Vec<Name>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
-                let __sym8 = (__loc1, (__tok), __loc2);
                 __result = __state268(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
                 let __expected = vec![
-                    r###"")""###.to_string(),
+                    r###""(""###.to_string(),
                 ];
                 return Err(
                     match __lookahead {
@@ -37754,28 +38034,32 @@ mod __parse__Sql {
     >(
         text: &'input str,
         __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, Tok<'input>, usize)>,
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Name, usize),
         __sym3: (usize, Tok<'input>, usize),
         __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
         __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Vec<Name>, usize),
+        __sym7: (usize, Tok<'input>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
     {
         let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
         match __lookahead {
-            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+            Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym8 = (__loc1, (__tok), __loc2);
                 __result = __state269(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
                 let __expected = vec![
-                    r###"")""###.to_string(),
+                    r###""(""###.to_string(),
                 ];
                 return Err(
                     match __lookahead {
@@ -37805,6 +38089,106 @@ mod __parse__Sql {
         text: &'input str,
         __tokens: &mut __TOKENS,
         __lookahead: Option<(usize, Tok<'input>, usize)>,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        __sym7: (usize, Vec<Name>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+                let __sym8 = (__loc1, (__tok), __loc2);
+                __result = __state270(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###"")""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym7.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state257<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, Tok<'input>, usize)>,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Tok<'input>, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        __sym7: (usize, Vec<Name>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+                let __sym8 = (__loc1, (__tok), __loc2);
+                __result = __state271(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###"")""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym7.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state258<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, Tok<'input>, usize)>,
         __sym0: (usize, ::std::vec::Vec<Name>, usize),
         __sym1: (usize, Name, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
@@ -37814,7 +38198,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Comma, __loc2)) => {
                 let __sym2 = (__loc1, (__tok), __loc2);
-                __result = __state270(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state272(text, __tokens, __sym0, __sym1, __sym2, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             Some((_, Tok::RightParen, _)) => {
@@ -37855,7 +38239,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state257<
+    fn __state259<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38018,7 +38402,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state258<
+    fn __state260<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38079,7 +38463,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state259<
+    fn __state261<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38097,7 +38481,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state271(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state273(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -38125,7 +38509,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state260<
+    fn __state262<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38143,7 +38527,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym4 = (__loc1, (__tok), __loc2);
-                __result = __state272(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state274(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -38171,7 +38555,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state261<
+    fn __state263<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38230,7 +38614,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state262<
+    fn __state264<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38296,7 +38680,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state263<
+    fn __state265<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38319,27 +38703,27 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::Plus, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state207(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state209(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Minus, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state208(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state210(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Float(__tok0), __loc2)) => {
                 let __sym5 = (__loc1, (__tok0), __loc2);
-                __result = __state209(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state211(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::Integer(__tok0), __loc2)) => {
                 let __sym5 = (__loc1, (__tok0), __loc2);
-                __result = __state210(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state212(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, Tok::StringLiteralDoubleQuote(__tok0), __loc2)) => {
                 let __sym5 = (__loc1, (__tok0), __loc2);
-                __result = __state211(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state213(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
             }
             Some((__loc1, __tok @ Tok::Null, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state212(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state214(text, __tokens, __sym5, ::std::marker::PhantomData::<(&())>)?;
             }
             _ => {
                 let __expected = vec![
@@ -38373,7 +38757,7 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::Value(__sym5) => {
-                    __result = __state273(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state275(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -38383,7 +38767,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state264<
+    fn __state266<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38448,7 +38832,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state265<
+    fn __state267<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -38513,703 +38897,703 @@ mod __parse__Sql {
         }
     }
 
-    fn __state266<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Tok<'input>, usize),
-        __sym8: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
-                let __sym9 = (__loc1, (__tok0), __loc2);
-                __result = __state33(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state34(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state35(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::After, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state36(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state37(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state38(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state39(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state40(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state41(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::By, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state42(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state43(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state44(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state45(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state46(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state47(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state48(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state49(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::End, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state50(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state51(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state52(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state53(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::For, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state54(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::If, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state55(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state56(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state57(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state58(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state59(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state60(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state61(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state62(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state63(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state64(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::No, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state65(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state66(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state67(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state68(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state69(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state70(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state71(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state72(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state73(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state74(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state75(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state76(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state77(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state78(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state79(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state80(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state81(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state82(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state83(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state84(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::View, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state85(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state86(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state87(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            _ => {
-                let __expected = vec![
-                    r###""Id""###.to_string(),
-                    r###""abort""###.to_string(),
-                    r###""action""###.to_string(),
-                    r###""after""###.to_string(),
-                    r###""analyze""###.to_string(),
-                    r###""asc""###.to_string(),
-                    r###""attach""###.to_string(),
-                    r###""before""###.to_string(),
-                    r###""begin""###.to_string(),
-                    r###""by""###.to_string(),
-                    r###""cascade""###.to_string(),
-                    r###""conflict""###.to_string(),
-                    r###""cross""###.to_string(),
-                    r###""deferred""###.to_string(),
-                    r###""desc""###.to_string(),
-                    r###""detach""###.to_string(),
-                    r###""each""###.to_string(),
-                    r###""end""###.to_string(),
-                    r###""exclusive""###.to_string(),
-                    r###""explain""###.to_string(),
-                    r###""fail""###.to_string(),
-                    r###""for""###.to_string(),
-                    r###""if""###.to_string(),
-                    r###""ignore""###.to_string(),
-                    r###""immediate""###.to_string(),
-                    r###""indexed""###.to_string(),
-                    r###""initially""###.to_string(),
-                    r###""inner""###.to_string(),
-                    r###""instead""###.to_string(),
-                    r###""key""###.to_string(),
-                    r###""left""###.to_string(),
-                    r###""natural""###.to_string(),
-                    r###""no""###.to_string(),
-                    r###""of""###.to_string(),
-                    r###""offset""###.to_string(),
-                    r###""outer""###.to_string(),
-                    r###""plan""###.to_string(),
-                    r###""pragma""###.to_string(),
-                    r###""query""###.to_string(),
-                    r###""recursive""###.to_string(),
-                    r###""reindex""###.to_string(),
-                    r###""release""###.to_string(),
-                    r###""rename""###.to_string(),
-                    r###""replace""###.to_string(),
-                    r###""restrict""###.to_string(),
-                    r###""right""###.to_string(),
-                    r###""rollback""###.to_string(),
-                    r###""row""###.to_string(),
-                    r###""savepoint""###.to_string(),
-                    r###""temp""###.to_string(),
-                    r###""trigger""###.to_string(),
-                    r###""vacuum""###.to_string(),
-                    r###""view""###.to_string(),
-                    r###""virtual""###.to_string(),
-                    r###""without""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym8.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        loop {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym9) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::ColName(__sym9) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::CommaList_3cColName_3e(__sym9) => {
-                    __result = __state274(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                    return Ok(__result);
-                }
-                __Nonterminal::Id(__sym9) => {
-                    __result = __state30(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::Name(__sym9) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
-            }
-        }
-    }
-
-    fn __state267<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Tok<'input>, usize),
-        __sym8: (usize, Tok<'input>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        let __lookahead = match __tokens.next() {
-            Some(Ok(v)) => Some(v),
-            Some(Err(e)) => return Err(e),
-            None => None,
-        };
-        match __lookahead {
-            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
-                let __sym9 = (__loc1, (__tok0), __loc2);
-                __result = __state33(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state34(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state35(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::After, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state36(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state37(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state38(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state39(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state40(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state41(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::By, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state42(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state43(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state44(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state45(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state46(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state47(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state48(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state49(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::End, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state50(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state51(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state52(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state53(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::For, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state54(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::If, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state55(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state56(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state57(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state58(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state59(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state60(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state61(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state62(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state63(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state64(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::No, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state65(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state66(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state67(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state68(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state69(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state70(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state71(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state72(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state73(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state74(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state75(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state76(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state77(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state78(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state79(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state80(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state81(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state82(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state83(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state84(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::View, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state85(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state86(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
-                let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state87(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
-            }
-            _ => {
-                let __expected = vec![
-                    r###""Id""###.to_string(),
-                    r###""abort""###.to_string(),
-                    r###""action""###.to_string(),
-                    r###""after""###.to_string(),
-                    r###""analyze""###.to_string(),
-                    r###""asc""###.to_string(),
-                    r###""attach""###.to_string(),
-                    r###""before""###.to_string(),
-                    r###""begin""###.to_string(),
-                    r###""by""###.to_string(),
-                    r###""cascade""###.to_string(),
-                    r###""conflict""###.to_string(),
-                    r###""cross""###.to_string(),
-                    r###""deferred""###.to_string(),
-                    r###""desc""###.to_string(),
-                    r###""detach""###.to_string(),
-                    r###""each""###.to_string(),
-                    r###""end""###.to_string(),
-                    r###""exclusive""###.to_string(),
-                    r###""explain""###.to_string(),
-                    r###""fail""###.to_string(),
-                    r###""for""###.to_string(),
-                    r###""if""###.to_string(),
-                    r###""ignore""###.to_string(),
-                    r###""immediate""###.to_string(),
-                    r###""indexed""###.to_string(),
-                    r###""initially""###.to_string(),
-                    r###""inner""###.to_string(),
-                    r###""instead""###.to_string(),
-                    r###""key""###.to_string(),
-                    r###""left""###.to_string(),
-                    r###""natural""###.to_string(),
-                    r###""no""###.to_string(),
-                    r###""of""###.to_string(),
-                    r###""offset""###.to_string(),
-                    r###""outer""###.to_string(),
-                    r###""plan""###.to_string(),
-                    r###""pragma""###.to_string(),
-                    r###""query""###.to_string(),
-                    r###""recursive""###.to_string(),
-                    r###""reindex""###.to_string(),
-                    r###""release""###.to_string(),
-                    r###""rename""###.to_string(),
-                    r###""replace""###.to_string(),
-                    r###""restrict""###.to_string(),
-                    r###""right""###.to_string(),
-                    r###""rollback""###.to_string(),
-                    r###""row""###.to_string(),
-                    r###""savepoint""###.to_string(),
-                    r###""temp""###.to_string(),
-                    r###""trigger""###.to_string(),
-                    r###""vacuum""###.to_string(),
-                    r###""view""###.to_string(),
-                    r###""virtual""###.to_string(),
-                    r###""without""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym8.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        loop {
-            let (__lookahead, __nt) = __result;
-            match __nt {
-                __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym9) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::ColName(__sym9) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::CommaList_3cColName_3e(__sym9) => {
-                    __result = __state275(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                    return Ok(__result);
-                }
-                __Nonterminal::Id(__sym9) => {
-                    __result = __state30(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                __Nonterminal::Name(__sym9) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
-                }
-                _ => {
-                    return Ok((__lookahead, __nt));
-                }
-            }
-        }
-    }
-
     fn __state268<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        __sym7: (usize, Tok<'input>, usize),
+        __sym8: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
+                let __sym9 = (__loc1, (__tok0), __loc2);
+                __result = __state33(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state34(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state35(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::After, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state36(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state37(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state38(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state39(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state40(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state41(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::By, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state42(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state43(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state44(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state45(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state46(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state47(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state48(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state49(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::End, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state50(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state51(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state52(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state53(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::For, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state54(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::If, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state55(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state56(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state57(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state58(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state59(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state60(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state61(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state62(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state63(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state64(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::No, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state65(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state66(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state67(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state68(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state69(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state70(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state71(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state72(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state73(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state74(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state75(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state76(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state77(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state78(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state79(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state80(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state81(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state82(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state83(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state84(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::View, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state85(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state86(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state87(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            _ => {
+                let __expected = vec![
+                    r###""Id""###.to_string(),
+                    r###""abort""###.to_string(),
+                    r###""action""###.to_string(),
+                    r###""after""###.to_string(),
+                    r###""analyze""###.to_string(),
+                    r###""asc""###.to_string(),
+                    r###""attach""###.to_string(),
+                    r###""before""###.to_string(),
+                    r###""begin""###.to_string(),
+                    r###""by""###.to_string(),
+                    r###""cascade""###.to_string(),
+                    r###""conflict""###.to_string(),
+                    r###""cross""###.to_string(),
+                    r###""deferred""###.to_string(),
+                    r###""desc""###.to_string(),
+                    r###""detach""###.to_string(),
+                    r###""each""###.to_string(),
+                    r###""end""###.to_string(),
+                    r###""exclusive""###.to_string(),
+                    r###""explain""###.to_string(),
+                    r###""fail""###.to_string(),
+                    r###""for""###.to_string(),
+                    r###""if""###.to_string(),
+                    r###""ignore""###.to_string(),
+                    r###""immediate""###.to_string(),
+                    r###""indexed""###.to_string(),
+                    r###""initially""###.to_string(),
+                    r###""inner""###.to_string(),
+                    r###""instead""###.to_string(),
+                    r###""key""###.to_string(),
+                    r###""left""###.to_string(),
+                    r###""natural""###.to_string(),
+                    r###""no""###.to_string(),
+                    r###""of""###.to_string(),
+                    r###""offset""###.to_string(),
+                    r###""outer""###.to_string(),
+                    r###""plan""###.to_string(),
+                    r###""pragma""###.to_string(),
+                    r###""query""###.to_string(),
+                    r###""recursive""###.to_string(),
+                    r###""reindex""###.to_string(),
+                    r###""release""###.to_string(),
+                    r###""rename""###.to_string(),
+                    r###""replace""###.to_string(),
+                    r###""restrict""###.to_string(),
+                    r###""right""###.to_string(),
+                    r###""rollback""###.to_string(),
+                    r###""row""###.to_string(),
+                    r###""savepoint""###.to_string(),
+                    r###""temp""###.to_string(),
+                    r###""trigger""###.to_string(),
+                    r###""vacuum""###.to_string(),
+                    r###""view""###.to_string(),
+                    r###""virtual""###.to_string(),
+                    r###""without""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym8.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        loop {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym9) => {
+                    __result = __state230(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::ColName(__sym9) => {
+                    __result = __state231(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::CommaList_3cColName_3e(__sym9) => {
+                    __result = __state276(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                    return Ok(__result);
+                }
+                __Nonterminal::Id(__sym9) => {
+                    __result = __state30(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::Name(__sym9) => {
+                    __result = __state134(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+    }
+
+    fn __state269<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        __sym7: (usize, Tok<'input>, usize),
+        __sym8: (usize, Tok<'input>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        let __lookahead = match __tokens.next() {
+            Some(Ok(v)) => Some(v),
+            Some(Err(e)) => return Err(e),
+            None => None,
+        };
+        match __lookahead {
+            Some((__loc1, Tok::Id(__tok0), __loc2)) => {
+                let __sym9 = (__loc1, (__tok0), __loc2);
+                __result = __state33(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Abort, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state34(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Action, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state35(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::After, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state36(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Analyze, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state37(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Asc, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state38(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Attach, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state39(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Before, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state40(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Begin, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state41(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::By, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state42(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cascade, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state43(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Conflict, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state44(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Cross, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state45(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Deferred, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state46(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Desc, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state47(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Detach, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state48(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Each, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state49(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::End, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state50(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Exclusive, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state51(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Explain, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state52(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Fail, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state53(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::For, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state54(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::If, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state55(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Ignore, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state56(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Immediate, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state57(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Indexed, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state58(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Initially, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state59(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Inner, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state60(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Instead, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state61(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Key, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state62(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Left, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state63(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Natural, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state64(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::No, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state65(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Of, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state66(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Offset, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state67(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Outer, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state68(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Plan, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state69(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Pragma, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state70(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Query, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state71(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Recursive, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state72(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Reindex, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state73(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Release, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state74(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rename, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state75(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Replace, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state76(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Restrict, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state77(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Right, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state78(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Rollback, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state79(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Row, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state80(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Savepoint, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state81(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Temp, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state82(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Trigger, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state83(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Vacuum, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state84(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::View, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state85(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Virtual, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state86(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            Some((__loc1, __tok @ Tok::Without, __loc2)) => {
+                let __sym9 = (__loc1, (__tok), __loc2);
+                __result = __state87(text, __tokens, __sym9, ::std::marker::PhantomData::<(&())>)?;
+            }
+            _ => {
+                let __expected = vec![
+                    r###""Id""###.to_string(),
+                    r###""abort""###.to_string(),
+                    r###""action""###.to_string(),
+                    r###""after""###.to_string(),
+                    r###""analyze""###.to_string(),
+                    r###""asc""###.to_string(),
+                    r###""attach""###.to_string(),
+                    r###""before""###.to_string(),
+                    r###""begin""###.to_string(),
+                    r###""by""###.to_string(),
+                    r###""cascade""###.to_string(),
+                    r###""conflict""###.to_string(),
+                    r###""cross""###.to_string(),
+                    r###""deferred""###.to_string(),
+                    r###""desc""###.to_string(),
+                    r###""detach""###.to_string(),
+                    r###""each""###.to_string(),
+                    r###""end""###.to_string(),
+                    r###""exclusive""###.to_string(),
+                    r###""explain""###.to_string(),
+                    r###""fail""###.to_string(),
+                    r###""for""###.to_string(),
+                    r###""if""###.to_string(),
+                    r###""ignore""###.to_string(),
+                    r###""immediate""###.to_string(),
+                    r###""indexed""###.to_string(),
+                    r###""initially""###.to_string(),
+                    r###""inner""###.to_string(),
+                    r###""instead""###.to_string(),
+                    r###""key""###.to_string(),
+                    r###""left""###.to_string(),
+                    r###""natural""###.to_string(),
+                    r###""no""###.to_string(),
+                    r###""of""###.to_string(),
+                    r###""offset""###.to_string(),
+                    r###""outer""###.to_string(),
+                    r###""plan""###.to_string(),
+                    r###""pragma""###.to_string(),
+                    r###""query""###.to_string(),
+                    r###""recursive""###.to_string(),
+                    r###""reindex""###.to_string(),
+                    r###""release""###.to_string(),
+                    r###""rename""###.to_string(),
+                    r###""replace""###.to_string(),
+                    r###""restrict""###.to_string(),
+                    r###""right""###.to_string(),
+                    r###""rollback""###.to_string(),
+                    r###""row""###.to_string(),
+                    r###""savepoint""###.to_string(),
+                    r###""temp""###.to_string(),
+                    r###""trigger""###.to_string(),
+                    r###""vacuum""###.to_string(),
+                    r###""view""###.to_string(),
+                    r###""virtual""###.to_string(),
+                    r###""without""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym8.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+        loop {
+            let (__lookahead, __nt) = __result;
+            match __nt {
+                __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym9) => {
+                    __result = __state230(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::ColName(__sym9) => {
+                    __result = __state231(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::CommaList_3cColName_3e(__sym9) => {
+                    __result = __state277(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                    return Ok(__result);
+                }
+                __Nonterminal::Id(__sym9) => {
+                    __result = __state30(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::Name(__sym9) => {
+                    __result = __state134(text, __tokens, __lookahead, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                }
+                _ => {
+                    return Ok((__lookahead, __nt));
+                }
+            }
+        }
+    }
+
+    fn __state270<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -39271,7 +39655,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state269<
+    fn __state271<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -39333,7 +39717,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state270<
+    fn __state272<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -39497,7 +39881,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state271<
+    fn __state273<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -39520,7 +39904,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::References, __loc2)) => {
                 let __sym5 = (__loc1, (__tok), __loc2);
-                __result = __state276(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state278(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -39548,7 +39932,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state272<
+    fn __state274<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -39608,7 +39992,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state273<
+    fn __state275<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -39667,111 +40051,111 @@ mod __parse__Sql {
         }
     }
 
-    fn __state274<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, Tok<'input>, usize)>,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Tok<'input>, usize),
-        __sym8: (usize, Tok<'input>, usize),
-        __sym9: (usize, Vec<Name>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
-                let __sym10 = (__loc1, (__tok), __loc2);
-                __result = __state277(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###"")""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym9.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
-    fn __state275<
-        'input,
-        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
-    >(
-        text: &'input str,
-        __tokens: &mut __TOKENS,
-        __lookahead: Option<(usize, Tok<'input>, usize)>,
-        __sym0: (usize, Tok<'input>, usize),
-        __sym1: (usize, Tok<'input>, usize),
-        __sym2: (usize, Name, usize),
-        __sym3: (usize, Tok<'input>, usize),
-        __sym4: (usize, Tok<'input>, usize),
-        __sym5: (usize, Name, usize),
-        __sym6: (usize, Tok<'input>, usize),
-        __sym7: (usize, Tok<'input>, usize),
-        __sym8: (usize, Tok<'input>, usize),
-        __sym9: (usize, Vec<Name>, usize),
-        _: ::std::marker::PhantomData<(&'input ())>,
-    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
-    {
-        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
-        match __lookahead {
-            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
-                let __sym10 = (__loc1, (__tok), __loc2);
-                __result = __state278(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, ::std::marker::PhantomData::<(&())>)?;
-                return Ok(__result);
-            }
-            _ => {
-                let __expected = vec![
-                    r###"")""###.to_string(),
-                ];
-                return Err(
-                    match __lookahead {
-                        Some(__token) => {
-                            __lalrpop_util::ParseError::UnrecognizedToken {
-                                token: __token,
-                                expected: __expected,
-                            }
-                        }
-                        None => {
-                            let __location = __sym9.2.clone();
-                            __lalrpop_util::ParseError::UnrecognizedEOF {
-                                location: __location,
-                                expected: __expected,
-                            }
-                        }
-                    }
-                )
-            }
-        }
-    }
-
     fn __state276<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, Tok<'input>, usize)>,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        __sym7: (usize, Tok<'input>, usize),
+        __sym8: (usize, Tok<'input>, usize),
+        __sym9: (usize, Vec<Name>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+                let __sym10 = (__loc1, (__tok), __loc2);
+                __result = __state279(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###"")""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym9.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state277<
+        'input,
+        __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
+    >(
+        text: &'input str,
+        __tokens: &mut __TOKENS,
+        __lookahead: Option<(usize, Tok<'input>, usize)>,
+        __sym0: (usize, Tok<'input>, usize),
+        __sym1: (usize, Tok<'input>, usize),
+        __sym2: (usize, Name, usize),
+        __sym3: (usize, Tok<'input>, usize),
+        __sym4: (usize, Tok<'input>, usize),
+        __sym5: (usize, Name, usize),
+        __sym6: (usize, Tok<'input>, usize),
+        __sym7: (usize, Tok<'input>, usize),
+        __sym8: (usize, Tok<'input>, usize),
+        __sym9: (usize, Vec<Name>, usize),
+        _: ::std::marker::PhantomData<(&'input ())>,
+    ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
+    {
+        let mut __result: (Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>);
+        match __lookahead {
+            Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
+                let __sym10 = (__loc1, (__tok), __loc2);
+                __result = __state280(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, ::std::marker::PhantomData::<(&())>)?;
+                return Ok(__result);
+            }
+            _ => {
+                let __expected = vec![
+                    r###"")""###.to_string(),
+                ];
+                return Err(
+                    match __lookahead {
+                        Some(__token) => {
+                            __lalrpop_util::ParseError::UnrecognizedToken {
+                                token: __token,
+                                expected: __expected,
+                            }
+                        }
+                        None => {
+                            let __location = __sym9.2.clone();
+                            __lalrpop_util::ParseError::UnrecognizedEOF {
+                                location: __location,
+                                expected: __expected,
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    fn __state278<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40100,7 +40484,7 @@ mod __parse__Sql {
                     __result = __state31(text, __tokens, __lookahead, __sym6, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::TableName(__sym6) => {
-                    __result = __state279(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state281(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -40110,7 +40494,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state277<
+    fn __state279<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40139,7 +40523,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::References, __loc2)) => {
                 let __sym11 = (__loc1, (__tok), __loc2);
-                __result = __state280(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state282(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -40167,7 +40551,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state278<
+    fn __state280<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40231,7 +40615,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state279<
+    fn __state281<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40252,7 +40636,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym7 = (__loc1, (__tok), __loc2);
-                __result = __state281(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state283(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -40280,7 +40664,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state280<
+    fn __state282<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40615,7 +40999,7 @@ mod __parse__Sql {
                     __result = __state31(text, __tokens, __lookahead, __sym12, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::TableName(__sym12) => {
-                    __result = __state282(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state284(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 _ => {
@@ -40625,7 +41009,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state281<
+    fn __state283<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40950,14 +41334,14 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::ColName(__sym8) => {
-                    __result = __state283(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state285(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym8) => {
                     __result = __state30(text, __tokens, __lookahead, __sym8, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym8) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym8, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym8, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -40966,7 +41350,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state282<
+    fn __state284<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -40993,7 +41377,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::LeftParen, __loc2)) => {
                 let __sym13 = (__loc1, (__tok), __loc2);
-                __result = __state284(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, __sym13, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state286(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, __sym13, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -41021,7 +41405,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state283<
+    fn __state285<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -41044,7 +41428,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym9 = (__loc1, (__tok), __loc2);
-                __result = __state285(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state287(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -41072,7 +41456,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state284<
+    fn __state286<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -41403,20 +41787,20 @@ mod __parse__Sql {
             let (__lookahead, __nt) = __result;
             match __nt {
                 __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym14) => {
-                    __result = __state228(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state230(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::ColName(__sym14) => {
-                    __result = __state229(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state231(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::CommaList_3cColName_3e(__sym14) => {
-                    __result = __state286(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, __sym13, __sym14, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state288(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, __sym13, __sym14, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
                 __Nonterminal::Id(__sym14) => {
                     __result = __state30(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
                 }
                 __Nonterminal::Name(__sym14) => {
-                    __result = __state133(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
+                    __result = __state134(text, __tokens, __lookahead, __sym14, ::std::marker::PhantomData::<(&())>)?;
                 }
                 _ => {
                     return Ok((__lookahead, __nt));
@@ -41425,7 +41809,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state285<
+    fn __state287<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -41490,7 +41874,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state286<
+    fn __state288<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -41519,7 +41903,7 @@ mod __parse__Sql {
         match __lookahead {
             Some((__loc1, __tok @ Tok::RightParen, __loc2)) => {
                 let __sym15 = (__loc1, (__tok), __loc2);
-                __result = __state287(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, __sym13, __sym14, __sym15, ::std::marker::PhantomData::<(&())>)?;
+                __result = __state289(text, __tokens, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, __sym9, __sym10, __sym11, __sym12, __sym13, __sym14, __sym15, ::std::marker::PhantomData::<(&())>)?;
                 return Ok(__result);
             }
             _ => {
@@ -41547,7 +41931,7 @@ mod __parse__Sql {
         }
     }
 
-    fn __state287<
+    fn __state289<
         'input,
         __TOKENS: Iterator<Item=Result<(usize, Tok<'input>, usize),__lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>>,
     >(
@@ -41925,9 +42309,11 @@ fn __action23<
     (_, _, _): (usize, Tok<'input>, usize),
     (_, _, _): (usize, Tok<'input>, usize),
     (_, idx_name, _): (usize, Name, usize),
+    (_, _, _): (usize, Tok<'input>, usize),
+    (_, tb_name, _): (usize, Name, usize),
 ) -> IndexStmt
 {
-    IndexStmt::DropIndex { idx_name:idx_name }
+    IndexStmt::DropIndex { idx_name:idx_name, tb_name:tb_name }
 }
 
 #[allow(unused_variables)]

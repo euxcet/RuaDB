@@ -22,29 +22,37 @@ impl Executor {
     }
 
     fn process(&self, stmt: &Stmt, check: bool) -> RuaResult {
-        self.sm.borrow_mut().set_check(check);
+        let mut sm = self.sm.borrow_mut();
+        sm.set_check(check);
         match stmt {
-            Stmt::System(SystemStmt::ShowDatabases) => self.sm.borrow_mut().show_databases(),
+            Stmt::System(SystemStmt::ShowDatabases) => sm.show_databases(),
             Stmt::Database(ref s) => {
                 match s {
-                    DatabaseStmt::CreateDatabase { db_name } => self.sm.borrow_mut().create_database(&db_name),
-                    DatabaseStmt::DropDatabase { db_name } => self.sm.borrow_mut().drop_database(&db_name),
-                    DatabaseStmt::UseDatabase { db_name } => self.sm.borrow_mut().use_database(&db_name),
-                    DatabaseStmt::ShowTables => self.sm.borrow_mut().show_tables(),
+                    DatabaseStmt::CreateDatabase { db_name } => sm.create_database(&db_name),
+                    DatabaseStmt::DropDatabase { db_name } => sm.drop_database(&db_name),
+                    DatabaseStmt::UseDatabase { db_name } => sm.use_database(&db_name),
+                    DatabaseStmt::ShowTables => sm.show_tables(),
                 }
             },
             Stmt::Table(ref s) => {
                 match s {
-                    TableStmt::CreateTable { tb_name, field_list } => self.sm.borrow_mut().create_table(&tb_name, &field_list),
-                    TableStmt::DropTable { tb_name } => self.sm.borrow_mut().drop_table(&tb_name),
-                    TableStmt::Desc { tb_name } => self.sm.borrow_mut().desc(&tb_name),
-                    TableStmt::Insert { tb_name, value_lists } => self.sm.borrow_mut().insert(&tb_name, &value_lists),
-                    TableStmt::Select { table_list, selector, where_clause } => self.sm.borrow_mut().select(&table_list, &selector, &where_clause),
-                    TableStmt::Delete { tb_name, where_clause } => self.sm.borrow_mut().delete(&tb_name, &where_clause),
-                    TableStmt::Update { tb_name, set_clause, where_clause } => self.sm.borrow_mut().update(&tb_name, &set_clause, &where_clause),
-                    _ => unreachable!(),
+                    TableStmt::CreateTable { tb_name, field_list } => sm.create_table(&tb_name, &field_list),
+                    TableStmt::DropTable { tb_name } => sm.drop_table(&tb_name),
+                    TableStmt::Desc { tb_name } => sm.desc(&tb_name),
+                    TableStmt::Insert { tb_name, value_lists } => sm.insert(&tb_name, &value_lists),
+                    TableStmt::Select { table_list, selector, where_clause } => sm.select(&table_list, &selector, &where_clause),
+                    TableStmt::Delete { tb_name, where_clause } => sm.delete(&tb_name, &where_clause),
+                    TableStmt::Update { tb_name, set_clause, where_clause } => sm.update(&tb_name, &set_clause, &where_clause),
                 }
             },
+            Stmt::Index(ref s) => {
+                match s {
+                    IndexStmt::CreateIndex { idx_name, tb_name, column_list } => sm.create_index(&idx_name, &tb_name, &column_list),
+                    IndexStmt::DropIndex { idx_name, tb_name } => sm.drop_index(&idx_name, &tb_name),
+                    IndexStmt::AlterAddIndex { idx_name, tb_name, column_list } => sm.create_index(&idx_name, &tb_name, &column_list),
+                    IndexStmt::AlterDropIndex { idx_name, tb_name } => sm.drop_index(&idx_name, &tb_name),
+                }
+            }
             _ => unreachable!(),
         }
     }
