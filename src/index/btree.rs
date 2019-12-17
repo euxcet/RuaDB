@@ -184,7 +184,8 @@ impl<'a> BTree<'a> {
     }
 
     pub fn clear(&self) {
-        unimplemented!();
+        let root = self.th.get_btree_node_(self.root);
+        root.clear(self.th, self.root)
     }
 }
 
@@ -712,5 +713,18 @@ impl BTreeNode {
                 th.get_btree_node_(self.son[self.get_len()]).first_bucket(th)
             }
         }
+    }
+
+    pub fn clear(&self, th: &TableHandler, self_ptr: u64) {
+        let len = self.get_len();
+        match self.ty {
+            BTreeNodeType::Leaf => {}
+            BTreeNodeType::Internal => {
+                for i in 0..=len {
+                    th.get_btree_node_(self.son[i]).clear(th, self.son[i])
+                }
+            }
+        }
+        th.delete_(self_ptr);
     }
 }
