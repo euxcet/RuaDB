@@ -82,12 +82,79 @@ pub unsafe fn string_to_vec_u64(data: &String) -> Vec<u64> {
     res
 }
 
-pub fn str2date(s: &str) -> u64 {
-    1575185880u64
+pub fn str_to_date(s: &str) -> u64 {
+    let date_vec: Vec<&str> = s.split("-").collect();
+    if date_vec.len() != 3 {
+        0
+    }
+    else {
+        let year = u64::from_str_radix(date_vec[0], 10);
+        let month = u64::from_str_radix(date_vec[1], 10);
+        let day = u64::from_str_radix(date_vec[2], 10);
+        if year.is_err() || month.is_err() || day.is_err() {
+            0
+        }
+        else {
+            let year = year.unwrap();
+            let month = month.unwrap();
+            let day = day.unwrap();
+            if year < 1000 || year > 9999 || month > 12 || day > 31 {
+                0
+            }
+            else {
+                (year << 9) | (month << 5) | day
+            }
+        }
+    }
 }
 
-pub fn date2str(date: u64) -> String {
-    "2019.12.01 15:38:00".to_string()
+pub fn date_to_str(date: u64) -> String {
+    format!("{}-{:02}-{:02}", date >> 9, date >> 5 & 0b1111, date & 0b11111)
+}
+
+pub fn str_to_numeric(s: &str, precision: u8) -> i64 {
+    assert!(precision > 0);
+    let precision = precision - 1;
+    let num_vec: Vec<&str> = s.split(".").collect();
+    if num_vec.len() != 2 {
+        0
+    }
+    else {
+        let integer = num_vec[0];
+        let decimal = num_vec[1];
+        if decimal.len() > precision as usize {
+            0
+        }
+        else {
+            i64::from_str_radix(
+                &format!(
+                    "{}{}{}",
+                    integer,
+                    decimal,
+                    String::from_utf8(vec![48; precision as usize - decimal.len()]).unwrap()
+                ),
+                10
+            ).unwrap()
+        }
+    }
+}
+
+pub fn numeric_to_str(num: i64, precision: u8) -> String {
+    assert!(precision > 0);
+    let precision = precision - 1;
+    let mut integer = num;
+    let mut exp10 = 1;
+    for _ in 0..precision {
+        integer /= 10;
+        exp10 *= 10;
+    }
+    let decimal = num - integer * exp10;
+    if precision == 0 {
+        format!("{}", integer)
+    }
+    else {
+        format!("{}.{}", integer, decimal)
+    }
 }
 
 #[test]

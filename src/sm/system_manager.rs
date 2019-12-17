@@ -250,7 +250,8 @@ impl SystemManager {
             // let database = self.current_database.as_ref().unwrap();
             // let th = self.rm.borrow_mut().open_table(self.get_table_path(database, tb_name).to_str().unwrap(), false);
             let th = self.open_table(tb_name, false).unwrap();
-            let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v)).collect();
+            let cts = th.get_column_types();
+            let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v, &cts.cols)).collect();
             let ptrs: Vec<StrPointer> = records.iter().map(|record| th.insert_record(record)).collect();
 
             // TODO: insert into every btree

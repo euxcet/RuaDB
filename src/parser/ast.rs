@@ -161,6 +161,7 @@ pub enum Type {
     Varchar(i64),
     Date,
     Float,
+    Numeric(i64, i64),
 }
 
 impl Type {
@@ -173,6 +174,7 @@ impl Type {
             (Type::Int(_), Type::Int(_)) |
             (Type::Varchar(_), Type::Varchar(_)) |
             (Type::Date, Type::Date) |
+            (Type::Numeric(_, _), Type::Numeric(_, _)) |
             (Type::Float, Type::Float) => true,
             (_, _) => false,
         }

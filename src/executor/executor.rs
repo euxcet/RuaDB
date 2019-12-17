@@ -119,6 +119,12 @@ mod test {
             String::from("select * from test;"),
             
             String::from("desc test;"),
+
+            String::from("create table date_test(id int(4), s_date date, num numeric(5, 2));"),
+            String::from("desc date_test;"),
+            String::from("insert into date_test values (3, '2019-04-22', 321.42);"),
+            String::from("select * from date_test;"),
+
             String::from("drop database sql_select;"),
         ];
 
