@@ -155,6 +155,7 @@ ValueList: Vec<Value> = {
 Value: Value = {
     "null" => Value::Null,
     "StringLiteralDoubleQuote" => Value::Str(<>.to_owned()),
+    "StringLiteralSingleQuote" => Value::Date(<>.to_owned()),
     "+"? <"Integer"> => { Value::Int( <>.to_owned() ) },
     "-" <"Integer"> => { Value::Int( format!("-{}", <>) ) },
     "+"? <"Float"> => { Value::Float( <>.to_owned() ) },
@@ -167,6 +168,9 @@ Type: Type = {
     },
     "varchar" "(" <"Integer"> ")" => {
         Type::Varchar(i64::from_str(<>).unwrap())
+    },
+    "numeric" "(" <a:"Integer"> "," <b:"Integer"> ")" => {
+        Type::Numeric(i64::from_str(a).unwrap(), i64::from_str(b).unwrap())
     },
     "date" => {
         Type::Date
@@ -345,6 +349,7 @@ extern {
         "not" => Tok::Not,
         "notnull" => Tok::NotNull,
         "null" => Tok::Null,
+        "numeric" => Tok::Numeric,
         "of" => Tok::Of,
         "offset" => Tok::Offset,
         "on" => Tok::On,
