@@ -77,6 +77,24 @@ impl ColumnDataInFile {
         0u8
     }
 
+    pub fn null_data(ct: &ColumnType) -> Self {
+        let ty: u8 = {
+            match ct.data_type {
+                Type::Str(_) => 0,
+                Type::Int(_) => 1,
+                Type::Float(_) => 2,
+                Type::Date(_) => 3,
+                Type::Numeric(_) => 4,
+            }
+        };
+
+        Self {
+            index: ct.index,
+            flags: (ty << 2) | 0b11,
+            data: 0u64,
+        }
+    }
+
     // ColumnData to ColumnDataInFile
     pub fn from(th: &TableHandler, cd: &ColumnData) -> Self {
         match &cd.data {
@@ -135,6 +153,17 @@ impl ColumnDataInFile {
             let flags: [u8; 1] = transmute(self.flags);
             let data: [u8; 8] = transmute(self.data);
             format!("{}{}{}", String::from_utf8_unchecked(index.to_vec()), String::from_utf8_unchecked(flags.to_vec()), String::from_utf8_unchecked(data.to_vec()))
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        unsafe {
+            ::std::str::from_utf8_unchecked(
+                ::std::slice::from_raw_parts(
+                    (self as *const Self) as *const u8,
+                    ::std::mem::size_of::<Self>(),
+                )
+            )
         }
     }
 }

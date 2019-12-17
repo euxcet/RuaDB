@@ -95,15 +95,47 @@ impl TableHandler {
         self.update_record_in_file(ptr, &record_in_file);
     }
 
+    pub fn insert_record_data_column(&self, ptr: &StrPointer, ct: &ColumnType) {
+        let (_, mut record_in_file) = self.get_record(ptr);
+        let size_of_data = size_of::<ColumnDataInFile>();
+        let cd = ColumnDataInFile::null_data(ct);
+        record_in_file.record.push_str(cd.as_str());
+
+        self.update_record_in_file(ptr, &record_in_file);
+    }
+
     // for ColumnType
-    pub fn insert_column_type(&self, ct: &ColumnType) -> StrPointer {
+    pub fn __insert_column_type(&self, ct: &ColumnType) -> StrPointer {
         self.fh.insert::<ColumnTypeInFile, u32>(&ColumnTypeInFile::from(self, ct))
     }
 
     pub fn insert_column_types(&self, cts: &ColumnTypeVec) {
-        let c_ptrs = cts.cols.iter().map(|ct| self.insert_column_type(ct).to_u64()).collect();
+        let c_ptrs = cts.cols.iter().map(|ct| self.__insert_column_type(ct).to_u64()).collect();
         let ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&c_ptrs)});
         self.fh.set_column_types_ptr(ptr.to_u64());
+    }
+
+    fn __get_ptrs(&self, ptr: &StrPointer) -> Vec<u64> {
+        let s = self.get_string(&ptr);
+        let ptrs = unsafe{convert::string_to_vec_u64(&s)};
+        ptrs
+    }
+
+    pub fn insert_column_type(&self, ct: &ColumnType) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
+        let cp = self.__insert_column_type(ct);
+        ptrs.push(cp.to_u64());
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
+    }
+
+    pub fn delete_column_type_from_index(&self, index: usize) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
+        assert!(index < ptrs.len());
+        self.delete(&StrPointer::new(ptrs[index]));
+        ptrs.remove(index);
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
     pub fn get_column_types(&self) -> ColumnTypeVec {
@@ -123,6 +155,13 @@ impl TableHandler {
             let c = self.get_column_type(&StrPointer::new(p));
             (c.name.clone(), c)
         }).collect()
+    }
+
+    pub fn get_column_numbers(&self) -> usize {
+        let ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let s = self.get_string(&ptr);
+        let c_ptrs = unsafe{ convert::string_to_vec_u64(&s) };
+        c_ptrs.len()
     }
 
     pub fn get_column_type(&self, ptr: &StrPointer) -> ColumnType {
@@ -169,7 +208,7 @@ impl TableHandler {
 
     pub fn insert_btree(&self, btree: &BTree) {
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        let mut ptrs = self.__get_btree_ptrs();
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
         let bp = self.__insert_btree(btree);
         ptrs.push(bp.to_u64());
         self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
@@ -177,22 +216,17 @@ impl TableHandler {
 
     pub fn delete_btree_from_index(&self, index: usize) {
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        let mut ptrs = self.__get_btree_ptrs();
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
         assert!(index < ptrs.len());
         self.delete(&StrPointer::new(ptrs[index]));
         ptrs.remove(index);
         self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
-    fn __get_btree_ptrs(&self) -> Vec<u64> {
-        let ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        let s = self.get_string(&ptr);
-        let b_ptrs = unsafe{convert::string_to_vec_u64(&s)};
-        b_ptrs
-    }
 
     pub fn get_btrees(&self) -> Vec<BTree> {
-        let ptrs = self.__get_btree_ptrs();
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
         ptrs.iter().map(|&p| self.__get_btree(&StrPointer::new(p))).collect()
     }
 
@@ -201,7 +235,8 @@ impl TableHandler {
     }
 
     pub fn get_btree_from_index(&self, index: usize) -> BTree {
-        let ptrs = self.__get_btree_ptrs();
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
         assert!(index < ptrs.len());
         self.__get_btree(&StrPointer::new(ptrs[index]))
     }

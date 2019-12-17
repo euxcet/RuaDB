@@ -52,7 +52,14 @@ impl Executor {
                     IndexStmt::AlterAddIndex { idx_name, tb_name, column_list } => sm.create_index(&idx_name, &tb_name, &column_list),
                     IndexStmt::AlterDropIndex { idx_name, tb_name } => sm.drop_index(&idx_name, &tb_name),
                 }
-            }
+            },
+            Stmt::Alter(ref s) => {
+                match s {
+                    AlterStmt::AddColumn { tb_name, field } => sm.add_column(tb_name, field),
+                    AlterStmt::DropColumn { tb_name, col_name } => sm.drop_column(tb_name, col_name),
+                    _ => unreachable!(),
+                }
+            },
             _ => unreachable!(),
         }
     }

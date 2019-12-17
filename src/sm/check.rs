@@ -303,3 +303,19 @@ pub fn check_drop_index(idx_name: &String, btrees: &Vec<BTree>) -> bool {
     idx_name != "primary" 
         && btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
 }
+
+pub fn check_add_column(map: &HashMap<String, ColumnType>, field: &Field) -> bool {
+    match field {
+        Field::ColumnField { col_name, ty: _, not_null: _, default_value: _ } => {
+            if map.contains_key(col_name) {
+                return false;
+            }
+        },
+        _ => return false,
+    }
+    true
+}
+
+pub fn check_drop_column(map: &HashMap<String, ColumnType>, col_name: &String) -> bool {
+    map.contains_key(col_name)
+}

@@ -55,7 +55,6 @@ impl Type {
             (_, _) => false, 
         }
     }
-
     pub fn comparable(&self, other: &Self) -> bool {
         match (self, other) {
             (Type::Int(_), Type::Int(_)) | 
@@ -175,6 +174,10 @@ impl ColumnType {
             String::from(if self.is_primary {"PRI"} else if is_mul {"MUL"} else {""}), // Key
             self.data_type.get_default_string(), // Default
         ]
+    }
+
+    pub fn from_field(tb_name: &String, index: u32, field: &ast::Field) -> Self {
+        unimplemented!();
     }
 }
 
@@ -371,6 +374,7 @@ impl Record {
 
 pub struct RecordList {
     pub ty: Vec<ColumnType>,
+    // TODO: delete record
     pub record: Vec<Record>,
     pub ptrs: Vec<StrPointer>,
 }
