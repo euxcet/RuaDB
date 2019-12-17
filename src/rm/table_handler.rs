@@ -35,6 +35,10 @@ impl TableHandler {
         self.fh.delete(ptr);
     }
 
+    pub fn delete_(&self, ptr: u64) {
+        self.fh.delete(&StrPointer::new(ptr));
+    }
+
     // for String
     pub fn insert_string(&self, s: &String) -> StrPointer {
         self.fh.insert::<String, u32>(&s)
