@@ -525,4 +525,52 @@ impl SystemManager {
             RuaResult::ok(None, "column deleted".to_string())
         }
     }
+
+    pub fn change_column(&self, tb_name: &String, col_name: &Name, field: &Field) -> RuaResult {
+        // TODO: ensure column type can be converted
+        // TODO: out of range value
+        unimplemented!();
+    }
+
+    pub fn rename_table(&self, tb_name: &String, new_name: &String) -> RuaResult {
+        // TODO: foreign key
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let non_exist = self.check_table_existence(new_name, false);
+                if non_exist.is_err() {
+                    non_exist
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            th.update_table_name(new_name);
+            RuaResult::default()
+        }
+    }
+
+    pub fn add_primary_key(&self, tb_name: &String, column_list: &Vec<String>) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+                let valid = check::check_add_primary_key(&map, column_list);
+                if !valid {
+                    RuaResult::err("invalid add primary key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            // TODO: add index and primary key
+            RuaResult::default()
+        }
+    }
 }

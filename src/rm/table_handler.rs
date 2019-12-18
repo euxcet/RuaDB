@@ -138,6 +138,24 @@ impl TableHandler {
         self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
+    pub fn update_column_type_from_index(&self, index: usize, ct: &ColumnType) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        assert!(index < ptrs.len());
+        self.update_column_type(&StrPointer::new(ptrs[index]), ct);
+    }
+
+    pub fn update_table_name(&self, tb_name: &String) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        for ptr in &ptrs {
+            let p = &StrPointer::new(*ptr);
+            let mut ct = self.get_column_type(&p);
+            ct.tb_name = tb_name.clone();
+            self.update_column_type(&p, &ct);
+        }
+    }
+
     pub fn get_column_types(&self) -> ColumnTypeVec {
         let ptr = StrPointer::new(self.fh.get_column_types_ptr());
         let c_ptrs = unsafe{convert::string_to_vec_u64(&self.get_string(&ptr))};

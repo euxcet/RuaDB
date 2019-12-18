@@ -319,3 +319,23 @@ pub fn check_add_column(map: &HashMap<String, ColumnType>, field: &Field) -> boo
 pub fn check_drop_column(map: &HashMap<String, ColumnType>, col_name: &String) -> bool {
     map.contains_key(col_name)
 }
+
+pub fn check_change_column(map: &HashMap<String, ColumnType>, col_name: &String, field: &Field) -> bool {
+    if !map.contains_key(col_name) {
+        return false;
+    }
+
+    let origin_col = map.get(col_name).unwrap();
+    let index = origin_col.index;
+    let new_col = ColumnType::from_field(&origin_col.tb_name, index, field);
+    // TODO: ensure column type can be converted
+    // TODO: out of range value
+
+    true
+}
+
+pub fn check_add_primary_key(map: &HashMap<String, ColumnType>, column_list: &Vec<String>) -> bool {
+    check_no_repeat(column_list)
+        && map.iter().fold(true, |no_primary, (_, ct)| no_primary && ct.is_primary)
+        && column_list.iter().fold(true, |all_found, name| all_found && map.contains_key(name))
+}
