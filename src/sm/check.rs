@@ -6,7 +6,7 @@ use crate::index::btree::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
+pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
     let mut primary_key: Vec<&Vec<String>> = Vec::new();
     let mut name_foreign_key = HashMap::new();
@@ -42,6 +42,10 @@ pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
 
     if primary_key.len() == 1 {
         let primary_key = primary_key[0];
+        let no_repeat = check_no_repeat(primary_key);
+        if !no_repeat {
+            return false;
+        }
         for col_name in primary_key {
             if !name_field.contains_key(col_name) {
                 return false;
@@ -53,29 +57,45 @@ pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         if !name_field.contains_key(name) {
             return false;
         }
-        // has foreign table
-        if let Some(th) = sm.open_table(fk.1, false) {
-            let ct_map = th.get_column_types_as_hashmap();
-            // has foreign column
-            if let Some(foreign_col) = ct_map.get(fk.2) {
-                let this_field = name_field.get(name).unwrap();
-                let f_ty = &foreign_col.data_type;
-                let t_ty = this_field.1;
-                // has same type
-                if !f_ty.of_same_type(t_ty) {
-                    return false;
-                }
-                // foreign column must be primary
-                // if primary_set_from_column_types_hashmap(&ct_map) != vec![foreign_col.name.clone()].iter().collect() {
-                //     return false;
-                // }
-            }
-            else {
-                return false
-            }
-            th.close();
-        } else {
+        let th = sm.open_table(fk.1, false);
+        if th.is_none() {
             return false;
+        }
+        let th = th.unwrap();
+        let primary_cols = th.get_primary_cols();
+        th.close();
+
+        if primary_cols.is_none() {
+            return false;
+        }
+        let primary_cols = primary_cols.unwrap().cols;
+        if primary_cols.len() != 1 {
+            return false;
+        }
+        if &primary_cols[0].name != fk.2 {
+            return false;
+        }
+
+        let foreign_type = &primary_cols[0].data_type;
+        let this_type = name_field.get(name).unwrap().1;
+        if !foreign_type.of_same_type(this_type) {
+            return false;
+        }
+    }
+
+    true
+}
+
+pub fn check_drop_table(tb_name: &String, sm: &SystemManager) -> bool {
+    let tables = sm.get_tables();
+    for table in &tables {
+        if table != tb_name {
+            let th = sm.open_table(table, false).unwrap();
+            let cts = th.get_column_types().cols;
+            let foreign_this = cts.iter().fold(false, |foreign, ct| foreign || (ct.is_foreign && &ct.foreign_table_name == tb_name));
+            if foreign_this {
+                return false;
+            }
         }
     }
 

@@ -142,6 +142,10 @@ impl<'a> BTree<'a> {
         }
     }
 
+    pub fn is_primary(&self) -> bool {
+        self.index_name.as_str() == "PRIMARY"
+    }
+
     // offset
     pub fn get_offset_root() -> usize {
         4 * 3 // [root node_capacity index_col]

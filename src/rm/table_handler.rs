@@ -168,6 +168,21 @@ impl TableHandler {
         }
     }
 
+    pub fn get_primary_cols(&self) -> Option<ColumnTypeVec> {
+        let btrees = self.get_btrees();
+        let pri_tree = btrees.iter().find(|t| t.is_primary());
+        match pri_tree {
+            Some(pri_tree) => {
+                let cts = self.get_column_types().cols;
+                Some(ColumnTypeVec {
+                    cols: pri_tree.index_col.iter().map(|i| cts[*i as usize].clone()).collect(),
+                })
+            },
+            None => None,
+        }
+    }
+
+
     pub fn get_column_types_as_hashmap(&self) -> HashMap<String, ColumnType> {
         let ptr = StrPointer::new(self.fh.get_column_types_ptr());
         let s = self.get_string(&ptr);

@@ -57,6 +57,21 @@ impl SystemManager {
         path
     }
 
+    pub fn get_tables(&self) -> Vec<String> {
+        assert!(self.current_database.is_some());
+        let dir: PathBuf = [self.root_dir.clone(), self.current_database.as_ref().unwrap().clone()].iter().collect();
+        fs::read_dir(dir).unwrap().filter_map(
+            |e| {
+                let p = e.unwrap().path();
+                if p.extension().unwrap() == "rua" {
+                    Some(p.file_stem().unwrap().to_str().unwrap().to_string())
+                } else {
+                    None
+                }
+            }
+        ).collect()
+    }
+
     pub fn open_table(&self, tb_name: &String, create: bool) -> Option<TableHandler>{
         match &self.current_database {
             Some(database) => {
@@ -173,30 +188,29 @@ impl SystemManager {
         }
     }
 
+
     // TODO: foreign key
     pub fn create_table(&self, tb_name: &String, field_list: &Vec<Field>) -> RuaResult {
         if self.check {
             let res = self.check_table_existence(tb_name, false);
-            if res.is_ok() {
-                if check::check_field_list(field_list, &self) {
+            if res.is_err() {
+                res
+            } else {
+                if check::check_create_table(field_list, &self) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid field".to_string())
                 }
-            } else {
-                res
             }
         }
         else {
-            let columns = ColumnTypeVec::from_fields(field_list, tb_name);
-            let primary_index = columns.get_primary_index();
-
+            let (columns, primary_cols) = ColumnTypeVec::from_fields(field_list, tb_name);
             let th = self.open_table(tb_name, true).unwrap();
             th.insert_column_types(&columns);
             th.init_btrees();
             th.insert_born_btree(&BTree::new(&th, vec![], ""));
-            if primary_index.len() > 0 {
-                th.insert_btree(&BTree::new(&th, primary_index, "primary"));
+            if primary_cols.len() > 0 {
+                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY"));
             }
             th.close();
             RuaResult::ok(None, "table created".to_string())
@@ -206,7 +220,17 @@ impl SystemManager {
     // TODO: foreign key
     pub fn drop_table(&self, tb_name: &String) -> RuaResult {
         if self.check {
-            self.check_table_existence(tb_name, true)
+            let res = self.check_table_existence(tb_name, false);
+            if res.is_err() {
+                res
+            } else {
+                if check::check_drop_table(tb_name, &self) {
+                    RuaResult::default()
+                } else {
+                    RuaResult::err("invalid drop table".to_string())
+                }
+
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();

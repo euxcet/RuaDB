@@ -210,7 +210,7 @@ pub struct ColumnTypeVec {
 }
 
 impl ColumnTypeVec {
-    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> Self {
+    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> (Self, Vec<u32>) {
         let mut primary_key: &Vec<String> = &Vec::new();
         let mut foreign_key = Vec::new();
 
@@ -248,6 +248,8 @@ impl ColumnTypeVec {
                 }
             }
         }
+        
+        let mut primary_cols = Vec::new();
 
         for primary in primary_key {
             let index = map.get(primary).unwrap();
@@ -262,9 +264,7 @@ impl ColumnTypeVec {
             cols[*index].foreign_table_column = fk.2.clone();
         }
 
-        Self {
-            cols: cols,
-        }
+        (Self { cols: cols, }, primary_cols)
     }
 
     pub fn get_primary_index(&self) -> Vec<u32> {

@@ -56,7 +56,7 @@ impl QueryNode for SelectNode {
                 assert_eq!(self.table_list.len(), 1);
                 let mut path: PathBuf = [self.root_dir.clone(), self.database.clone(), self.table_list[0].clone()].iter().collect();
                 path.set_extension("rua");
-                let th = self.rm.borrow_mut().open_table(path.to_str().unwrap(), false);
+                let mut th = self.rm.borrow_mut().open_table(path.to_str().unwrap(), false);
                 let btree = th.get_born_btree();
                 let mut bucket = btree.first_bucket();
                 let mut record_list = RecordList {

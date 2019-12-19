@@ -114,13 +114,13 @@ mod tests {
 
         let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
         let mut c_ptrs = Vec::new();
-        let th = r.open_table("alloc_record.rua", false);
+        let mut th = r.open_table("alloc_record.rua", false);
         for c in &columns {
             c_ptrs.push(th.__insert_column_type(c));
         }
         th.close();
 
-        let th = r.open_table("alloc_record.rua", false);
+        let mut th = r.open_table("alloc_record.rua", false);
         for i in 0..columns.len() {
             assert_eq!(th.get_column_type(&c_ptrs[i]), columns[i]);
         }
@@ -129,7 +129,7 @@ mod tests {
         let mut ptrs = Vec::new();
         let mut records = Vec::new();
 
-        let th = r.open_table("alloc_record.rua", false);
+        let mut th = r.open_table("alloc_record.rua", false);
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             ptrs.push(th.insert_record(&record));
