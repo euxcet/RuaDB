@@ -450,4 +450,128 @@ impl SystemManager {
             RuaResult::ok(None, "index created".to_string())
         }
     }
+
+    pub fn add_column(&self, tb_name: &String, field: &Field) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+                th.close();
+
+                let valid = check::check_add_column(&map, field);
+                if !valid {
+                    RuaResult::err("invalid add column".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let index = th.get_column_numbers() as u32;
+            let new_column = ColumnType::from_field(tb_name, index, field); 
+            th.insert_column_type(&new_column);
+
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let record_list = tree.query();
+            for ptr in &record_list.ptrs {
+                th.insert_record_data_column(ptr, &new_column);
+            }
+
+            th.close();
+            RuaResult::ok(None, "column added".to_string())
+        }
+    }
+
+    pub fn drop_column(&self, tb_name: &String, col_name: &String) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+
+                let valid = check::check_drop_column(&map, col_name);
+                if !valid {
+                    RuaResult::err("invalid drop column".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let index = th.get_column_types().cols.iter().position(|ct| &ct.name == col_name).unwrap();
+
+            th.delete_column_type_from_index(index);
+
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let record_list = tree.query();
+            for ptr in &record_list.ptrs {
+                th.delete_record_data_column(ptr, index);
+            }
+            // TODO: primary key change
+            // TODO: foreign key constraint
+            // TODO: index change
+
+            th.close();
+            RuaResult::ok(None, "column deleted".to_string())
+        }
+    }
+
+    pub fn change_column(&self, tb_name: &String, col_name: &Name, field: &Field) -> RuaResult {
+        // TODO: ensure column type can be converted
+        // TODO: out of range value
+        unimplemented!();
+    }
+
+    pub fn rename_table(&self, tb_name: &String, new_name: &String) -> RuaResult {
+        // TODO: foreign key
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let non_exist = self.check_table_existence(new_name, false);
+                if non_exist.is_err() {
+                    non_exist
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            th.update_table_name(new_name);
+            RuaResult::default()
+        }
+    }
+
+    pub fn add_primary_key(&self, tb_name: &String, column_list: &Vec<String>) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let th = self.open_table(tb_name, false).unwrap();
+                let map = th.get_column_types_as_hashmap();
+                let valid = check::check_add_primary_key(&map, column_list);
+                if !valid {
+                    RuaResult::err("invalid add primary key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            // TODO: add index and primary key
+            RuaResult::default()
+        }
+    }
 }

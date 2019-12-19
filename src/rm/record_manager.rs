@@ -116,7 +116,7 @@ mod tests {
         let mut c_ptrs = Vec::new();
         let th = r.open_table("alloc_record.rua", false);
         for c in &columns {
-            c_ptrs.push(th.insert_column_type(c));
+            c_ptrs.push(th.__insert_column_type(c));
         }
         th.close();
 

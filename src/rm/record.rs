@@ -67,7 +67,6 @@ impl Type {
             (_, _) => false, 
         }
     }
-
     pub fn comparable(&self, other: &Self) -> bool {
         match (self, other) {
             (Type::Int(_), Type::Int(_)) | 
@@ -165,6 +164,8 @@ impl Default for Type {
     }
 }
 
+
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ColumnType {
     pub tb_name: String,
@@ -197,6 +198,10 @@ impl ColumnType {
             String::from(if self.is_primary {"PRI"} else if is_mul {"MUL"} else {""}), // Key
             self.data_type.get_default_string(), // Default
         ]
+    }
+
+    pub fn from_field(tb_name: &String, index: u32, field: &ast::Field) -> Self {
+        unimplemented!();
     }
 }
 
@@ -247,6 +252,7 @@ impl ColumnTypeVec {
         for primary in primary_key {
             let index = map.get(primary).unwrap();
             cols[*index].is_primary = true;
+            cols[*index].can_be_null = false;
         }
 
         for fk in &foreign_key {
@@ -397,6 +403,7 @@ impl Record {
 
 pub struct RecordList {
     pub ty: Vec<ColumnType>,
+    // TODO: delete record
     pub record: Vec<Record>,
     pub ptrs: Vec<StrPointer>,
 }
