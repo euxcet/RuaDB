@@ -197,6 +197,7 @@ impl ColumnType {
             String::from(if self.can_be_null {"YES"} else {"NO"}), // Null
             String::from(if self.is_primary {"PRI"} else if is_mul {"MUL"} else {""}), // Key
             self.data_type.get_default_string(), // Default
+            if self.is_foreign { format!("{}.{}", self.foreign_table_name, self.foreign_table_column)} else {String::from("")},
         ]
     }
 
@@ -278,7 +279,7 @@ impl ColumnTypeVec {
         let mut non_primary_col_number = 0;
         for col in &self.cols {
             let content = col.print(non_primary_col_number == 0);
-            for i in 0..5 {
+            for i in 0..6 {
                 res[i].push(content[i].clone());
             }
             if !col.is_primary {

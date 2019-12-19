@@ -217,7 +217,6 @@ impl SystemManager {
         }
     }
 
-    // TODO: foreign key
     pub fn drop_table(&self, tb_name: &String) -> RuaResult {
         if self.check {
             let res = self.check_table_existence(tb_name, false);
@@ -229,7 +228,6 @@ impl SystemManager {
                 } else {
                     RuaResult::err("invalid drop table".to_string())
                 }
-
             }
         }
         else {
@@ -248,7 +246,7 @@ impl SystemManager {
             let th = self.open_table(tb_name, false).unwrap();
             let cts = th.get_column_types();
             th.close();
-            let title = vec!["Field", "Type", "Null", "Key", "Default"].iter().map(|x| x.to_string()).collect();
+            let title = vec!["Field", "Type", "Null", "Key", "Default", "Foreign"].iter().map(|x| x.to_string()).collect();
             let print_content = cts.print();
             RuaResult::ok(Some(vec![title, print_content]), format!("{} row(s) in set", cts.cols.len()))
         }
