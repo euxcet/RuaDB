@@ -103,24 +103,35 @@ mod tests {
         }
     }
 
-    // #[test]
+    #[test]
     fn alloc_record() {
+        use crate::settings;
+
+        let settings = settings::Settings::new().unwrap();
+
+        #[cfg(target_os = "macos")]
+        let rd = settings.database.rd_macos;
+        #[cfg(target_os = "windows")]
+        let rd = settings.database.rd_windows;
+        #[cfg(target_os = "linux")]
+        let rd = settings.database.rd_linux;
+
         let mut gen = random::Generator::new(false);
         const MAX_STRING_LENGTH: usize = 10;
         const MAX_RECORD_NUMBER: usize = 1000;
 
         let mut r = RecordManager::new();
-        r.create_table("alloc_record.rua");
+        r.create_table(&(rd.clone() + "alloc_record.rua"));
 
         let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
         let mut c_ptrs = Vec::new();
-        let mut th = r.open_table("alloc_record.rua", false);
+        let mut th = r.open_table(&(rd.clone() + "alloc_record.rua"), false);
         for c in &columns {
             c_ptrs.push(th.__insert_column_type(c));
         }
         th.close();
 
-        let mut th = r.open_table("alloc_record.rua", false);
+        let mut th = r.open_table(&(rd.clone() + "alloc_record.rua"), false);
         for i in 0..columns.len() {
             assert_eq!(th.get_column_type(&c_ptrs[i]), columns[i]);
         }
@@ -129,7 +140,7 @@ mod tests {
         let mut ptrs = Vec::new();
         let mut records = Vec::new();
 
-        let th = r.open_table("alloc_record.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_record.rua"), false);
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             ptrs.push(th.insert_record(&record));
@@ -137,7 +148,7 @@ mod tests {
         }
         th.close();
 
-        let th = r.open_table("alloc_record.rua", false);
+        let th = r.open_table(&(rd.clone() + "alloc_record.rua"), false);
         for i in 0..ptrs.len() {
             assert_eq!(th.get_record(&ptrs[i]).0, records[i]);
         }

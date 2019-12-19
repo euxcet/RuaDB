@@ -176,24 +176,29 @@ mod tests {
         let mut r = RecordManager::new();
         r.create_table(&(rd.clone() + "alloc_btree_test.rua"));
 
-        let columns = gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH);
+        let columns = ColumnTypeVec {
+            cols: gen_random_columns(&mut gen, 10, MAX_STRING_LENGTH),
+        };
+
         let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
-        for c in &columns {
-            th.insert_column_type(c);
-        }
+
+        th.insert_column_types(&columns);
+        // for c in &columns {
+        //     th.insert_column_type(c);
+        // }
         th.close();
 
         let mut ptrs = Vec::new();
-
         let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
         for _ in 0..MAX_RECORD_NUMBER {
-            let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
+            let record = gen_record(&mut gen, &columns.cols, MAX_STRING_LENGTH);
             let insert_times: usize = gen.gen_range(1, 2);
             for _ in 0..insert_times {
                 ptrs.push(th.insert_record(&record));
             }
         }
         th.close();
+
         println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
         let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
@@ -210,6 +215,7 @@ mod tests {
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
             btree_.insert_record(&index, ptrs[i].to_u64(), true);
         }
+
         th.update_btree(&btree_ptr, &btree_);
         th.close();
 

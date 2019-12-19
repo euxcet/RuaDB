@@ -275,7 +275,7 @@ impl ColumnTypeVec {
     }
 
     pub fn print(&self) -> Vec<String> {
-        let mut res = vec![vec![]; 5];
+        let mut res = vec![vec![]; 6];
         let mut non_primary_col_number = 0;
         for col in &self.cols {
             let content = col.print(non_primary_col_number == 0);
