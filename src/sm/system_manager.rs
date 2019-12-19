@@ -1,5 +1,6 @@
 use crate::logger::logger::RuaResult;
 use crate::rm::record::*;
+use crate::rm::in_file::*;
 use crate::rm::pagedef::*;
 use crate::rm::record_manager::*;
 use crate::rm::table_handler::TableHandler;
@@ -82,6 +83,7 @@ impl SystemManager {
             None => None,
         }
     }
+    // TODO: Merge check and execute
 
     fn check_database_existence(&self, db_name: &String, should_exist: bool) -> RuaResult {
         assert!(db_name.len() > 0);
@@ -255,33 +257,37 @@ impl SystemManager {
     pub fn insert(&self, tb_name: &String, value_lists: &Vec<Vec<Value>>) -> RuaResult {
         if self.check {
             let res = self.check_table_existence(tb_name, true);
-            let th = self.open_table(tb_name, false).unwrap();
-            let cts = th.get_column_types();
-            th.close();
-            if res.is_ok() {
-                if check::check_insert_value(value_lists, &cts) {
+            if res.is_err() {
+                res
+            } else {
+                if check::check_insert_value(tb_name, value_lists, &self) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid insert values".to_string())
                 }
-            } else {
-                res
             }
         }
         else {
-            // let database = self.current_database.as_ref().unwrap();
-            // let th = self.rm.borrow_mut().open_table(self.get_table_path(database, tb_name).to_str().unwrap(), false);
             let th = self.open_table(tb_name, false).unwrap();
             let cts = th.get_column_types();
             let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v, &cts.cols)).collect();
-            let ptrs: Vec<StrPointer> = records.iter().map(|record| th.insert_record(record)).collect();
+            let ptrs: Vec<(StrPointer, RecordInFile)> = records.iter().map(|record| th.insert_record_get_record_in_file(record)).collect();
 
-            // TODO: insert into every btree
             let mut born_btree = th.get_born_btree();
-            for ptr in ptrs {
+            let mut btrees = th.get_btrees_with_ptrs();
+            for (ptr, rif) in ptrs {
                 born_btree.insert_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64(), true);
+                // TODO: take advantage of cache
+                for (_, btree) in &mut btrees {
+                    btree.insert_record(&RawIndex::from(&rif.get_index(&th, &btree.index_col)), ptr.to_u64(), true);
+                }
             }
+
             th.update_born_btree(&born_btree);
+            for (p, btree) in &btrees {
+                th.update_btree(p, btree);
+            }
+
             th.close();
             RuaResult::ok(None, format!("{} row affected", records.len()))
         }

@@ -66,6 +66,12 @@ impl TableHandler {
         self.fh.insert::<RecordInFile, u32>(&RecordInFile::from(self, record))
     }
 
+    pub fn insert_record_get_record_in_file(&self, record: &Record) -> (StrPointer, RecordInFile) {
+        let rif = RecordInFile::from(self, record);
+        let ptr = self.fh.insert::<RecordInFile, u32>(&rif);
+        (ptr, rif)
+    }
+
     pub fn get_record(&self, ptr: &StrPointer) -> (Record, RecordInFile) {
         let in_file = self.fh.get::<RecordInFile, u32>(ptr);
         (in_file.to_record(self), in_file)
@@ -267,6 +273,21 @@ impl TableHandler {
         ptrs.iter().map(|&p| self.__get_btree(&StrPointer::new(p))).collect()
     }
 
+    pub fn get_primary_btree_with_ptr(&self) -> Option<(StrPointer, BTree)> {
+        let btrees = self.get_btrees_with_ptrs();
+        btrees.into_iter().find(|(p, t)| t.is_primary())
+    }
+
+    pub fn get_btrees_with_ptrs(&self) -> Vec<(StrPointer, BTree)> {
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        ptrs.iter().map(|&p| {
+            let p = StrPointer::new(p);
+            let t = self.__get_btree(&p);
+            (p, t)
+        }).collect()
+    }
+
     pub fn __get_btree(&self, ptr: &StrPointer) -> BTree {
         self.fh.get::<BTreeInFile, u32>(ptr).to_btree(self)
     }
@@ -288,7 +309,6 @@ impl TableHandler {
 
     // for BTreeNode
     pub fn insert_btree_node(&self) -> StrPointer {
-        use std::mem::size_of;
         self.fh.alloc(&vec![0u8; size_of::<BTreeNode>()], true)
     }
 

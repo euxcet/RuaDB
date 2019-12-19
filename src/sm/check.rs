@@ -6,6 +6,8 @@ use crate::index::btree::*;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use crate::defer;
+
 pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
     let mut primary_key: Vec<&Vec<String>> = Vec::new();
@@ -63,7 +65,7 @@ pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         }
         let th = th.unwrap();
         let primary_cols = th.get_primary_cols();
-        th.close();
+        defer!(th.close());
 
         if primary_cols.is_none() {
             return false;
@@ -103,9 +105,17 @@ pub fn check_drop_table(tb_name: &String, sm: &SystemManager) -> bool {
 }
 
 // TODO: foreign key
-pub fn check_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) -> bool {
+pub fn check_insert_value(tb_name: &String, value_lists: &Vec<Vec<Value>>, sm: &SystemManager) -> bool {
+    use crate::rm::pagedef::*;
+    use crate::rm::in_file::*;
+
+    let th = sm.open_table(tb_name, false).unwrap();
+    let cts = th.get_column_types();
+
     let cols = &cts.cols;
     let col_num = cols.len();
+    defer!(th.close());
+
     for values in value_lists {
         if values.len() != col_num {
             return false;
@@ -119,7 +129,30 @@ pub fn check_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) ->
             }
         }
     }
-    true
+    let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v, &cts.cols)).collect();
+
+    let mut inserted: Vec<(StrPointer, RawIndex)> = Vec::new();
+    let t = th.get_primary_btree_with_ptr();
+
+    let mut duplicate = false;
+    if let Some((ptr_ptr, mut pri_btree)) = t {
+        for record in &records {
+            let (ptr, rif) = th.insert_record_get_record_in_file(record);
+            let ri = RawIndex::from(&rif.get_index(&th, &pri_btree.index_col));
+            let dup = pri_btree.insert_record(&ri, ptr.to_u64(), false);
+            if dup {
+                duplicate = true;
+                break;
+            } else {
+                inserted.push((ptr, ri));
+            }
+        }
+        while let Some((ptr, ri)) = inserted.pop() {
+            pri_btree.delete_record(&ri, ptr.to_u64());
+        }
+        th.update_btree(&ptr_ptr, &pri_btree);
+    }
+    duplicate
 }
 
 pub fn check_no_repeat(names: &Vec<String>) -> bool {

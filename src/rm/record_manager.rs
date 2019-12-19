@@ -129,7 +129,7 @@ mod tests {
         let mut ptrs = Vec::new();
         let mut records = Vec::new();
 
-        let mut th = r.open_table("alloc_record.rua", false);
+        let th = r.open_table("alloc_record.rua", false);
         for _ in 0..MAX_RECORD_NUMBER {
             let record = gen_record(&mut gen, &columns, MAX_STRING_LENGTH);
             ptrs.push(th.insert_record(&record));
