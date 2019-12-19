@@ -550,6 +550,10 @@ impl SystemManager {
         } else {
             let th = self.open_table(tb_name, false).unwrap();
             th.update_table_name(new_name);
+            let path = self.get_table_path(self.current_database.as_ref().unwrap(), tb_name);
+            let new_path = self.get_table_path(self.current_database.as_ref().unwrap(), new_name);
+            fs::rename(path, new_path).ok();
+
             RuaResult::default()
         }
     }
