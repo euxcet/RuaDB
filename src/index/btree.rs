@@ -158,9 +158,11 @@ impl<'a> BTree<'a> {
         + 4 // node_capacity
     }
 
-    pub fn insert_record(&mut self, key: &RawIndex, data: u64) {
+    pub fn insert_record(&mut self, key: &RawIndex, data: u64, allow_duplicate: bool) -> bool {
         let root = self.th.get_btree_node_(self.root);
-        self.root = root.insert(self.th, key, data, None, 0, self.root);
+        let result = root.insert(self.th, key, data, None, 0, self.root, allow_duplicate);
+        self.root = result.0;
+        result.1
     }
 
     pub fn delete_record(&mut self, key: &RawIndex, data: u64) {
@@ -420,8 +422,9 @@ impl BTreeNode {
         }
     }
 
-    pub fn insert(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<&mut BTreeNode>, pos: usize, self_ptr: u64) -> u64 {
+    pub fn insert(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<&mut BTreeNode>, pos: usize, self_ptr: u64, allow_duplicate: bool) -> (u64, bool) {
         let len = self.get_len();
+        let mut dup = false;
         match self.ty {
             BTreeNodeType::Leaf => {
                 let key_ptr = th.insert_index(&Index::from(th, key)).to_u64();
@@ -448,9 +451,12 @@ impl BTreeNode {
                 else if let Some(cmp) = self.to_raw(th, self.key[i]).partial_cmp(key) {
                     match cmp {
                         Ordering::Equal => {
-                            let mut bucket = th.get_bucket_(self.bucket[i]);
-                            bucket.data.push(data);
-                            th.update_bucket_(self.bucket[i], &bucket);
+                            dup = true;
+                            if allow_duplicate {
+                                let mut bucket = th.get_bucket_(self.bucket[i]);
+                                bucket.data.push(data);
+                                th.update_bucket_(self.bucket[i], &bucket);
+                            }
                         },
                         Ordering::Greater => {
                             let next_bucket = self.bucket[i];
@@ -481,7 +487,7 @@ impl BTreeNode {
                 let son_pos = self.upper_bound(th, key, len);
                 let son_ptr = self.son[son_pos];
                 let son_node = th.get_btree_node_(son_ptr);
-                son_node.insert(th, key, data, Some(self), son_pos, son_ptr);
+                dup = son_node.insert(th, key, data, Some(self), son_pos, son_ptr, allow_duplicate).1;
             }
         }
         
@@ -498,12 +504,12 @@ impl BTreeNode {
                     new_root.ty = BTreeNodeType::Internal;
                     BTreeNode::push(unsafe{&mut new_root.son}, self_ptr, 0);
                     self.split(th, &mut new_root, pos);
-                    return new_root_ptr.to_u64();
+                    return (new_root_ptr.to_u64(), dup);
                 }
             }
         }
 
-        self_ptr
+        (self_ptr, dup)
     }
 
     pub fn combine_internal(&mut self, th: &TableHandler, father: &mut BTreeNode, pos: usize) {

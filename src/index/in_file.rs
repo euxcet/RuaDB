@@ -208,7 +208,7 @@ mod tests {
         for i in 0..ptrs.len() {
             let record = th.get_record(&ptrs[i]);
             let index = RawIndex::from(&record.1.get_index(&th, &btree.index_col));
-            btree_.insert_record(&index, ptrs[i].to_u64());
+            btree_.insert_record(&index, ptrs[i].to_u64(), true);
         }
         th.update_btree(&btree_ptr, &btree_);
         th.close();

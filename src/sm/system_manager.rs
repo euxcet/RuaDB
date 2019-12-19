@@ -257,7 +257,7 @@ impl SystemManager {
             // TODO: insert into every btree
             let mut born_btree = th.get_born_btree();
             for ptr in ptrs {
-                born_btree.insert_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64());
+                born_btree.insert_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64(), true);
             }
             th.update_born_btree(&born_btree);
             th.close();
@@ -415,7 +415,7 @@ impl SystemManager {
             for ptr in &record_list.ptrs {
                 let (_, record_in_file) = th.get_record(ptr);
                 let record_index = record_in_file.get_index(&th, &index_col);
-                btree.insert_record(&RawIndex::from(&record_index), ptr.to_u64());
+                btree.insert_record(&RawIndex::from(&record_index), ptr.to_u64(), true);
             }
             th.insert_btree(&btree);
             th.close();
