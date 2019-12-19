@@ -63,6 +63,7 @@ pub struct RawIndex {
 }
 
 impl RawIndex {
+     // TODO: null index
     pub fn from(index: &Index) -> Self {
         let mut data = Vec::new();
         for i in 0..index.index.len() {
@@ -83,6 +84,12 @@ impl RawIndex {
     pub fn from_u64(index: u64) -> Self {
         Self {
             index: vec![Data::Int(unsafe{transmute(index)})],
+        }
+    }
+
+    pub fn from_record(record: &Record, sub_col: &Vec<u32>) -> Self {
+        Self {
+            index: sub_col.iter().map(|i| record.cols[*i as usize].data.clone().unwrap()).collect()
         }
     }
 }

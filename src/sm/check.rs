@@ -152,7 +152,39 @@ pub fn check_insert_value(tb_name: &String, value_lists: &Vec<Vec<Value>>, sm: &
         }
         th.update_btree(&ptr_ptr, &pri_btree);
     }
-    duplicate
+    if duplicate {
+        return false;
+    }
+
+    let mut ft_name_fk_this_col: HashMap<&String, HashMap<&String, &ColumnType>> = HashMap::new();
+
+    for ct in cols {
+        if ct.is_foreign {
+            let cs = ft_name_fk_this_col.entry(&ct.foreign_table_name).or_insert(HashMap::new());
+            cs.insert(&ct.foreign_table_column, ct);
+        }
+    }
+
+    for (ft_name, fk_this_col) in ft_name_fk_this_col {
+        // in a single foreign table
+        let fth = sm.open_table(ft_name, false).unwrap();
+        defer!(fth.close());
+
+        let primary_cols = fth.get_primary_cols().unwrap().cols;
+        let pri_btree = fth.get_primary_btree().unwrap();
+        assert!(fk_this_col.len() == primary_cols.len());
+
+        // TODO: support part of primary key
+        let ordered_index: Vec<u32> = primary_cols.iter().map(|p| fk_this_col.get(&p.name).unwrap().index).collect();
+        for record in &records {
+            let ri = RawIndex::from_record(record, &ordered_index);
+            let res = pri_btree.search_record(&ri);
+            if res.is_none() {
+                return false;
+            }
+        }
+    }
+    true
 }
 
 pub fn check_no_repeat(names: &Vec<String>) -> bool {

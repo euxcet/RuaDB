@@ -278,6 +278,10 @@ impl TableHandler {
         btrees.into_iter().find(|(p, t)| t.is_primary())
     }
 
+    pub fn get_primary_btree(&self) -> Option<BTree> {
+        self.get_primary_btree_with_ptr().map(|(_, t)| t)
+    }
+
     pub fn get_btrees_with_ptrs(&self) -> Vec<(StrPointer, BTree)> {
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
         let ptrs = self.__get_ptrs(&ptrs_ptr);
