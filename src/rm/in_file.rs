@@ -36,6 +36,7 @@ bytevec_decl! {
     pub struct RecordInFile {
         pub record: String
     }
+
 }
 
 /*

@@ -142,6 +142,8 @@ impl Default for Type {
     }
 }
 
+
+
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ColumnType {
     pub tb_name: String,
@@ -225,6 +227,7 @@ impl ColumnTypeVec {
         for primary in primary_key {
             let index = map.get(primary).unwrap();
             cols[*index].is_primary = true;
+            cols[*index].can_be_null = false;
         }
 
         for fk in &foreign_key {
