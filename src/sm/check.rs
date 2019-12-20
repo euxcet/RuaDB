@@ -435,7 +435,7 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
     true
 }
 
-pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_clause: &Vec<SetClause>, where_clause: &Option<Vec<WhereClause>>) -> bool {
+pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_clause: &Vec<SetClause>, where_clause: &Option<Vec<WhereClause>>, sm: &SystemManager) -> bool {
     let valid_qualified_col = |qualified_col: &Column| -> bool {
         if let Some(ref tb) = qualified_col.tb_name {
             tb == tb_name && map.contains_key(&qualified_col.col_name)
@@ -486,13 +486,29 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
         }
     }
 
+    let set_column: Vec<String> = set_clause.iter().map(|s| s.col_name.clone()).collect();
+    let no_repeat = check_no_repeat(&set_column);
+    if !no_repeat {
+        return false;
+    }
 
+    let foreign_table = table_foreign_this_table(tb_name, sm);
+
+    if foreign_table.len() > 0 {
+        use super::query_tree::QueryTree;
+        let database = sm.current_database.as_ref().unwrap();
+        let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+        tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+        let record_list = tree.query();
+
+    }
 
     true
 }
 
 pub fn check_create_index(idx_name: &String, map: &HashMap<String, ColumnType>, column_list: &Vec<String>, btrees: &Vec<BTree>) -> bool {
-    column_list.len() > 0 
+    idx_name != "PRIMARY" 
+        && column_list.len() > 0 
         && check_no_repeat(column_list)
         && !btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
         && column_list.iter().fold(true, |found, column_name| found && map.contains_key(column_name))

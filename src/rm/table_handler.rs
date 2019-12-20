@@ -6,8 +6,9 @@ use crate::index::in_file::*;
 use crate::index::btree::*;
 use crate::utils::convert;
 
+
 use std::fmt;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::mem::size_of;
 
 pub struct TableHandler {
@@ -280,6 +281,21 @@ impl TableHandler {
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
         let ptrs = self.__get_ptrs(&ptrs_ptr);
         ptrs.iter().map(|&p| self.__get_btree(&StrPointer::new(p))).collect()
+    }
+
+    pub fn get_affected_btrees_with_ptrs(&self, set_columns: &Vec<&String>) -> Vec<(StrPointer, BTree)> {
+        let map = self.get_column_types_as_hashmap();
+        let index_set: HashSet<u32> = set_columns.iter().map(|&c| map.get(c).unwrap().index).collect();
+        self.get_btrees_with_ptrs().into_iter().filter_map(
+            |(p, t)| {
+                let affected = t.index_col.iter().fold(false, |affected, i| affected || index_set.contains(i));
+                if affected {
+                    Some((p, t))
+                } else {
+                    None
+                }
+            }
+        ).collect()
     }
 
     pub fn get_primary_btree_with_ptr(&self) -> Option<(StrPointer, BTree)> {
