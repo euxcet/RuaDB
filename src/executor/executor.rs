@@ -107,6 +107,15 @@ mod test {
             String::from("insert into b_test values (3, 42.12);"),
             String::from("insert into b_test values (4, -4.2);"),
 
+            String::from("select * from test where id >= 0;"),
+            // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and b_test.id > 2;"),
+            /*
+            String::from("create table b_test(id int(4), rua float);"),
+            String::from("insert into b_test values (1, 1.23);"),
+            String::from("insert into b_test values (2, 3.0);"),
+            String::from("insert into b_test values (3, 42.12);"),
+            String::from("insert into b_test values (4, -4.2);"),
+
             String::from("select * from test where id > 0;"),
             String::from("select * from test where id < -1;"),
             String::from("select * from test where id > 12;"),
@@ -134,6 +143,7 @@ mod test {
             String::from("desc date_test;"),
             String::from("insert into date_test values (3, '2019-04-22', 321.42);"),
             String::from("select * from date_test;"),
+            */
 
             String::from("drop database sql_select;"),
         ];
