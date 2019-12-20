@@ -72,6 +72,16 @@ pub unsafe fn string_to_vec_u64(data: &String) -> Vec<u64> {
     let mut res = Vec::new();
     for i in (0..bytes.len()).step_by(8) {
         let val = transmute::<[u8; 8], u64>(bytes[i .. i + 8].try_into().expect("slice with incorrect length"));
+        res.push(val);
+    }
+    res
+}
+
+pub unsafe fn string_to_vec_u64_with_break(data: &String) -> Vec<u64> {
+    let bytes = data.as_bytes();
+    let mut res = Vec::new();
+    for i in (0..bytes.len()).step_by(8) {
+        let val = transmute::<[u8; 8], u64>(bytes[i .. i + 8].try_into().expect("slice with incorrect length"));
         if val == 0 {
             break;
         }

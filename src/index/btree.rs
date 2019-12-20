@@ -448,6 +448,8 @@ impl BTreeNode {
             BTreeNodeType::Leaf => {
                 let key_ptr = th.insert_index(&Index::from(th, key)).to_u64();
                 let i = self.lower_bound(th, key, len);
+                if i != len {
+                }
                 if i == len {
                     BTreeNode::push(unsafe{&mut self.key}, key_ptr, len);
                     let prev_bucket = if len == 0 {0} else {self.bucket[len - 1]};
