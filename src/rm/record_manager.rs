@@ -77,6 +77,13 @@ mod tests {
             let default = if c.has_default {gen.gen()} else {false};
             cols.push(ColumnData {
                 index: c.index,
+                flags: match &c.data_type {
+                    &Type::Str(_) => 0,
+                    &Type::Int(_) => 1,
+                    &Type::Float(_) => 2,
+                    &Type::Date(_) => 3,
+                    &Type::Numeric(_) => 4,
+                },
                 data: if default {
                     match &c.data_type {
                         &Type::Int(Some(x)) => Some(Data::Int(x)),

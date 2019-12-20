@@ -95,20 +95,30 @@ mod test {
             String::from("create database sql_select;"),
             String::from("use sql_select;"),
 
-            String::from("create table test(id int(4) default 3, fuck float);"),
-            String::from("create index id_index on test (id, fuck);"),
-            String::from("insert into test values (4, 64.2);"),
-            String::from("insert into test values (-10, 2.6);"),
-            String::from("insert into test values (40, 75.4);"),
-            String::from("insert into test values (3, 16.2);"),
+            // String::from("create table test(id int(4), fuck int(4));"),
+            String::from("create table test(id int(4), fuck varchar(4));"),
 
+            String::from("desc test;"),
+
+            String::from("create index id_index on test (id, fuck);"),
+            String::from("insert into test values (null, \"c\");"),
+            String::from("insert into test values (null, \"a\");"),
+            String::from("insert into test values (null, \"d\");"),
+            String::from("insert into test values (null ,\"b\");"),
+
+            /*
             String::from("create table b_test(id int(4), rua float);"),
+            String::from("create index id_index on b_test (id);"),
             String::from("insert into b_test values (1, 1.23);"),
             String::from("insert into b_test values (2, 3.0);"),
             String::from("insert into b_test values (3, 42.12);"),
             String::from("insert into b_test values (4, -4.2);"),
+            */
 
-            String::from("select * from test where id == 3 and fuck > 5.0;"),
+            String::from("select * from test where id is null and fuck >= \"a\";"),
+            // String::from("select * from b_test where id > 1;"),
+
+            // String::from("select * from test where id > 0 and fuck > -2.0;"),
             // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and test.id = b_test.id;"),
             // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and b_test.id > 2;"),
             /*

@@ -219,7 +219,6 @@ struct PairCondition {
 
 impl PairCondition {
     fn match_(&self, record: &Record, ty: &Vec<ColumnType>) -> bool {
-        println!("{:?} {:?}", self.l_col, self.r_col);
         let l_data = record.get_match_data(&self.l_col, ty).0;
         let r_data = record.get_match_data(&self.r_col, ty).0;
         if l_data.is_none() || r_data.is_none() {
@@ -228,7 +227,6 @@ impl PairCondition {
         else {
             let l_data = l_data.unwrap();
             let r_data = r_data.unwrap();
-            println!("{:?} {:?}", l_data, r_data);
             match &self.op {
                 ast::Op::Equal => l_data == r_data,
                 ast::Op::NotEqual => l_data != r_data,
@@ -249,7 +247,8 @@ struct NullCondition {
 
 impl NullCondition {
     fn match_(&self, record: &Record, ty: &Vec<ColumnType>) -> bool {
-        false
+        let data = record.get_match_data(&self.col, ty).0;
+        (self.is_null && data.is_none()) || (!self.is_null && data.is_some())
     }
 }
 
@@ -272,7 +271,15 @@ impl SelectNode {
     fn is_valid(&self, record: &Record, ty: &Vec<ColumnType>) -> bool {
         let mut valid = true;
         for cond in &self.range_conds {
-            valid &= cond.match_(record, ty);
+            let mut is_null = false;
+            for n_cond in &self.null_conds {
+                if n_cond.col == cond.col && n_cond.is_null {
+                    is_null = true;
+                }
+            }
+            if !is_null {
+                valid &= cond.match_(record, ty);
+            }
         }
         for cond in &self.pair_conds {
             valid &= cond.match_(record, ty);
@@ -394,7 +401,7 @@ impl QueryNode for SelectNode {
                 else {
                     let btree = best_btree.unwrap();
                     let (raw_index, direction, can_be_equal) = self.get_index(&btree.index_col, &record_list.ty);
-                    let mut bucket = btree.search_record_with_op(&raw_index, direction, can_be_equal);
+                    let mut bucket = btree.search_record_with_op(&raw_index, !direction, can_be_equal);
                     while bucket.is_some() {
                         let bucket_ = bucket.unwrap();
                         for data in &bucket_.data {
@@ -559,11 +566,38 @@ impl QueryTree {
                 for cond in conds {
                     match cond {
                         ast::WhereClause::IsAssert{col, null} => { // null
+                            let col = ast::Column {
+                                tb_name: if col.tb_name.is_none() {Some(self.get_table_name(&name_cols, col))} else {col.tb_name.clone()},
+                                col_name: col.col_name.clone(),
+                            };
+                            if *null {
+                                let ct = self.get_column_type(&name_cols, &col);
+                                let data = Some(match ct.data_type {
+                                    Type::Int(_) => Data::Int(0),
+                                    Type::Float(_) => Data::Float(0.0),
+                                    Type::Date(_) => Data::Date(0),
+                                    Type::Numeric(_) => Data::Numeric(0),
+                                    Type::Str(_) => Data::Str(String::from("")),
+                                });
+                                let mut matched = false;
+                                for cond in range_conds.iter_mut() {
+                                    if col.col_name == cond.col.col_name && col.tb_name.as_ref().unwrap() == cond.col.tb_name.as_ref().unwrap() {
+                                        cond.update(&ast::Op::Equal, data.clone());
+                                        matched = true;
+                                        break;
+                                    }
+                                }
+                                if !matched {
+                                    let mut cond = RangeCondition {
+                                        col: col.clone(),
+                                        range: Range::new(),
+                                    };
+                                    cond.update(&ast::Op::Equal, data);
+                                    range_conds.push(cond);
+                                }
+                            }
                             null_conds.push(NullCondition {
-                                col: ast::Column {
-                                    tb_name: if col.tb_name.is_none() {Some(self.get_table_name(&name_cols, col))} else {col.tb_name.clone()},
-                                    col_name: col.col_name.clone(),
-                                },
+                                col: col,
                                 is_null: *null,
                             });
                         },

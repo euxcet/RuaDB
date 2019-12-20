@@ -102,13 +102,7 @@ impl ColumnDataInFile {
             Some(data) => {
                 Self {
                     index: cd.index,
-                    flags: cd.default as u8 | match data {
-                        Data::Str(_) => 0 << 2,
-                        Data::Int(_) => 1 << 2,
-                        Data::Float(_) => 2 << 2,
-                        Data::Date(_) => 3 << 2,
-                        Data::Numeric(_) => 4 << 2,
-                    },
+                    flags: cd.default as u8 | (cd.flags << 2),
                     data: match data {
                         Data::Str(d) => th.insert_string(&d).to_u64(),
                         Data::Int(d) => unsafe{transmute(*d)},
@@ -121,7 +115,7 @@ impl ColumnDataInFile {
             None => {
                 Self {
                     index: cd.index,
-                    flags: cd.default as u8 | 2,
+                    flags: cd.default as u8 | 2 | (cd.flags << 2),
                     data: 0,
                 }
             }
@@ -133,6 +127,7 @@ impl ColumnDataInFile {
         ColumnData {
             index: self.index,
             default: self.flags & 1 != 0,
+            flags: self.flags >> 2,
             data: if self.flags & 2 == 0 {
                 Some(match (self.flags >> 2) & 7 {
                         0 => Data::Str(th.get_string(&StrPointer::new(self.data))),

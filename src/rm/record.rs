@@ -87,7 +87,8 @@ impl Type {
             (Type::Float(_), ast::Value::Float(_)) |
             (Type::Date(_), ast::Value::Date(_)) |
             (Type::Numeric(_), ast::Value::Int(_)) |
-            (Type::Numeric(_), ast::Value::Float(_)) => true,
+            (Type::Numeric(_), ast::Value::Float(_)) |
+            (_, ast::Value::Null) => true,
             (_, _) => false,
         }
     }
@@ -310,6 +311,17 @@ impl ColumnTypeVec {
 pub struct ColumnData {
     pub index: u32,
     pub default: bool,
+    /*
+        flags [0 .. 8]
+        [data_type_bit0, data_type_bit1, data_byte_bit2, 0, 0, 0, 0, 0]
+        bit meaning
+        0   Data::Str
+        1   Data::Int
+        2   Data::Float
+        3   Data::Date
+        4   Data::Numeric
+    */
+    pub flags: u8,
     pub data: Option<Data>,
 }
 
@@ -329,7 +341,7 @@ impl Record {
         self.cols.iter().zip(ct.iter()).map(|(x, ct)| {
             match &x.data {
                 Some(d) => d.to_string(ct),
-                None => String::new(),
+                None => String::from("NULL"),
             }
         }).collect()
     }
@@ -340,6 +352,13 @@ impl Record {
             cols.push(ColumnData {
                 index: i as u32,
                 default: false,
+                flags: match &cts[i].data_type {
+                    &Type::Str(_) => 0,
+                    &Type::Int(_) => 1,
+                    &Type::Float(_) => 2,
+                    &Type::Date(_) => 3,
+                    &Type::Numeric(_) => 4,
+                },
                 data: Data::from_value(&value_lists[i], &cts[i])
             });
         }
