@@ -433,7 +433,7 @@ impl SystemManager {
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let index_col: Vec<u32> = column_list.iter().map(|column_name| map.get(column_name).unwrap().index).collect();
-            let mut btree = BTree::new(&th, index_col.clone(), idx_name, 2);
+            let mut btree = BTree::new(&th, index_col.clone(), idx_name, BTree::index_ty());
 
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());

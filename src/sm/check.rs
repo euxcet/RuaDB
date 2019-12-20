@@ -499,7 +499,7 @@ pub fn check_create_index(idx_name: &String, map: &HashMap<String, ColumnType>, 
 }
 
 pub fn check_drop_index(idx_name: &String, btrees: &Vec<BTree>) -> bool {
-    idx_name != "primary" 
+    idx_name != "PRIMARY"
         && btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
 }
 
