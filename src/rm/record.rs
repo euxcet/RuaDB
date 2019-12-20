@@ -213,7 +213,7 @@ pub struct ColumnTypeVec {
 }
 
 impl ColumnTypeVec {
-    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> (Self, Vec<u32>, Vec<(&String, Vec<u32>)>) {
+    pub fn from_fields<'a, 'b>(field_list: &'a Vec<ast::Field>, tb_name: &'b String) -> (Self, Vec<u32>, Vec<(&'a String, Vec<u32>)>) {
         let mut primary_key: &Vec<String> = &Vec::new();
         let mut foreign_list = Vec::new();
 

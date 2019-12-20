@@ -1,5 +1,5 @@
 // auto-generated: "lalrpop 0.17.2"
-// sha256: 6e5674af2aa1238392c6452ba533595bfb5ae7d33e4d192e97582c5252ff88
+// sha256: 16d083b26cab58e784254594c29cde5184eb89b4a87c236a8a93c17291d
 use super::tok::{self, Tok};
 use super::ast::*;
 use std::str::FromStr;
@@ -36789,7 +36789,13 @@ mod __parse__Sql {
         loop {
             let (__lookahead, __nt) = __result;
             match __nt {
+                __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym3) => {
+                    __result = __state233(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                }
                 __Nonterminal::ColName(__sym3) => {
+                    __result = __state234(text, __tokens, __lookahead, __sym3, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::CommaList_3cColName_3e(__sym3) => {
                     __result = __state265(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
@@ -38837,7 +38843,7 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
     {
@@ -40311,7 +40317,7 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         __sym4: (usize, Tok<'input>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
@@ -40636,7 +40642,7 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         __sym4: (usize, Tok<'input>, usize),
         __sym5: (usize, Tok<'input>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
@@ -41164,7 +41170,7 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         __sym4: (usize, Tok<'input>, usize),
         __sym5: (usize, Tok<'input>, usize),
         __sym6: (usize, Name, usize),
@@ -41557,7 +41563,7 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         __sym4: (usize, Tok<'input>, usize),
         __sym5: (usize, Tok<'input>, usize),
         __sym6: (usize, Name, usize),
@@ -41872,7 +41878,13 @@ mod __parse__Sql {
         loop {
             let (__lookahead, __nt) = __result;
             match __nt {
+                __Nonterminal::_28_3cColName_3e_20_22_2c_22_29_2b(__sym8) => {
+                    __result = __state233(text, __tokens, __lookahead, __sym8, ::std::marker::PhantomData::<(&())>)?;
+                }
                 __Nonterminal::ColName(__sym8) => {
+                    __result = __state234(text, __tokens, __lookahead, __sym8, ::std::marker::PhantomData::<(&())>)?;
+                }
+                __Nonterminal::CommaList_3cColName_3e(__sym8) => {
                     __result = __state292(text, __tokens, __lookahead, __sym0, __sym1, __sym2, __sym3, __sym4, __sym5, __sym6, __sym7, __sym8, ::std::marker::PhantomData::<(&())>)?;
                     return Ok(__result);
                 }
@@ -41954,12 +41966,12 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         __sym4: (usize, Tok<'input>, usize),
         __sym5: (usize, Tok<'input>, usize),
         __sym6: (usize, Name, usize),
         __sym7: (usize, Tok<'input>, usize),
-        __sym8: (usize, Name, usize),
+        __sym8: (usize, Vec<Name>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
     {
@@ -42357,12 +42369,12 @@ mod __parse__Sql {
         __sym0: (usize, Tok<'input>, usize),
         __sym1: (usize, Tok<'input>, usize),
         __sym2: (usize, Tok<'input>, usize),
-        __sym3: (usize, Name, usize),
+        __sym3: (usize, Vec<Name>, usize),
         __sym4: (usize, Tok<'input>, usize),
         __sym5: (usize, Tok<'input>, usize),
         __sym6: (usize, Name, usize),
         __sym7: (usize, Tok<'input>, usize),
-        __sym8: (usize, Name, usize),
+        __sym8: (usize, Vec<Name>, usize),
         __sym9: (usize, Tok<'input>, usize),
         _: ::std::marker::PhantomData<(&'input ())>,
     ) -> Result<(Option<(usize, Tok<'input>, usize)>, __Nonterminal<'input>), __lalrpop_util::ParseError<usize, Tok<'input>, tok::Error>>
@@ -43306,16 +43318,16 @@ fn __action54<
     (_, _, _): (usize, Tok<'input>, usize),
     (_, _, _): (usize, Tok<'input>, usize),
     (_, _, _): (usize, Tok<'input>, usize),
-    (_, col_name, _): (usize, Name, usize),
+    (_, column_list, _): (usize, Vec<Name>, usize),
     (_, _, _): (usize, Tok<'input>, usize),
     (_, _, _): (usize, Tok<'input>, usize),
     (_, foreign_tb_name, _): (usize, Name, usize),
     (_, _, _): (usize, Tok<'input>, usize),
-    (_, foreign_col_name, _): (usize, Name, usize),
+    (_, foreign_column_list, _): (usize, Vec<Name>, usize),
     (_, _, _): (usize, Tok<'input>, usize),
 ) -> Field
 {
-    Field::ForeignKeyField { col_name:col_name, foreign_tb_name:foreign_tb_name, foreign_col_name:foreign_col_name }
+    Field::ForeignKeyField { column_list:column_list, foreign_tb_name:foreign_tb_name, foreign_column_list:foreign_column_list }
 }
 
 #[allow(unused_variables)]
