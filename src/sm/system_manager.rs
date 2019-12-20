@@ -18,10 +18,10 @@ use std::cell::RefCell;
 
 
 pub struct SystemManager {
-    root_dir: String,
-    check: bool,
-    current_database: Option<String>,
-    rm: Rc<RefCell<RecordManager>>,
+    pub root_dir: String,
+    pub check: bool,
+    pub current_database: Option<String>,
+    pub rm: Rc<RefCell<RecordManager>>,
 }
 
 impl SystemManager {
@@ -180,18 +180,13 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let path = self.get_database_path(database);
             let mut res = vec![vec![format!("Tables_in_{}", database)]];
-            let tables: Vec<String> = fs::read_dir(path).unwrap()
-                .map(|e| e.unwrap().path())
-                .filter(|p| p.is_file() && p.extension().unwrap() == "rua")
-                .map(|p| p.file_stem().unwrap().to_str().unwrap().to_string()).collect();
+            let tables: Vec<String> = self.get_tables();
             let count = tables.len();
             res.push(vec![tables.join("\n")]);
             RuaResult::ok(Some(res), format!("{} row(s) in set", count))
         }
     }
 
-
-    // TODO: foreign key
     pub fn create_table(&self, tb_name: &String, field_list: &Vec<Field>) -> RuaResult {
         if self.check {
             let res = self.check_table_existence(tb_name, false);
@@ -353,7 +348,7 @@ impl SystemManager {
                 let map = th.get_column_types_as_hashmap();
                 th.close();
 
-                let valid = check::check_delete(tb_name, &map, where_clause);
+                let valid = check::check_delete(tb_name, &map, where_clause, &self);
                 if !valid {
                     RuaResult::err("invalid delete".to_string())
                 } else {

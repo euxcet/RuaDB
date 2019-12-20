@@ -188,6 +188,16 @@ impl TableHandler {
         }
     }
 
+    pub fn get_primary_column_index(&self) -> Option<Vec<u32>> {
+        let btrees = self.get_btrees();
+        let pri_tree = btrees.into_iter().find(|t| t.is_primary());
+        match pri_tree {
+            Some(pri_tree) => {
+                Some(pri_tree.index_col)
+            },
+            None => None,
+        }
+    }
 
     pub fn get_column_types_as_hashmap(&self) -> HashMap<String, ColumnType> {
         let ptr = StrPointer::new(self.fh.get_column_types_ptr());

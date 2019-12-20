@@ -1,5 +1,4 @@
 use crate::parser::ast::*;
-use crate::sm::system_manager::SystemManager;
 use crate::rm::record::*;
 use crate::index::btree::*;
 
@@ -7,6 +6,9 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 
 use crate::defer;
+
+use super::system_manager::SystemManager;
+use super::query_tree::QueryTree;
 
 
 pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
@@ -85,20 +87,20 @@ pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         let fcts: Vec<&ColumnType> = fcols.iter().map(|fcol_name| fmap.get(fcol_name).unwrap()).collect();
 
         let type_valid = tys.iter().zip(fcts.iter()).fold(true, |all_valid, (ty, fct)| all_valid && (fct.data_type.of_same_type(ty)));
-
         if !type_valid {
             return false;
         }
-
         let pri_cols = th.get_primary_cols();
         if pri_cols.is_none() {
             return false;
         }
-
         let pri_cols = pri_cols.unwrap().cols;
-        assert!(fcts.len() <= pri_cols.len());
-        let is_prefix = fcts.iter().zip(pri_cols.iter()).fold(true, |prefix, (fct, pri_col)| prefix && (fct == &pri_col));
-        if !is_prefix {
+        if fcts.len() < pri_cols.len() {
+            return false;
+        }
+
+        let same = fcts.iter().zip(pri_cols.iter()).fold(true, |prefix, (fct, pri_col)| prefix && (fct == &pri_col));
+        if !same {
             return false;
         }
     }
@@ -141,6 +143,7 @@ pub fn check_drop_table(tb_name: &String, sm: &SystemManager) -> bool {
     for table in &tables {
         if table != tb_name {
             let th = sm.open_table(table, false).unwrap();
+            defer!(th.close());
             let cts = th.get_column_types().cols;
             let foreign_this = cts.iter().fold(false, |foreign, ct| foreign || (ct.is_foreign && &ct.foreign_table_name == tb_name));
             if foreign_this {
@@ -148,11 +151,31 @@ pub fn check_drop_table(tb_name: &String, sm: &SystemManager) -> bool {
             }
         }
     }
-
     true
 }
 
-// TODO: foreign key
+pub fn table_foreign_this_table(tb_name: &String, sm: &SystemManager) -> Vec<String> {
+    sm.get_tables().into_iter().filter_map( 
+        |name| {
+            if &name == tb_name {
+                None
+            } else {
+                let th = sm.open_table(&name, false).unwrap();
+                defer!(th.close());
+                let cts = th.get_column_types().cols;
+                let foreign_this = cts.iter().fold(false, |foreign, ct| foreign || (ct.is_foreign && &ct.foreign_table_name == tb_name));
+                if foreign_this {
+                    Some(name)
+                } else {
+                    None
+                }
+            }
+        }
+    ).collect()
+}
+
+
+
 pub fn check_insert_value(tb_name: &String, value_lists: &Vec<Vec<Value>>, sm: &SystemManager) -> bool {
     use crate::rm::pagedef::*;
     use crate::rm::in_file::*;
@@ -326,7 +349,7 @@ pub fn check_select(tb_cols: &HashMap<&String, HashMap<String, ColumnType>>, sel
     true
 }
 
-pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_clause: &Option<Vec<WhereClause>>) -> bool {
+pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_clause: &Option<Vec<WhereClause>>, sm: &SystemManager) -> bool {
     let valid_qualified_col = |qualified_col: &Column| -> bool {
         if let Some(ref tb) = qualified_col.tb_name {
             tb == tb_name && map.contains_key(&qualified_col.col_name)
@@ -369,6 +392,46 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
             }
         }
     }
+
+    // check if foreign
+    let foreign_tables = table_foreign_this_table(tb_name, sm);
+    if foreign_tables.len() > 0 {
+        let database = sm.current_database.as_ref().unwrap();
+        let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+        tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+        let record_list = tree.query();
+
+        let th = sm.open_table(tb_name, false).unwrap();
+        defer!(th.close());
+        let primary_cols = th.get_primary_column_index().unwrap();
+        let ris: Vec<RawIndex> = record_list.record.iter().map(
+            |record| {
+                RawIndex::from_record(record, &primary_cols)
+            }
+        ).collect();
+
+        for name in foreign_tables {
+            let fth = sm.open_table(&name, false).unwrap();
+            defer!(fth.close());
+            let foreign_btree = fth.get_btrees().into_iter().filter_map(
+                |btree| {
+                    if btree.is_foreign() && btree.index_name == format!("FOREIGN_{}", tb_name) {
+                        Some(btree)
+                    } else {
+                        None
+                    }
+                }
+            );
+            for fb in foreign_btree {
+                for ri in &ris {
+                    if fb.search_record(ri).is_some() {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
     true
 }
 
@@ -422,6 +485,8 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
             return false;
         }
     }
+
+
 
     true
 }
