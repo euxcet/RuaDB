@@ -74,6 +74,7 @@ pub enum IndexStmt {
     }, 
     DropIndex {
         idx_name: Name,
+        tb_name: Name, 
     },
     AlterAddIndex {
         idx_name: Name,
@@ -148,9 +149,9 @@ pub enum Field {
     },
 
     ForeignKeyField {
-        col_name: Name,
+        column_list: Vec<Name>,
         foreign_tb_name: Name, 
-        foreign_col_name: Name,
+        foreign_column_list: Vec<Name>,
     },
 }
 
@@ -160,11 +161,28 @@ pub enum Type {
     Varchar(i64),
     Date,
     Float,
+    Numeric(i64, i64),
+}
+
+impl Type {
+    pub fn comparable(&self, other: &Self) -> bool {
+        self.same(other)
+    }
+
+    pub fn same(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Type::Int(_), Type::Int(_)) |
+            (Type::Varchar(_), Type::Varchar(_)) |
+            (Type::Date, Type::Date) |
+            (Type::Numeric(_, _), Type::Numeric(_, _)) |
+            (Type::Float, Type::Float) => true,
+            (_, _) => false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {
-    // 1, 2, 3, 4, 5
     Int(String),
     Str(String),
     Float(String),
@@ -172,9 +190,21 @@ pub enum Value {
     Null,
 }
 
+
 impl Value {
     pub fn is_null(&self) -> bool {
         *self == Value::Null
+    }
+
+    pub fn of_type(&self, ty: &Type) -> bool {
+        match (self, ty) {
+            (Value::Null, _) => true,
+            (Value::Int(_), Type::Int(_)) | 
+            (Value::Str(_), Type::Varchar(_)) | 
+            (Value::Float(_), Type::Float) | 
+            (Value::Date(_), Type::Date) => true,
+            (_, _) => false, 
+        }
     }
 }
 

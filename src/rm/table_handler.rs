@@ -6,8 +6,10 @@ use crate::index::in_file::*;
 use crate::index::btree::*;
 use crate::utils::convert;
 
+
 use std::fmt;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
+use std::mem::size_of;
 
 pub struct TableHandler {
     // TODO: support multiple filehandlers
@@ -31,8 +33,12 @@ impl TableHandler {
         self.fh.close();
     }
 
-    pub fn delete(&self, ptr: &mut StrPointer) {
+    pub fn delete(&self, ptr: &StrPointer) {
         self.fh.delete(ptr);
+    }
+
+    pub fn delete_(&self, ptr: u64) {
+        self.fh.delete(&StrPointer::new(ptr));
     }
 
     // for String
@@ -61,6 +67,12 @@ impl TableHandler {
         self.fh.insert::<RecordInFile, u32>(&RecordInFile::from(self, record))
     }
 
+    pub fn insert_record_get_record_in_file(&self, record: &Record) -> (StrPointer, RecordInFile) {
+        let rif = RecordInFile::from(self, record);
+        let ptr = self.fh.insert::<RecordInFile, u32>(&rif);
+        (ptr, rif)
+    }
+
     pub fn get_record(&self, ptr: &StrPointer) -> (Record, RecordInFile) {
         let in_file = self.fh.get::<RecordInFile, u32>(ptr);
         (in_file.to_record(self), in_file)
@@ -75,19 +87,84 @@ impl TableHandler {
         self.fh.update::<RecordInFile, u32>(ptr, &RecordInFile::from(self, record));
     }
 
+    pub fn update_record_in_file(&self, ptr: &StrPointer, record: &RecordInFile) {
+        self.fh.update::<RecordInFile, u32>(ptr, &record);
+    }
+
     pub fn update_record_(&self, ptr: u64, record: &Record) {
         self.fh.update::<RecordInFile, u32>(&StrPointer::new(ptr), &RecordInFile::from(self, record));
     }
 
+    pub fn delete_record_data_column(&self, ptr: &StrPointer, i: usize) {
+        let (_, mut record_in_file) = self.get_record(ptr);
+        let size_of_data = size_of::<ColumnDataInFile>();
+        let data_str: String = record_in_file.record.drain(size_of_data * i .. size_of_data * (i + 1)).collect();
+        let data_in_file = ColumnDataInFile::new(data_str.as_bytes());
+        if data_in_file.get_type() == ColumnDataInFile::str_type() {
+            self.delete(&StrPointer::new(data_in_file.data));
+        }
+        self.update_record_in_file(ptr, &record_in_file);
+    }
+
+    pub fn insert_record_data_column(&self, ptr: &StrPointer, ct: &ColumnType) {
+        let (_, mut record_in_file) = self.get_record(ptr);
+        let size_of_data = size_of::<ColumnDataInFile>();
+        let cd = ColumnDataInFile::null_data(ct);
+        record_in_file.record.push_str(cd.as_str());
+
+        self.update_record_in_file(ptr, &record_in_file);
+    }
+
     // for ColumnType
-    pub fn insert_column_type(&self, ct: &ColumnType) -> StrPointer {
+    pub fn __insert_column_type(&self, ct: &ColumnType) -> StrPointer {
         self.fh.insert::<ColumnTypeInFile, u32>(&ColumnTypeInFile::from(self, ct))
     }
 
     pub fn insert_column_types(&self, cts: &ColumnTypeVec) {
-        let c_ptrs = cts.cols.iter().map(|ct| self.insert_column_type(ct).to_u64()).collect();
+        let c_ptrs = cts.cols.iter().map(|ct| self.__insert_column_type(ct).to_u64()).collect();
         let ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&c_ptrs)});
         self.fh.set_column_types_ptr(ptr.to_u64());
+    }
+
+    fn __get_ptrs(&self, ptr: &StrPointer) -> Vec<u64> {
+        let s = self.get_string(&ptr);
+        let ptrs = unsafe{convert::string_to_vec_u64(&s)};
+        ptrs
+    }
+
+    pub fn insert_column_type(&self, ct: &ColumnType) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
+        let cp = self.__insert_column_type(ct);
+        ptrs.push(cp.to_u64());
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
+    }
+
+    pub fn delete_column_type_from_index(&self, index: usize) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
+        assert!(index < ptrs.len());
+        self.delete(&StrPointer::new(ptrs[index]));
+        ptrs.remove(index);
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
+    }
+
+    pub fn update_column_type_from_index(&self, index: usize, ct: &ColumnType) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        assert!(index < ptrs.len());
+        self.update_column_type(&StrPointer::new(ptrs[index]), ct);
+    }
+
+    pub fn update_table_name(&self, tb_name: &String) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        for ptr in &ptrs {
+            let p = &StrPointer::new(*ptr);
+            let mut ct = self.get_column_type(&p);
+            ct.tb_name = tb_name.clone();
+            self.update_column_type(&p, &ct);
+        }
     }
 
     pub fn get_column_types(&self) -> ColumnTypeVec {
@@ -95,6 +172,31 @@ impl TableHandler {
         let c_ptrs = unsafe{convert::string_to_vec_u64(&self.get_string(&ptr))};
         ColumnTypeVec {
             cols: c_ptrs.iter().map(|&p| self.get_column_type(&StrPointer::new(p))).collect(),
+        }
+    }
+
+    pub fn get_primary_cols(&self) -> Option<ColumnTypeVec> {
+        let btrees = self.get_btrees();
+        let pri_tree = btrees.iter().find(|t| t.is_primary());
+        match pri_tree {
+            Some(pri_tree) => {
+                let cts = self.get_column_types().cols;
+                Some(ColumnTypeVec {
+                    cols: pri_tree.index_col.iter().map(|i| cts[*i as usize].clone()).collect(),
+                })
+            },
+            None => None,
+        }
+    }
+
+    pub fn get_primary_column_index(&self) -> Option<Vec<u32>> {
+        let btrees = self.get_btrees();
+        let pri_tree = btrees.into_iter().find(|t| t.is_primary());
+        match pri_tree {
+            Some(pri_tree) => {
+                Some(pri_tree.index_col)
+            },
+            None => None,
         }
     }
 
@@ -107,6 +209,13 @@ impl TableHandler {
             let c = self.get_column_type(&StrPointer::new(p));
             (c.name.clone(), c)
         }).collect()
+    }
+
+    pub fn get_column_numbers(&self) -> usize {
+        let ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let s = self.get_string(&ptr);
+        let c_ptrs = unsafe{ convert::string_to_vec_u64(&s) };
+        c_ptrs.len()
     }
 
     pub fn get_column_type(&self, ptr: &StrPointer) -> ColumnType {
@@ -152,28 +261,60 @@ impl TableHandler {
     }
 
     pub fn insert_btree(&self, btree: &BTree) {
-        // TODO update
-        let mut ptrs = self.__get_btree_ptrs();
-
-        let mut ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        self.fh.free(&mut ptrs_ptr);
-
-        let btree = self.__insert_btree(btree);
-        ptrs.push(btree.to_u64());
-        let new_btrees_ptr = self.insert_string(&unsafe{convert::vec_u64_to_string(&ptrs)});
-        self.fh.set_btrees_ptr(new_btrees_ptr.to_u64());
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
+        let bp = self.__insert_btree(btree);
+        ptrs.push(bp.to_u64());
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
-    fn __get_btree_ptrs(&self) -> Vec<u64> {
-        let ptr = StrPointer::new(self.fh.get_btrees_ptr());
-        let s = self.get_string(&ptr);
-        let b_ptrs = unsafe{convert::string_to_vec_u64(&s)};
-        b_ptrs
+    pub fn delete_btree_from_index(&self, index: usize) {
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let mut ptrs = self.__get_ptrs(&ptrs_ptr);
+        assert!(index < ptrs.len());
+        self.delete(&StrPointer::new(ptrs[index]));
+        ptrs.remove(index);
+        self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
     pub fn get_btrees(&self) -> Vec<BTree> {
-        let ptrs = self.__get_btree_ptrs();
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
         ptrs.iter().map(|&p| self.__get_btree(&StrPointer::new(p))).collect()
+    }
+
+    pub fn get_affected_btrees_with_ptrs(&self, set_columns: &Vec<&String>) -> Vec<(StrPointer, BTree)> {
+        let map = self.get_column_types_as_hashmap();
+        let index_set: HashSet<u32> = set_columns.iter().map(|&c| map.get(c).unwrap().index).collect();
+        self.get_btrees_with_ptrs().into_iter().filter_map(
+            |(p, t)| {
+                let affected = t.index_col.iter().fold(false, |affected, i| affected || index_set.contains(i));
+                if affected {
+                    Some((p, t))
+                } else {
+                    None
+                }
+            }
+        ).collect()
+    }
+
+    pub fn get_primary_btree_with_ptr(&self) -> Option<(StrPointer, BTree)> {
+        let btrees = self.get_btrees_with_ptrs();
+        btrees.into_iter().find(|(p, t)| t.is_primary())
+    }
+
+    pub fn get_primary_btree(&self) -> Option<BTree> {
+        self.get_primary_btree_with_ptr().map(|(_, t)| t)
+    }
+
+    pub fn get_btrees_with_ptrs(&self) -> Vec<(StrPointer, BTree)> {
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        ptrs.iter().map(|&p| {
+            let p = StrPointer::new(p);
+            let t = self.__get_btree(&p);
+            (p, t)
+        }).collect()
     }
 
     pub fn __get_btree(&self, ptr: &StrPointer) -> BTree {
@@ -181,7 +322,8 @@ impl TableHandler {
     }
 
     pub fn get_btree_from_index(&self, index: usize) -> BTree {
-        let ptrs = self.__get_btree_ptrs();
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
         assert!(index < ptrs.len());
         self.__get_btree(&StrPointer::new(ptrs[index]))
     }
@@ -196,7 +338,6 @@ impl TableHandler {
 
     // for BTreeNode
     pub fn insert_btree_node(&self) -> StrPointer {
-        use std::mem::size_of;
         self.fh.alloc(&vec![0u8; size_of::<BTreeNode>()], true)
     }
 

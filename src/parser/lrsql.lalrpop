@@ -58,7 +58,7 @@ IndexStmt: IndexStmt = {
     "create" "index" <idx_name: IndexName> "on" <tb_name: TableName> "(" <column_list: CommaList<ColName>> ")" => {
         IndexStmt::CreateIndex { <> }
     },
-    "drop" "index" <idx_name: IndexName> => IndexStmt::DropIndex { <> },
+    "drop" "index" <idx_name: IndexName> "on" <tb_name: TableName> => IndexStmt::DropIndex { <> },
     "alter" "table" <tb_name: TableName> "add" "index" <idx_name: IndexName> "(" <column_list: CommaList<ColName>> ")" => {
         IndexStmt::AlterAddIndex { <> }
     },
@@ -139,7 +139,7 @@ PrimaryKeyField: Field = {
 };
 
 ForeignKeyField: Field = {
-    "foreign" "key" "(" <col_name: ColName> ")" "references" <foreign_tb_name: TableName> "(" <foreign_col_name: ColName> ")" => Field::ForeignKeyField { <> },
+    "foreign" "key" "(" <column_list: CommaList<ColName>> ")" "references" <foreign_tb_name: TableName> "(" <foreign_column_list: CommaList<ColName>> ")" => Field::ForeignKeyField { <> },
 };
 
 Field: Field = {
@@ -155,6 +155,7 @@ ValueList: Vec<Value> = {
 Value: Value = {
     "null" => Value::Null,
     "StringLiteralDoubleQuote" => Value::Str(<>.to_owned()),
+    "StringLiteralSingleQuote" => Value::Date(<>.to_owned()),
     "+"? <"Integer"> => { Value::Int( <>.to_owned() ) },
     "-" <"Integer"> => { Value::Int( format!("-{}", <>) ) },
     "+"? <"Float"> => { Value::Float( <>.to_owned() ) },
@@ -165,8 +166,26 @@ Type: Type = {
     "int" "(" <"Integer"> ")" => {
         Type::Int(i64::from_str(<>).unwrap())
     },
+    "int" => {
+        Type::Int(0)
+    },
+    "bigint" => {
+        Type::Int(0)
+    },
+    "integer" => {
+        Type::Int(0)
+    },
     "varchar" "(" <"Integer"> ")" => {
         Type::Varchar(i64::from_str(<>).unwrap())
+    },
+    "char" "(" <"Integer"> ")" => {
+        Type::Varchar(i64::from_str(<>).unwrap())
+    },
+    "numeric" "(" <a:"Integer"> "," <b:"Integer"> ")" => {
+        Type::Numeric(i64::from_str(a).unwrap(), i64::from_str(b).unwrap())
+    },
+    "decimal" => {
+        Type::Numeric(19, 2)
     },
     "date" => {
         Type::Date
@@ -275,11 +294,13 @@ extern {
         "before" => Tok::Before,
         "begin" => Tok::Begin,
         "between" => Tok::Between,
+        "bigint" => Tok::BigInt,
         "by" => Tok::By,
         "cascade" => Tok::Cascade,
         "case" => Tok::Case,
         "cast" => Tok::Cast,
         "change" => Tok::Change,
+        "char" => Tok::Char,
         "check" => Tok::Check,
         "collate" => Tok::Collate,
         "column" => Tok::ColumnKw,
@@ -294,6 +315,7 @@ extern {
         "database" => Tok::Database,
         "databases" => Tok::Databases,
         "date" => Tok::Date,
+        "decimal" => Tok::Decimal,
         "default" => Tok::Default,
         "deferrable" => Tok::Deferrable,
         "deferred" => Tok::Deferred,
@@ -330,6 +352,7 @@ extern {
         "insert" => Tok::Insert,
         "instead" => Tok::Instead,
         "int" => Tok::Int,
+        "integer" => Tok::Integerr,
         "intersect" => Tok::Intersect,
         "into" => Tok::Into,
         "is" => Tok::Is,
@@ -345,6 +368,7 @@ extern {
         "not" => Tok::Not,
         "notnull" => Tok::NotNull,
         "null" => Tok::Null,
+        "numeric" => Tok::Numeric,
         "of" => Tok::Of,
         "offset" => Tok::Offset,
         "on" => Tok::On,

@@ -22,24 +22,44 @@ impl Executor {
     }
 
     fn process(&self, stmt: &Stmt, check: bool) -> RuaResult {
-        self.sm.borrow_mut().set_check(check);
+        let mut sm = self.sm.borrow_mut();
+        sm.set_check(check);
         match stmt {
-            Stmt::System(SystemStmt::ShowDatabases) => self.sm.borrow_mut().show_databases(),
+            Stmt::System(SystemStmt::ShowDatabases) => sm.show_databases(),
             Stmt::Database(ref s) => {
                 match s {
-                    DatabaseStmt::CreateDatabase { db_name } => self.sm.borrow_mut().create_database(&db_name),
-                    DatabaseStmt::DropDatabase { db_name } => self.sm.borrow_mut().drop_database(&db_name),
-                    DatabaseStmt::UseDatabase { db_name } => self.sm.borrow_mut().use_database(&db_name),
-                    DatabaseStmt::ShowTables => self.sm.borrow_mut().show_tables(),
+                    DatabaseStmt::CreateDatabase { db_name } => sm.create_database(&db_name),
+                    DatabaseStmt::DropDatabase { db_name } => sm.drop_database(&db_name),
+                    DatabaseStmt::UseDatabase { db_name } => sm.use_database(&db_name),
+                    DatabaseStmt::ShowTables => sm.show_tables(),
                 }
             },
             Stmt::Table(ref s) => {
                 match s {
-                    TableStmt::CreateTable { tb_name, field_list } => self.sm.borrow_mut().create_table(&tb_name, &field_list),
-                    TableStmt::DropTable { tb_name } => self.sm.borrow_mut().drop_table(&tb_name),
-                    TableStmt::Desc { tb_name } => self.sm.borrow_mut().desc(&tb_name),
-                    TableStmt::Insert { tb_name, value_lists } => self.sm.borrow_mut().insert(&tb_name, &value_lists),
-                    TableStmt::Select { table_list, selector, where_clause } => self.sm.borrow_mut().select(&table_list, &selector, &where_clause),
+                    TableStmt::CreateTable { tb_name, field_list } => sm.create_table(&tb_name, &field_list),
+                    TableStmt::DropTable { tb_name } => sm.drop_table(&tb_name),
+                    TableStmt::Desc { tb_name } => sm.desc(&tb_name),
+                    TableStmt::Insert { tb_name, value_lists } => sm.insert(&tb_name, &value_lists),
+                    TableStmt::Select { table_list, selector, where_clause } => sm.select(&table_list, &selector, &where_clause),
+                    TableStmt::Delete { tb_name, where_clause } => sm.delete(&tb_name, &where_clause),
+                    TableStmt::Update { tb_name, set_clause, where_clause } => sm.update(&tb_name, &set_clause, &where_clause),
+                }
+            },
+            Stmt::Index(ref s) => {
+                match s {
+                    IndexStmt::CreateIndex { idx_name, tb_name, column_list } => sm.create_index(&idx_name, &tb_name, &column_list),
+                    IndexStmt::DropIndex { idx_name, tb_name } => sm.drop_index(&idx_name, &tb_name),
+                    IndexStmt::AlterAddIndex { idx_name, tb_name, column_list } => sm.create_index(&idx_name, &tb_name, &column_list),
+                    IndexStmt::AlterDropIndex { idx_name, tb_name } => sm.drop_index(&idx_name, &tb_name),
+                }
+            },
+            Stmt::Alter(ref s) => {
+                match s {
+                    AlterStmt::AddColumn { tb_name, field } => sm.add_column(&tb_name, &field),
+                    AlterStmt::DropColumn { tb_name, col_name } => sm.drop_column(&tb_name, &col_name),
+
+                    AlterStmt::RenameTable { tb_name, new_name } => sm.rename_table(&tb_name, &new_name),
+                    AlterStmt::AddPrimaryKey { tb_name, column_list } => sm.add_primary_key(&tb_name, &column_list),
                     _ => unreachable!(),
                 }
             },
@@ -75,12 +95,33 @@ mod test {
             String::from("create database sql_select;"),
             String::from("use sql_select;"),
 
-            String::from("create table test(id int(4) default 3, fuck varchar(10));"),
-            String::from("insert into test values (-10, \"123124\");"),
-            String::from("insert into test values (40, \"224\");"),
-            String::from("insert into test values (3, \"23124\");"),
-            String::from("insert into test values (4, \"12324\");"),
+            // String::from("create table test(id int(4), fuck int(4));"),
+            String::from("create table test(id int(4), fuck varchar(4));"),
 
+            String::from("desc test;"),
+
+            String::from("create index id_index on test (id, fuck);"),
+            String::from("insert into test values (null, \"c\");"),
+            String::from("insert into test values (null, \"a\");"),
+            String::from("insert into test values (null, \"d\");"),
+            String::from("insert into test values (null ,\"b\");"),
+
+            /*
+            String::from("create table b_test(id int(4), rua float);"),
+            String::from("create index id_index on b_test (id);"),
+            String::from("insert into b_test values (1, 1.23);"),
+            String::from("insert into b_test values (2, 3.0);"),
+            String::from("insert into b_test values (3, 42.12);"),
+            String::from("insert into b_test values (4, -4.2);"),
+            */
+
+            String::from("select * from test where id is null and fuck >= \"a\";"),
+            // String::from("select * from b_test where id > 1;"),
+
+            // String::from("select * from test where id > 0 and fuck > -2.0;"),
+            // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and test.id = b_test.id;"),
+            // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and b_test.id > 2;"),
+            /*
             String::from("create table b_test(id int(4), rua float);"),
             String::from("insert into b_test values (1, 1.23);"),
             String::from("insert into b_test values (2, 3.0);"),
@@ -94,8 +135,28 @@ mod test {
             String::from("select * from b_test;"),
             String::from("select * from test, b_test where test.id >= b_test.id;"),
             String::from("select fuck from test;"),
+
+            String::from("select * from test;"),
+            String::from("delete from test where id > 5;"),
+            String::from("select * from test;"),
+            String::from("delete from test where id < 4;"),
+            String::from("select * from test;"),
+
+            String::from("insert into test values (-10, \"123124\");"),
+            String::from("insert into test values (40, \"224\");"),
+            String::from("insert into test values (3, \"23124\");"),
+
+            String::from("update test set id = 10 where id > 3;"),
+            String::from("select * from test;"),
             
             String::from("desc test;"),
+
+            String::from("create table date_test(id int(4), s_date date, num numeric(5, 2));"),
+            String::from("desc date_test;"),
+            String::from("insert into date_test values (3, '2019-04-22', 321.42);"),
+            String::from("select * from date_test;"),
+            */
+
             String::from("drop database sql_select;"),
         ];
 
@@ -112,7 +173,7 @@ mod test {
                         }
                     }
                 },
-                Err(e) => {
+                Err(_) => {
                     println!("Invalid syntax");
                 }
             }

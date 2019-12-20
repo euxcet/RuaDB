@@ -1,5 +1,6 @@
 use std::mem::transmute;
 use std::cmp::Ordering;
+use std::cmp::min;
 use crate::rm::record::*;
 use crate::rm::table_handler::TableHandler;
 use crate::utils::convert;
@@ -63,6 +64,7 @@ pub struct RawIndex {
 }
 
 impl RawIndex {
+     // TODO: null index
     pub fn from(index: &Index) -> Self {
         let mut data = Vec::new();
         for i in 0..index.index.len() {
@@ -85,39 +87,34 @@ impl RawIndex {
             index: vec![Data::Int(unsafe{transmute(index)})],
         }
     }
+
+    pub fn from_record(record: &Record, sub_col: &Vec<u32>) -> Self {
+        Self {
+            index: sub_col.iter().map(|i| record.cols[*i as usize].data.clone().unwrap()).collect()
+        }
+    }
 }
 
 impl PartialOrd for RawIndex {
     fn partial_cmp(&self, other: &RawIndex) -> Option<Ordering> {
-        if self.index.len() != other.index.len() {
-            None
-        }
-        else {
-            for i in 0..self.index.len() {
-                let res = self.index[i].partial_cmp(&other.index[i]);
-                if res != Some(Ordering::Equal) {
-                    return res;
-                }
+        for i in 0..min(self.index.len(), other.index.len()) {
+            let res = self.index[i].partial_cmp(&other.index[i]);
+            if res != Some(Ordering::Equal) {
+                return res;
             }
-            Some(Ordering::Equal)
         }
+        Some(Ordering::Equal)
     }
 }
 
 impl PartialEq for RawIndex {
     fn eq(&self, other: &RawIndex) -> bool {
-        if self.index.len() != other.index.len() {
-            false
-        }
-        else {
-            for i in 0..self.index.len() {
-                if self.index[i] != other.index[i] {
-                    return false;
-                }
+        for i in 0..min(self.index.len(), other.index.len()) {
+            if self.index[i] != other.index[i] {
+                return false;
             }
-            true
         }
-
+        true
     }
 }
 
@@ -125,15 +122,38 @@ pub struct BTree<'a> {
     pub th: &'a TableHandler,
     pub root: u64,
     pub index_col: Vec<u32>, // should be orderly
+    // default_name: 
+    // "" : born btree,
+    // "primary": primary btree,
+    // "i[_(index)]+": costom index btree,
+    // "f[_(index)]+": foreign index,
+    pub index_name: String, 
+    // born, primary, index, foreign
+    // 0, 1, 2, 3
+    pub ty: u8, 
 }
 
 impl<'a> BTree<'a> {
-    pub fn new(th: &'a TableHandler, index_col: Vec<u32>) -> Self {
+    pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str, ty: u8) -> Self {
         Self {
             th: th,
             root: th.insert_btree_node().to_u64(),
             index_col: index_col,
+            index_name: index_name.to_string(),
+            ty: ty,
         }
+    }
+
+    pub fn is_primary(&self) -> bool {
+        self.ty == Self::primary_ty()
+    } 
+    pub fn born_ty() -> u8 {0}
+    pub fn primary_ty() -> u8 {1}
+    pub fn index_ty() -> u8 {2}
+    pub fn foreign_ty() -> u8 {3}
+
+    pub fn is_foreign(&self) -> bool {
+        self.ty == Self::foreign_ty()
     }
 
     // offset
@@ -152,9 +172,11 @@ impl<'a> BTree<'a> {
         + 4 // node_capacity
     }
 
-    pub fn insert_record(&mut self, key: &RawIndex, data: u64) {
+    pub fn insert_record(&mut self, key: &RawIndex, data: u64, allow_duplicate: bool) -> bool {
         let root = self.th.get_btree_node_(self.root);
-        self.root = root.insert(self.th, key, data, None, 0, self.root);
+        let result = root.insert(self.th, key, data, None, 0, self.root, allow_duplicate);
+        self.root = result.0;
+        result.1
     }
 
     pub fn delete_record(&mut self, key: &RawIndex, data: u64) {
@@ -167,6 +189,11 @@ impl<'a> BTree<'a> {
         root.search(self.th, key)
     }
 
+    pub fn search_record_with_op(&self, key: &RawIndex, is_less: bool, can_be_equal: bool) -> Option<Bucket> {
+        let root = self.th.get_btree_node_(self.root);
+        root.search_with_op(self.th, key, is_less, can_be_equal)
+    }
+
     pub fn first_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
         root.first_bucket(self.th)
@@ -175,6 +202,11 @@ impl<'a> BTree<'a> {
     pub fn last_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
         root.last_bucket(self.th)
+    }
+
+    pub fn clear(&self) {
+        let root = self.th.get_btree_node_(self.root);
+        root.clear(self.th, self.root)
     }
 }
 
@@ -236,7 +268,7 @@ impl Bucket {
     }
 }
 
-const BTREE_NODE_CAPACITY: usize = 4;
+const BTREE_NODE_CAPACITY: usize = 10;
 
 #[repr(C, packed)]
 pub struct BTreeNode {
@@ -409,12 +441,15 @@ impl BTreeNode {
         }
     }
 
-    pub fn insert(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<&mut BTreeNode>, pos: usize, self_ptr: u64) -> u64 {
+    pub fn insert(&mut self, th: &TableHandler, key: &RawIndex, data: u64, father: Option<&mut BTreeNode>, pos: usize, self_ptr: u64, allow_duplicate: bool) -> (u64, bool) {
         let len = self.get_len();
+        let mut dup = false;
         match self.ty {
             BTreeNodeType::Leaf => {
                 let key_ptr = th.insert_index(&Index::from(th, key)).to_u64();
                 let i = self.lower_bound(th, key, len);
+                if i != len {
+                }
                 if i == len {
                     BTreeNode::push(unsafe{&mut self.key}, key_ptr, len);
                     let prev_bucket = if len == 0 {0} else {self.bucket[len - 1]};
@@ -437,9 +472,12 @@ impl BTreeNode {
                 else if let Some(cmp) = self.to_raw(th, self.key[i]).partial_cmp(key) {
                     match cmp {
                         Ordering::Equal => {
-                            let mut bucket = th.get_bucket_(self.bucket[i]);
-                            bucket.data.push(data);
-                            th.update_bucket_(self.bucket[i], &bucket);
+                            dup = true;
+                            if allow_duplicate {
+                                let mut bucket = th.get_bucket_(self.bucket[i]);
+                                bucket.data.push(data);
+                                th.update_bucket_(self.bucket[i], &bucket);
+                            }
                         },
                         Ordering::Greater => {
                             let next_bucket = self.bucket[i];
@@ -470,7 +508,7 @@ impl BTreeNode {
                 let son_pos = self.upper_bound(th, key, len);
                 let son_ptr = self.son[son_pos];
                 let son_node = th.get_btree_node_(son_ptr);
-                son_node.insert(th, key, data, Some(self), son_pos, son_ptr);
+                dup = son_node.insert(th, key, data, Some(self), son_pos, son_ptr, allow_duplicate).1;
             }
         }
         
@@ -487,12 +525,12 @@ impl BTreeNode {
                     new_root.ty = BTreeNodeType::Internal;
                     BTreeNode::push(unsafe{&mut new_root.son}, self_ptr, 0);
                     self.split(th, &mut new_root, pos);
-                    return new_root_ptr.to_u64();
+                    return (new_root_ptr.to_u64(), dup);
                 }
             }
         }
 
-        self_ptr
+        (self_ptr, dup)
     }
 
     pub fn combine_internal(&mut self, th: &TableHandler, father: &mut BTreeNode, pos: usize) {
@@ -606,10 +644,8 @@ impl BTreeNode {
                             }
                         }
                         if bucket.data.is_empty() {
-                            let prev_bucket = if i > 0 {self.bucket[i - 1]} else {0u64};
-                            let next_bucket = if i + 1 < len {self.bucket[i + 1]} else {0u64};
-                            let prev_bucket = if prev_bucket == 0 && next_bucket != 0 {th.get_bucket_(next_bucket).prev} else {prev_bucket};
-                            let next_bucket = if next_bucket == 0 && prev_bucket != 0 {th.get_bucket_(prev_bucket).next} else {next_bucket};
+                            let prev_bucket = bucket.prev;
+                            let next_bucket = bucket.next;
                             unsafe {
                                 if prev_bucket != 0 {
                                     th.update_sub_(prev_bucket, Bucket::get_offset_next(), convert::u64_to_vec_u8(next_bucket));
@@ -624,9 +660,7 @@ impl BTreeNode {
                             }
                         }
                         else {
-                            unsafe {
-                                th.update_bucket_(self.bucket[i], &bucket);
-                            }
+                            th.update_bucket_(self.bucket[i], &bucket);
                         }
                         break;
                     }
@@ -665,15 +699,64 @@ impl BTreeNode {
             BTreeNodeType::Leaf => {
                 let i = self.lower_bound(th, key, len);
                 if i < len && self.to_raw(th, self.key[i]) == *key {
-                    return Some(th.get_bucket_(self.bucket[i]));
+                    Some(th.get_bucket_(self.bucket[i]))
+                }
+                else {
+                    None
                 }
             }
             BTreeNodeType::Internal => {
                 let son_pos = self.upper_bound(th, key, len);
-                return th.get_btree_node_(self.son[son_pos]).search(th, key);
+                th.get_btree_node_(self.son[son_pos]).search(th, key)
             }
         }
-        None
+    }
+
+    pub fn search_with_op(&self, th: &TableHandler, key: &RawIndex, is_less: bool, can_be_equal: bool) -> Option<Bucket> {
+        let len = self.get_len();
+        match self.ty {
+            BTreeNodeType::Leaf => {
+                let i = self.lower_bound(th, key, len);
+                if i == len {
+                    let bucket = th.get_bucket_(self.bucket[i - 1]); // bucket < key
+                    if is_less { // less
+                        Some(bucket)
+                    }
+                    else { // greater
+                        if bucket.next > 0 { Some(th.get_bucket_(bucket.next)) } else { None }
+                    }
+                }
+                else {
+                    let raw_index = self.to_raw(th, self.key[i]);
+                    let bucket = th.get_bucket_(self.bucket[i]);
+                    if raw_index == *key { // bucket = key
+                        if can_be_equal {
+                            Some(bucket)
+                        }
+                        else {
+                            if is_less { // less
+                                if bucket.prev > 0 { Some(th.get_bucket_(bucket.prev)) } else { None }
+                            }
+                            else {
+                                if bucket.next > 0 { Some(th.get_bucket_(bucket.next)) } else { None }
+                            }
+                        }
+                    }
+                    else { // bucket > key
+                        if is_less { // less
+                            if bucket.prev > 0 { Some(th.get_bucket_(bucket.prev)) } else { None }
+                        }
+                        else { // greater
+                            Some(bucket)
+                        }
+                    }
+                }
+            }
+            BTreeNodeType::Internal => {
+                let son_pos = self.upper_bound(th, key, len);
+                th.get_btree_node_(self.son[son_pos]).search(th, key)
+            }
+        }
     }
 
     pub fn first_bucket(&self, th: &TableHandler) -> Option<Bucket> {
@@ -706,5 +789,18 @@ impl BTreeNode {
                 th.get_btree_node_(self.son[self.get_len()]).first_bucket(th)
             }
         }
+    }
+
+    pub fn clear(&self, th: &TableHandler, self_ptr: u64) {
+        let len = self.get_len();
+        match self.ty {
+            BTreeNodeType::Leaf => {}
+            BTreeNodeType::Internal => {
+                for i in 0..=len {
+                    th.get_btree_node_(self.son[i]).clear(th, self.son[i])
+                }
+            }
+        }
+        th.delete_(self_ptr);
     }
 }

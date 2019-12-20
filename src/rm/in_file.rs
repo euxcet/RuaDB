@@ -36,6 +36,7 @@ bytevec_decl! {
     pub struct RecordInFile {
         pub record: String
     }
+
 }
 
 /*
@@ -69,19 +70,39 @@ impl ColumnDataInFile {
         }
     }
 
+    pub fn get_type(&self) -> u8 {
+        (self.flags >> 2) & 0b111
+    }
+
+    pub fn str_type() -> u8 {
+        0u8
+    }
+
+    pub fn null_data(ct: &ColumnType) -> Self {
+        let ty: u8 = {
+            match ct.data_type {
+                Type::Str(_) => 0,
+                Type::Int(_) => 1,
+                Type::Float(_) => 2,
+                Type::Date(_) => 3,
+                Type::Numeric(_) => 4,
+            }
+        };
+
+        Self {
+            index: ct.index,
+            flags: (ty << 2) | 0b11,
+            data: 0u64,
+        }
+    }
+
     // ColumnData to ColumnDataInFile
     pub fn from(th: &TableHandler, cd: &ColumnData) -> Self {
         match &cd.data {
             Some(data) => {
                 Self {
                     index: cd.index,
-                    flags: cd.default as u8 | match data {
-                        Data::Str(_) => 0 << 2,
-                        Data::Int(_) => 1 << 2,
-                        Data::Float(_) => 2 << 2,
-                        Data::Date(_) => 3 << 2,
-                        Data::Numeric(_) => 4 << 2,
-                    },
+                    flags: cd.default as u8 | (cd.flags << 2),
                     data: match data {
                         Data::Str(d) => th.insert_string(&d).to_u64(),
                         Data::Int(d) => unsafe{transmute(*d)},
@@ -94,7 +115,7 @@ impl ColumnDataInFile {
             None => {
                 Self {
                     index: cd.index,
-                    flags: cd.default as u8 | 2,
+                    flags: cd.default as u8 | 2 | (cd.flags << 2),
                     data: 0,
                 }
             }
@@ -106,6 +127,7 @@ impl ColumnDataInFile {
         ColumnData {
             index: self.index,
             default: self.flags & 1 != 0,
+            flags: self.flags >> 2,
             data: if self.flags & 2 == 0 {
                 Some(match (self.flags >> 2) & 7 {
                         0 => Data::Str(th.get_string(&StrPointer::new(self.data))),
@@ -127,6 +149,17 @@ impl ColumnDataInFile {
             let flags: [u8; 1] = transmute(self.flags);
             let data: [u8; 8] = transmute(self.data);
             format!("{}{}{}", String::from_utf8_unchecked(index.to_vec()), String::from_utf8_unchecked(flags.to_vec()), String::from_utf8_unchecked(data.to_vec()))
+        }
+    }
+
+    pub fn as_str(&self) -> &str {
+        unsafe {
+            ::std::str::from_utf8_unchecked(
+                ::std::slice::from_raw_parts(
+                    (self as *const Self) as *const u8,
+                    ::std::mem::size_of::<Self>(),
+                )
+            )
         }
     }
 }
@@ -161,27 +194,22 @@ impl RecordInFile {
         let r: &[u8] = self.record.as_bytes();
         let size_of_data = size_of::<ColumnDataInFile>();
         assert_eq!(r.len() % size_of_data, 0);
-
         let mut columns = Vec::new();
-
         for offset in (0..r.len()).step_by(size_of_data) {
             columns.push(ColumnDataInFile::new(&r[offset .. offset + size_of_data]));
         }
-
         unsafe {
             columns.sort_by(|a, b| b.index.cmp(&a.index));
         }
-
-        let mut cols_id = 0;
-        for column in &columns {
-            if cols_id < cols.len() && column.index == cols[cols_id] {
-                index_flags.push((column.flags >> 2) & 7);
-                index.push(column.data);
-                cols_id += 1
+        // TODO: use index instead
+        for cols_id in cols {
+            for column in &columns {
+                if column.index == *cols_id {
+                    index_flags.push((column.flags >> 2) & 7);
+                    index.push(column.data);
+                }
             }
         }
-        assert_eq!(cols_id, cols.len());
-
         Index {
             th: th,
             index_flags: index_flags,

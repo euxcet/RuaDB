@@ -1,22 +1,9 @@
 use std::collections::HashMap;
 use crate::parser::ast;
 use crate::utils::convert;
+use super::pagedef::StrPointer;
 
-pub const TYPE_INT: i32 = 1;
-pub const TYPE_STR: i32 = 2;
-pub const TYPE_FLOAT: i32 = 3;
-pub const TYPE_DATE: i32 = 4;
-pub const TYPE_NUMERIC: i32 = 5;
-
-pub fn datatype2int(ty: &Type) -> i32 {
-    match ty {
-        Type::Int(_) => TYPE_INT,
-        Type::Str(_) => TYPE_STR,
-        Type::Float(_) => TYPE_FLOAT,
-        Type::Date(_) => TYPE_DATE,
-        Type::Numeric(_) => TYPE_NUMERIC,
-    }
-}
+use crate::defer;
 
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
 pub enum Data {
@@ -28,24 +15,36 @@ pub enum Data {
 } 
 
 impl Data {
-    pub fn from_value(value: &ast::Value) -> Option<Self> {
+    pub fn from_value(value: &ast::Value, ct: &ColumnType) -> Option<Self> {
         use std::str::FromStr;
-        match value {
-            ast::Value::Int(s) => Some(Self::Int(i64::from_str(s).unwrap())),
-            ast::Value::Str(s) => Some(Self::Str(s.to_string())),
-            ast::Value::Date(s) => Some(Self::Date(convert::str2date(s))),
-            ast::Value::Float(s) => Some(Self::Float(f64::from_str(s).unwrap())),
-            ast::Value::Null => None,
+        if ct.numeric_precision > 0 {
+            match value {
+                ast::Value::Int(s) |
+                ast::Value::Float(s) => Some(Self::Numeric(convert::str_to_numeric(s, ct.numeric_precision))),
+                ast::Value::Null => None,
+                _ => unreachable!(),
+            }
+        }
+        else {
+            match value {
+                ast::Value::Int(s) => Some(Self::Int(i64::from_str(s).unwrap())),
+                ast::Value::Str(s) => Some(Self::Str(s.to_string())),
+                ast::Value::Date(s) => Some(Self::Date(convert::str_to_date(s))),
+                ast::Value::Float(s) => Some(Self::Float(f64::from_str(s).unwrap())),
+                ast::Value::Null => None,
+            }
         }
     }
 
-    pub fn to_string(&self) -> String {
+    pub fn to_string(&self, ct: &ColumnType) -> String {
         match self {
             Data::Str(d) => d.clone(),
             Data::Int(d) => d.to_string(),
             Data::Float(d) => d.to_string(),
-            Data::Date(d) => d.to_string(),
-            Data::Numeric(d) => d.to_string(),
+            Data::Date(d) => convert::date_to_str(*d),
+            Data::Numeric(d) => {
+                convert::numeric_to_str(*d, ct.numeric_precision)
+            },
         }
     }
 }
@@ -60,6 +59,40 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn of_same_type(&self, ty: &ast::Type) -> bool {
+        match (self, ty) {
+            (Type::Int(_), ast::Type::Int(_)) | 
+            (Type::Str(_), ast::Type::Varchar(_)) | 
+            (Type::Float(_), ast::Type::Float) | 
+            (Type::Date(_), ast::Type::Date) |
+            (Type::Numeric(_), ast::Type::Numeric(_, _))=> true,
+            (_, _) => false, 
+        }
+    }
+    pub fn comparable(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Type::Int(_), Type::Int(_)) | 
+            (Type::Str(_), Type::Str(_)) | 
+            (Type::Float(_), Type::Float(_)) | 
+            (Type::Date(_), Type::Date(_)) |
+            (Type::Numeric(_), Type::Numeric(_)) => true,
+            (_, _) => false, 
+        }
+    }
+
+    pub fn valid_value(&self, value: &ast::Value) -> bool {
+        match (self, value) {
+            (Type::Int(_), ast::Value::Int(_)) |
+            (Type::Str(_), ast::Value::Str(_)) |
+            (Type::Float(_), ast::Value::Float(_)) |
+            (Type::Date(_), ast::Value::Date(_)) |
+            (Type::Numeric(_), ast::Value::Int(_)) |
+            (Type::Numeric(_), ast::Value::Float(_)) |
+            (_, ast::Value::Null) => true,
+            (_, _) => false,
+        }
+    }
+
     pub fn from_type(ty: &ast::Type, value: &Option<ast::Value>) -> Self {
         use std::str::FromStr; 
         match ty {
@@ -79,7 +112,7 @@ impl Type {
             },
             ast::Type::Date => {
                 match value {
-                    Some(ast::Value::Date(s)) => Self::Date(Some(convert::str2date(s))),
+                    Some(ast::Value::Date(s)) => Self::Date(Some(convert::str_to_date(s))),
                     None => Self::Date(None),
                     _ => unreachable!(),
                 }
@@ -91,6 +124,14 @@ impl Type {
                     _ => unreachable!(),
                 }
             },
+            ast::Type::Numeric(_, p) => {
+                match value {
+                    Some(ast::Value::Int(s)) => Self::Numeric(Some(convert::str_to_numeric(s, *p as u8))),
+                    Some(ast::Value::Float(s)) => Self::Numeric(Some(convert::str_to_numeric(s, *p as u8))),
+                    None => Self::Numeric(None),
+                    _ =>  unreachable!(),
+                }
+            }
         }
     }
 
@@ -112,7 +153,7 @@ impl Type {
             Type::Int(None) => String::from("NULL"),
             Type::Float(Some(s)) => s.to_string(),
             Type::Float(None) => String::from("NULL"),
-            Type::Date(Some(s)) => s.to_string(),
+            Type::Date(Some(s)) => convert::date_to_str(*s),
             Type::Date(None) => String::from("NULL"),
             Type::Numeric(Some(s)) => s.to_string(),
             Type::Numeric(None) => String::from("NULL"),
@@ -125,6 +166,8 @@ impl Default for Type {
         Self::Int(None)
     }
 }
+
+
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ColumnType {
@@ -157,7 +200,12 @@ impl ColumnType {
             String::from(if self.can_be_null {"YES"} else {"NO"}), // Null
             String::from(if self.is_primary {"PRI"} else if is_mul {"MUL"} else {""}), // Key
             self.data_type.get_default_string(), // Default
+            if self.is_foreign { format!("{}.{}", self.foreign_table_name, self.foreign_table_column)} else {String::from("")},
         ]
+    }
+
+    pub fn from_field(tb_name: &String, index: u32, field: &ast::Field) -> Self {
+        unimplemented!();
     }
 }
 
@@ -166,9 +214,9 @@ pub struct ColumnTypeVec {
 }
 
 impl ColumnTypeVec {
-    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> Self {
+    pub fn from_fields<'a, 'b>(field_list: &'a Vec<ast::Field>, tb_name: &'b String) -> (Self, Vec<u32>, Vec<(&'a String, Vec<u32>)>) {
         let mut primary_key: &Vec<String> = &Vec::new();
-        let mut foreign_key = Vec::new();
+        let mut foreign_list = Vec::new();
 
         let mut cols: Vec<ColumnType> = Vec::new();
         let mut map: HashMap<String, usize> = HashMap::new();
@@ -182,7 +230,10 @@ impl ColumnTypeVec {
                         name: col_name.clone(),
                         index: index as u32,
                         data_type: Type::from_type(&ty, &default_value),
-                        numeric_precision: 0,
+                        numeric_precision: match &ty {
+                            ast::Type::Numeric(_, p) => *p as u8 + 1,
+                            _ => 0,
+                        },
                         can_be_null: !not_null,
                         has_index: false,
                         has_default: default_value.is_some(),
@@ -196,27 +247,42 @@ impl ColumnTypeVec {
                 ast::Field::PrimaryKeyField {column_list} => {
                     primary_key = column_list;
                 },
-                ast::Field::ForeignKeyField {col_name, foreign_tb_name, foreign_col_name } => {
-                    foreign_key.push((col_name, foreign_tb_name, foreign_col_name));
+                ast::Field::ForeignKeyField { column_list, foreign_tb_name, foreign_column_list } => {
+                    foreign_list.push((column_list, foreign_tb_name, foreign_column_list))
                 }
             }
         }
+        
+        let mut primary_cols = Vec::new();
 
         for primary in primary_key {
             let index = map.get(primary).unwrap();
             cols[*index].is_primary = true;
+            cols[*index].can_be_null = false;
+            primary_cols.push(*index as u32);
         }
 
-        for fk in &foreign_key {
-            let index = map.get(fk.0).unwrap() ;
-            cols[*index].is_foreign = true;
-            cols[*index].foreign_table_name = fk.1.clone();
-            cols[*index].foreign_table_column = fk.2.clone();
+        let mut foreign_col_index  = Vec::new();
+
+        for (cs, ft_name, fcs) in foreign_list {
+            for (c_name, fc_name) in cs.iter().zip(fcs.iter()) {
+                let index = map.get(c_name).unwrap();
+                cols[*index].is_foreign = true;
+                cols[*index].foreign_table_name = ft_name.clone();
+                cols[*index].foreign_table_column = fc_name.clone();
+            }
+
+            foreign_col_index.push((ft_name, cs.iter().map(|c_name| *map.get(c_name).unwrap() as u32).collect()));
         }
 
-        Self {
-            cols: cols,
-        }
+        // for fk in &foreign_key {
+        //     let index = map.get(fk.0).unwrap() ;
+        //     cols[*index].is_foreign = true;
+        //     cols[*index].foreign_table_name = fk.1.clone();
+        //     cols[*index].foreign_table_column = fk.2.clone();
+        // }
+
+        (Self { cols: cols, }, primary_cols, foreign_col_index)
     }
 
     pub fn get_primary_index(&self) -> Vec<u32> {
@@ -225,12 +291,12 @@ impl ColumnTypeVec {
         ).collect()
     }
 
-    pub fn print(&self, col_num: usize) -> Vec<String> {
-        let mut res = vec![vec![]; col_num];
+    pub fn print(&self) -> Vec<String> {
+        let mut res = vec![vec![]; 6];
         let mut non_primary_col_number = 0;
         for col in &self.cols {
             let content = col.print(non_primary_col_number == 0);
-            for i in 0..col_num {
+            for i in 0..6 {
                 res[i].push(content[i].clone());
             }
             if !col.is_primary {
@@ -245,6 +311,17 @@ impl ColumnTypeVec {
 pub struct ColumnData {
     pub index: u32,
     pub default: bool,
+    /*
+        flags [0 .. 8]
+        [data_type_bit0, data_type_bit1, data_byte_bit2, 0, 0, 0, 0, 0]
+        bit meaning
+        0   Data::Str
+        1   Data::Int
+        2   Data::Float
+        3   Data::Date
+        4   Data::Numeric
+    */
+    pub flags: u8,
     pub data: Option<Data>,
 }
 
@@ -260,22 +337,29 @@ pub struct Record {
 }
 
 impl Record {
-    pub fn print(&self) -> Vec<String> {
-        self.cols.iter().map(|x| {
+    pub fn print(&self, ct: &Vec<ColumnType>) -> Vec<String> {
+        self.cols.iter().zip(ct.iter()).map(|(x, ct)| {
             match &x.data {
-                Some(d) => d.to_string(),
-                None => String::new(),
+                Some(d) => d.to_string(ct),
+                None => String::from("NULL"),
             }
         }).collect()
     }
 
-    pub fn from_value_lists(value_lists: &Vec<ast::Value>) -> Self {
+    pub fn from_value_lists(value_lists: &Vec<ast::Value>, cts: &Vec<ColumnType>) -> Self {
         let mut cols = Vec::new();
         for i in 0..value_lists.len() {
             cols.push(ColumnData {
                 index: i as u32,
                 default: false,
-                data: Data::from_value(&value_lists[i])
+                flags: match &cts[i].data_type {
+                    &Type::Str(_) => 0,
+                    &Type::Int(_) => 1,
+                    &Type::Float(_) => 2,
+                    &Type::Date(_) => 3,
+                    &Type::Numeric(_) => 4,
+                },
+                data: Data::from_value(&value_lists[i], &cts[i])
             });
         }
         Self {
@@ -293,15 +377,26 @@ impl Record {
         }
     }
 
-    pub fn get_match_data(&self, col: &ast::Column, ty: &Vec<ColumnType>) -> Option<Data> {
+    pub fn get_match_data(&self, col: &ast::Column, ty: &Vec<ColumnType>) -> (Option<Data>, Option<ColumnType>) {
         for i in 0..ty.len() {
             if ty[i].match_(col) {
-                return self.cols[i].data.clone();
+                return (self.cols[i].data.clone(), Some(ty[i].clone()));
             }
         }
-        None
+        (None, None)
     }
 
+    pub fn set_(&mut self, value_list: &Vec<ast::SetClause>, ty: &Vec<ColumnType>) {
+        for value in value_list {
+            for i in 0..ty.len() {
+                if ty[i].name == value.col_name {
+                    self.cols[i].data = Data::from_value(&value.value, &ty[i]);
+                }
+            }
+        }
+    }
+
+    /*
     pub fn match_(&self, condition: &ast::WhereClause, ty: &Vec<ColumnType>) -> bool {
         match condition {
             ast::WhereClause::IsAssert{col, null} => {
@@ -316,12 +411,13 @@ impl Record {
                 let l_data = self.get_match_data(col, ty);
                 let r_data = match expr {
                     ast::Expr::Value(ref value) => {
-                        Data::from_value(value)
+                        Data::from_value(value, &l_data.1.unwrap())
                     }
                     ast::Expr::Column(ref r_col) => {
-                        self.get_match_data(r_col, ty)
+                        self.get_match_data(r_col, ty).0
                     }
                 };
+                let l_data = l_data.0;
                 if l_data.is_none() || r_data.is_none() {
                     false
                 }
@@ -340,14 +436,25 @@ impl Record {
             }
         }
     }
+    */
 }
 
 pub struct RecordList {
     pub ty: Vec<ColumnType>,
+    // TODO: delete record
     pub record: Vec<Record>,
+    pub ptrs: Vec<StrPointer>,
 }
 
 impl RecordList {
+    pub fn new() -> Self {
+        Self {
+            ty: Vec::new(),
+            record: Vec::new(),
+            ptrs: Vec::new(),
+        }
+    }
+
     pub fn sub_record_list(&self, sub_cols: &Vec<usize>) -> RecordList {
         let mut ty = Vec::new();
         for pos in sub_cols {
@@ -356,6 +463,7 @@ impl RecordList {
         RecordList {
             ty: ty,
             record: self.record.iter().map(|record| record.sub_record(sub_cols)).collect(),
+            ptrs: self.ptrs.clone(),
         }
     }
 
@@ -363,7 +471,7 @@ impl RecordList {
         let title: Vec<String> = self.ty.iter().map(|ty| ty.name.clone()).collect();
         let mut res = vec![vec![]; title.len()];
         for record in &self.record {
-            let content = record.print();
+            let content = record.print(&self.ty);
             for i in 0..title.len() {
                 res[i].push(content[i].clone());
             }
