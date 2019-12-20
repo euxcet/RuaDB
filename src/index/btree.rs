@@ -175,6 +175,11 @@ impl<'a> BTree<'a> {
         root.search(self.th, key)
     }
 
+    pub fn search_record_with_op(&self, key: &RawIndex, is_less: bool, can_be_equal: bool) -> Option<Bucket> {
+        let root = self.th.get_btree_node_(self.root);
+        root.search_with_op(self.th, key, is_less, can_be_equal)
+    }
+
     pub fn first_bucket(&self) -> Option<Bucket> {
         let root = self.th.get_btree_node_(self.root);
         root.first_bucket(self.th)
@@ -678,15 +683,64 @@ impl BTreeNode {
             BTreeNodeType::Leaf => {
                 let i = self.lower_bound(th, key, len);
                 if i < len && self.to_raw(th, self.key[i]) == *key {
-                    return Some(th.get_bucket_(self.bucket[i]));
+                    Some(th.get_bucket_(self.bucket[i]))
+                }
+                else {
+                    None
                 }
             }
             BTreeNodeType::Internal => {
                 let son_pos = self.upper_bound(th, key, len);
-                return th.get_btree_node_(self.son[son_pos]).search(th, key);
+                th.get_btree_node_(self.son[son_pos]).search(th, key)
             }
         }
-        None
+    }
+
+    pub fn search_with_op(&self, th: &TableHandler, key: &RawIndex, is_less: bool, can_be_equal: bool) -> Option<Bucket> {
+        let len = self.get_len();
+        match self.ty {
+            BTreeNodeType::Leaf => {
+                let i = self.lower_bound(th, key, len);
+                if i == len {
+                    let bucket = th.get_bucket_(self.bucket[i - 1]); // bucket < key
+                    if is_less { // less
+                        Some(bucket)
+                    }
+                    else { // greater
+                        if bucket.next > 0 { Some(th.get_bucket_(bucket.next)) } else { None }
+                    }
+                }
+                else {
+                    let raw_index = self.to_raw(th, self.key[i]);
+                    let bucket = th.get_bucket_(self.bucket[i]);
+                    if raw_index == *key { // bucket = key
+                        if can_be_equal {
+                            Some(bucket)
+                        }
+                        else {
+                            if is_less { // less
+                                if bucket.prev > 0 { Some(th.get_bucket_(bucket.prev)) } else { None }
+                            }
+                            else {
+                                if bucket.next > 0 { Some(th.get_bucket_(bucket.next)) } else { None }
+                            }
+                        }
+                    }
+                    else { // bucket > key
+                        if is_less { // less
+                            if bucket.prev > 0 { Some(th.get_bucket_(bucket.prev)) } else { None }
+                        }
+                        else { // greater
+                            Some(bucket)
+                        }
+                    }
+                }
+            }
+            BTreeNodeType::Internal => {
+                let son_pos = self.upper_bound(th, key, len);
+                th.get_btree_node_(self.son[son_pos]).search(th, key)
+            }
+        }
     }
 
     pub fn first_bucket(&self, th: &TableHandler) -> Option<Bucket> {

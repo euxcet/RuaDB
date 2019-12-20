@@ -360,6 +360,7 @@ impl Record {
         }
     }
 
+    /*
     pub fn match_(&self, condition: &ast::WhereClause, ty: &Vec<ColumnType>) -> bool {
         match condition {
             ast::WhereClause::IsAssert{col, null} => {
@@ -399,6 +400,7 @@ impl Record {
             }
         }
     }
+    */
 }
 
 pub struct RecordList {
@@ -409,6 +411,14 @@ pub struct RecordList {
 }
 
 impl RecordList {
+    pub fn new() -> Self {
+        Self {
+            ty: Vec::new(),
+            record: Vec::new(),
+            ptrs: Vec::new(),
+        }
+    }
+
     pub fn sub_record_list(&self, sub_cols: &Vec<usize>) -> RecordList {
         let mut ty = Vec::new();
         for pos in sub_cols {
