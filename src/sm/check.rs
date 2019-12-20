@@ -493,9 +493,16 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
     }
 
     let foreign_table = table_foreign_this_table(tb_name, sm);
+
     if foreign_table.len() > 0 {
+        use super::query_tree::QueryTree;
+        let database = sm.current_database.as_ref().unwrap();
+        let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+        tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+        let record_list = tree.query();
 
     }
+
     true
 }
 

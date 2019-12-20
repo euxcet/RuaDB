@@ -451,16 +451,16 @@ impl SystemManager {
             }
         }
         else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+            let record_list = tree.query();
+
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let index_col: Vec<u32> = column_list.iter().map(|column_name| map.get(column_name).unwrap().index).collect();
             let mut btree = BTree::new(&th, index_col.clone(), idx_name, BTree::index_ty());
 
-            let database = self.current_database.as_ref().unwrap();
-            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
-            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
-
-            let record_list = tree.query();
             for ptr in &record_list.ptrs {
                 let (_, record_in_file) = th.get_record(ptr);
                 let record_index = record_in_file.get_index(&th, &index_col);
@@ -518,14 +518,14 @@ impl SystemManager {
                 }
             }
         } else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
             let th = self.open_table(tb_name, false).unwrap();
             let index = th.get_column_numbers() as u32;
             let new_column = ColumnType::from_field(tb_name, index, field); 
             th.insert_column_type(&new_column);
-
-            let database = self.current_database.as_ref().unwrap();
-            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
-            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
 
             let record_list = tree.query();
             for ptr in &record_list.ptrs {
@@ -554,14 +554,14 @@ impl SystemManager {
                 }
             }
         } else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
             let th = self.open_table(tb_name, false).unwrap();
             let index = th.get_column_types().cols.iter().position(|ct| &ct.name == col_name).unwrap();
 
             th.delete_column_type_from_index(index);
-
-            let database = self.current_database.as_ref().unwrap();
-            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
-            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
 
             let record_list = tree.query();
             for ptr in &record_list.ptrs {
