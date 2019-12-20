@@ -289,7 +289,7 @@ impl SystemManager {
             }
 
             th.close();
-            RuaResult::ok(None, format!("{} row affected", records.len()))
+            RuaResult::ok(None, format!("{} rows affected", records.len()))
         }
     }
 
@@ -362,15 +362,23 @@ impl SystemManager {
             tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
             let record_list = tree.query();
 
-            // TODO: delete in every btree
             let th = self.open_table(tb_name, false).unwrap();
             let mut born_btree = th.get_born_btree();
-            for ptr in &record_list.ptrs {
+            let mut btrees = th.get_btrees_with_ptrs();
+            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
                 born_btree.delete_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64());
+                for (_, btree) in &mut btrees {
+                    btree.delete_record(&RawIndex::from_record(record, &btree.index_col), ptr.to_u64());
+                }
+                th.delete(&ptr);
             }
             th.update_born_btree(&born_btree);
+            for (p, btree) in &btrees {
+                th.update_btree(p, btree);
+            }
+
             th.close();
-            RuaResult::default()
+            RuaResult::ok(None, format!("{} rows affected", record_list.ptrs.len()))
         }
     }
 
@@ -384,7 +392,7 @@ impl SystemManager {
                 let map = th.get_column_types_as_hashmap();
                 th.close();
 
-                let valid = check::check_update(tb_name, &map, set_clause, where_clause);
+                let valid = check::check_update(tb_name, &map, set_clause, where_clause, self);
                 if !valid {
                     RuaResult::err("invalid update".to_string())
                 } else {
@@ -396,17 +404,30 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
-            let mut record_list = tree.query();
+            let record_list = tree.query();
 
             let th = self.open_table(tb_name, false).unwrap();
-            for pair in record_list.record.iter_mut().zip(record_list.ptrs.iter()) {
-                let (record, ptr) = pair;
+            let mut affected_btrees = th.get_affected_btrees_with_ptrs(&set_clause.iter().map(|s| &s.col_name).collect());
+
+            let l = record_list.ptrs.len();
+
+            for (ptr, mut record) in record_list.ptrs.into_iter().zip(record_list.record.into_iter()) {
+                let origin_record = record.clone();
                 record.set_(set_clause, &record_list.ty);
-                th.update_record(ptr, record);
+
+                for (_, btree) in &mut affected_btrees {
+                    btree.delete_record(&RawIndex::from_record(&origin_record, &btree.index_col), ptr.to_u64());
+                    btree.insert_record(&RawIndex::from_record(&record, &btree.index_col), ptr.to_u64(), true);
+                }
+                th.update_record(&ptr, &record);
             }
+
+            for (p, btree) in &affected_btrees {
+                th.update_btree(p, btree);
+            }
+
             th.close();
-            // TODO: update in every related btree
-            RuaResult::default()
+            RuaResult::ok(None, format!("{} rows affected", l))
         }
     }
 
