@@ -63,6 +63,7 @@ pub struct RawIndex {
 }
 
 impl RawIndex {
+     // TODO: null index
     pub fn from(index: &Index) -> Self {
         let mut data = Vec::new();
         for i in 0..index.index.len() {
@@ -83,6 +84,12 @@ impl RawIndex {
     pub fn from_u64(index: u64) -> Self {
         Self {
             index: vec![Data::Int(unsafe{transmute(index)})],
+        }
+    }
+
+    pub fn from_record(record: &Record, sub_col: &Vec<u32>) -> Self {
+        Self {
+            index: sub_col.iter().map(|i| record.cols[*i as usize].data.clone().unwrap()).collect()
         }
     }
 }
@@ -129,17 +136,34 @@ pub struct BTree<'a> {
     // "" : born btree,
     // "primary": primary btree,
     // "i[_(index)]+": costom index btree,
+    // "f[_(index)]+": foreign index,
     pub index_name: String, 
+    // born, primary, index, foreign
+    // 0, 1, 2, 3
+    pub ty: u8, 
 }
 
 impl<'a> BTree<'a> {
-    pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str) -> Self {
+    pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str, ty: u8) -> Self {
         Self {
             th: th,
             root: th.insert_btree_node().to_u64(),
             index_col: index_col,
             index_name: index_name.to_string(),
+            ty: ty,
         }
+    }
+
+    pub fn is_primary(&self) -> bool {
+        self.ty == Self::primary_ty()
+    } 
+    pub fn born_ty() -> u8 {0}
+    pub fn primary_ty() -> u8 {1}
+    pub fn index_ty() -> u8 {2}
+    pub fn foreign_ty() -> u8 {3}
+
+    pub fn is_foreign(&self) -> bool {
+        self.ty == Self::foreign_ty()
     }
 
     // offset

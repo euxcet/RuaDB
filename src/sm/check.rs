@@ -1,15 +1,20 @@
 use crate::parser::ast::*;
-use crate::sm::system_manager::SystemManager;
 use crate::rm::record::*;
 use crate::index::btree::*;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
+use crate::defer;
+
+use super::system_manager::SystemManager;
+use super::query_tree::QueryTree;
+
+
+pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
     let mut primary_key: Vec<&Vec<String>> = Vec::new();
-    let mut name_foreign_key = HashMap::new();
+    let mut foreign_list: Vec<(&Vec<String>, &String, &Vec<String>)> = Vec::new();
 
     for field in field_list {
         match field {
@@ -27,11 +32,8 @@ pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
             Field::PrimaryKeyField {column_list} => {
                 primary_key.push(column_list);
             },
-            Field::ForeignKeyField {col_name, foreign_tb_name, foreign_col_name } => {
-                if name_foreign_key.contains_key(col_name) {
-                    return false;
-                }
-                name_foreign_key.insert(col_name, (col_name, foreign_tb_name, foreign_col_name));
+            Field::ForeignKeyField { column_list, foreign_tb_name, foreign_column_list } => {
+                foreign_list.push((column_list, foreign_tb_name, foreign_column_list))
             }
         }
     }
@@ -42,6 +44,10 @@ pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
 
     if primary_key.len() == 1 {
         let primary_key = primary_key[0];
+        let no_repeat = check_no_repeat(primary_key);
+        if !no_repeat {
+            return false;
+        }
         for col_name in primary_key {
             if !name_field.contains_key(col_name) {
                 return false;
@@ -49,43 +55,138 @@ pub fn check_field_list(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         }
     }
 
-    for (name, fk) in &name_foreign_key {
-        if !name_field.contains_key(name) {
+    for (cols, ft_name, fcols) in foreign_list {
+        if cols.len() != fcols.len() {
             return false;
         }
-        // has foreign table
-        if let Some(th) = sm.open_table(fk.1, false) {
-            let ct_map = th.get_column_types_as_hashmap();
-            // has foreign column
-            if let Some(foreign_col) = ct_map.get(fk.2) {
-                let this_field = name_field.get(name).unwrap();
-                let f_ty = &foreign_col.data_type;
-                let t_ty = this_field.1;
-                // has same type
-                if !f_ty.of_same_type(t_ty) {
-                    return false;
-                }
-                // foreign column must be primary
-                // if primary_set_from_column_types_hashmap(&ct_map) != vec![foreign_col.name.clone()].iter().collect() {
-                //     return false;
-                // }
-            }
-            else {
-                return false
-            }
-            th.close();
-        } else {
+        let no_repeat = check_no_repeat(cols) && check_no_repeat(fcols);
+        if !no_repeat {
+            return false;
+        }
+
+        let all_found = cols.iter().fold(true, |all_found, col_name| all_found && name_field.contains_key(col_name));
+        if !all_found {
+            return false;
+        }
+
+        let th = sm.open_table(ft_name, false);
+        if th.is_none() {
+            return false;
+        }
+
+        let th = th.unwrap();
+        defer!(th.close());
+        let fmap = th.get_column_types_as_hashmap();
+        let all_found = fcols.iter().fold(true, |all_found, fcol_name| all_found && fmap.contains_key(fcol_name));
+        if !all_found {
+            return false;
+        }
+
+        use crate::parser::ast;
+        let tys: Vec<&ast::Type> = cols.iter().map(|col_name| name_field.get(col_name).unwrap().1).collect();
+        let fcts: Vec<&ColumnType> = fcols.iter().map(|fcol_name| fmap.get(fcol_name).unwrap()).collect();
+
+        let type_valid = tys.iter().zip(fcts.iter()).fold(true, |all_valid, (ty, fct)| all_valid && (fct.data_type.of_same_type(ty)));
+        if !type_valid {
+            return false;
+        }
+        let pri_cols = th.get_primary_cols();
+        if pri_cols.is_none() {
+            return false;
+        }
+        let pri_cols = pri_cols.unwrap().cols;
+        if fcts.len() < pri_cols.len() {
+            return false;
+        }
+
+        let same = fcts.iter().zip(pri_cols.iter()).fold(true, |prefix, (fct, pri_col)| prefix && (fct == &pri_col));
+        if !same {
             return false;
         }
     }
 
+    // for (name, fk) in &name_foreign_key {
+    //     if !name_field.contains_key(name) {
+    //         return false;
+    //     }
+    //     let th = sm.open_table(fk.1, false);
+    //     if th.is_none() {
+    //         return false;
+    //     }
+    //     let th = th.unwrap();
+    //     let primary_cols = th.get_primary_cols();
+    //     defer!(th.close());
+
+    //     if primary_cols.is_none() {
+    //         return false;
+    //     }
+    //     let primary_cols = primary_cols.unwrap().cols;
+    //     if primary_cols.len() != 1 {
+    //         return false;
+    //     }
+    //     if &primary_cols[0].name != fk.2 {
+    //         return false;
+    //     }
+
+    //     let foreign_type = &primary_cols[0].data_type;
+    //     let this_type = name_field.get(name).unwrap().1;
+    //     if !foreign_type.of_same_type(this_type) {
+    //         return false;
+    //     }
+    // }
+
     true
 }
 
-// TODO: foreign key
-pub fn check_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) -> bool {
+pub fn check_drop_table(tb_name: &String, sm: &SystemManager) -> bool {
+    let tables = sm.get_tables();
+    for table in &tables {
+        if table != tb_name {
+            let th = sm.open_table(table, false).unwrap();
+            defer!(th.close());
+            let cts = th.get_column_types().cols;
+            let foreign_this = cts.iter().fold(false, |foreign, ct| foreign || (ct.is_foreign && &ct.foreign_table_name == tb_name));
+            if foreign_this {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+pub fn table_foreign_this_table(tb_name: &String, sm: &SystemManager) -> Vec<String> {
+    sm.get_tables().into_iter().filter_map( 
+        |name| {
+            if &name == tb_name {
+                None
+            } else {
+                let th = sm.open_table(&name, false).unwrap();
+                defer!(th.close());
+                let cts = th.get_column_types().cols;
+                let foreign_this = cts.iter().fold(false, |foreign, ct| foreign || (ct.is_foreign && &ct.foreign_table_name == tb_name));
+                if foreign_this {
+                    Some(name)
+                } else {
+                    None
+                }
+            }
+        }
+    ).collect()
+}
+
+
+
+pub fn check_insert_value(tb_name: &String, value_lists: &Vec<Vec<Value>>, sm: &SystemManager) -> bool {
+    use crate::rm::pagedef::*;
+    use crate::rm::in_file::*;
+
+    let th = sm.open_table(tb_name, false).unwrap();
+    let cts = th.get_column_types();
+
     let cols = &cts.cols;
     let col_num = cols.len();
+    defer!(th.close());
+
     for values in value_lists {
         if values.len() != col_num {
             return false;
@@ -95,6 +196,62 @@ pub fn check_insert_value(value_lists: &Vec<Vec<Value>>, cts: &ColumnTypeVec) ->
                 return false;
             }
             if values[i].is_null() && !cols[i].can_be_null {
+                return false;
+            }
+        }
+    }
+    let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v, &cts.cols)).collect();
+
+    let mut inserted: Vec<(StrPointer, RawIndex)> = Vec::new();
+    let t = th.get_primary_btree_with_ptr();
+
+    let mut duplicate = false;
+    if let Some((ptr_ptr, mut pri_btree)) = t {
+        for record in &records {
+            let (ptr, rif) = th.insert_record_get_record_in_file(record);
+            let ri = RawIndex::from(&rif.get_index(&th, &pri_btree.index_col));
+            let dup = pri_btree.insert_record(&ri, ptr.to_u64(), false);
+            if dup {
+                duplicate = true;
+                break;
+            } else {
+                inserted.push((ptr, ri));
+            }
+        }
+        while let Some((ptr, ri)) = inserted.pop() {
+            pri_btree.delete_record(&ri, ptr.to_u64());
+        }
+        th.update_btree(&ptr_ptr, &pri_btree);
+    }
+    if duplicate {
+        return false;
+    }
+
+    let mut ft_name_fk_this_col: HashMap<&String, HashMap<&String, &ColumnType>> = HashMap::new();
+
+    for ct in cols {
+        if ct.is_foreign {
+            let cs = ft_name_fk_this_col.entry(&ct.foreign_table_name).or_insert(HashMap::new());
+            cs.insert(&ct.foreign_table_column, ct);
+        }
+    }
+
+    for (ft_name, fk_this_col) in ft_name_fk_this_col {
+        // in a single foreign table
+        let fth = sm.open_table(ft_name, false).unwrap();
+        defer!(fth.close());
+
+        let primary_cols = fth.get_primary_cols().unwrap().cols;
+        let pri_btree = fth.get_primary_btree().unwrap();
+        assert!(fk_this_col.len() == primary_cols.len());
+
+        // TODO: support part of primary key
+        // TODO: support null foreign key
+        let ordered_index: Vec<u32> = primary_cols.iter().map(|p| fk_this_col.get(&p.name).unwrap().index).collect();
+        for record in &records {
+            let ri = RawIndex::from_record(record, &ordered_index);
+            let res = pri_btree.search_record(&ri);
+            if res.is_none() {
                 return false;
             }
         }
@@ -192,7 +349,7 @@ pub fn check_select(tb_cols: &HashMap<&String, HashMap<String, ColumnType>>, sel
     true
 }
 
-pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_clause: &Option<Vec<WhereClause>>) -> bool {
+pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_clause: &Option<Vec<WhereClause>>, sm: &SystemManager) -> bool {
     let valid_qualified_col = |qualified_col: &Column| -> bool {
         if let Some(ref tb) = qualified_col.tb_name {
             tb == tb_name && map.contains_key(&qualified_col.col_name)
@@ -235,6 +392,46 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
             }
         }
     }
+
+    // check if foreign
+    let foreign_tables = table_foreign_this_table(tb_name, sm);
+    if foreign_tables.len() > 0 {
+        let database = sm.current_database.as_ref().unwrap();
+        let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+        tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+        let record_list = tree.query();
+
+        let th = sm.open_table(tb_name, false).unwrap();
+        defer!(th.close());
+        let primary_cols = th.get_primary_column_index().unwrap();
+        let ris: Vec<RawIndex> = record_list.record.iter().map(
+            |record| {
+                RawIndex::from_record(record, &primary_cols)
+            }
+        ).collect();
+
+        for name in foreign_tables {
+            let fth = sm.open_table(&name, false).unwrap();
+            defer!(fth.close());
+            let foreign_btree = fth.get_btrees().into_iter().filter_map(
+                |btree| {
+                    if btree.is_foreign() && btree.index_name == format!("FOREIGN_{}", tb_name) {
+                        Some(btree)
+                    } else {
+                        None
+                    }
+                }
+            );
+            for fb in foreign_btree {
+                for ri in &ris {
+                    if fb.search_record(ri).is_some() {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
     true
 }
 
@@ -289,6 +486,8 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
         }
     }
 
+
+
     true
 }
 
@@ -300,7 +499,7 @@ pub fn check_create_index(idx_name: &String, map: &HashMap<String, ColumnType>, 
 }
 
 pub fn check_drop_index(idx_name: &String, btrees: &Vec<BTree>) -> bool {
-    idx_name != "primary" 
+    idx_name != "PRIMARY"
         && btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
 }
 

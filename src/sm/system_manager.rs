@@ -1,5 +1,6 @@
 use crate::logger::logger::RuaResult;
 use crate::rm::record::*;
+use crate::rm::in_file::*;
 use crate::rm::pagedef::*;
 use crate::rm::record_manager::*;
 use crate::rm::table_handler::TableHandler;
@@ -17,10 +18,10 @@ use std::cell::RefCell;
 
 
 pub struct SystemManager {
-    root_dir: String,
-    check: bool,
-    current_database: Option<String>,
-    rm: Rc<RefCell<RecordManager>>,
+    pub root_dir: String,
+    pub check: bool,
+    pub current_database: Option<String>,
+    pub rm: Rc<RefCell<RecordManager>>,
 }
 
 impl SystemManager {
@@ -57,6 +58,21 @@ impl SystemManager {
         path
     }
 
+    pub fn get_tables(&self) -> Vec<String> {
+        assert!(self.current_database.is_some());
+        let dir: PathBuf = [self.root_dir.clone(), self.current_database.as_ref().unwrap().clone()].iter().collect();
+        fs::read_dir(dir).unwrap().filter_map(
+            |e| {
+                let p = e.unwrap().path();
+                if p.extension().unwrap() == "rua" {
+                    Some(p.file_stem().unwrap().to_str().unwrap().to_string())
+                } else {
+                    None
+                }
+            }
+        ).collect()
+    }
+
     pub fn open_table(&self, tb_name: &String, create: bool) -> Option<TableHandler>{
         match &self.current_database {
             Some(database) => {
@@ -67,6 +83,7 @@ impl SystemManager {
             None => None,
         }
     }
+    // TODO: Merge check and execute
 
     fn check_database_existence(&self, db_name: &String, should_exist: bool) -> RuaResult {
         assert!(db_name.len() > 0);
@@ -163,50 +180,57 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let path = self.get_database_path(database);
             let mut res = vec![vec![format!("Tables_in_{}", database)]];
-            let tables: Vec<String> = fs::read_dir(path).unwrap()
-                .map(|e| e.unwrap().path())
-                .filter(|p| p.is_file() && p.extension().unwrap() == "rua")
-                .map(|p| p.file_stem().unwrap().to_str().unwrap().to_string()).collect();
+            let tables: Vec<String> = self.get_tables();
             let count = tables.len();
             res.push(vec![tables.join("\n")]);
             RuaResult::ok(Some(res), format!("{} row(s) in set", count))
         }
     }
 
-    // TODO: foreign key
     pub fn create_table(&self, tb_name: &String, field_list: &Vec<Field>) -> RuaResult {
         if self.check {
             let res = self.check_table_existence(tb_name, false);
-            if res.is_ok() {
-                if check::check_field_list(field_list, &self) {
+            if res.is_err() {
+                res
+            } else {
+                if check::check_create_table(field_list, &self) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid field".to_string())
                 }
-            } else {
-                res
             }
         }
         else {
-            let columns = ColumnTypeVec::from_fields(field_list, tb_name);
-            let primary_index = columns.get_primary_index();
-
+            let (columns, primary_cols, foreign_indexes) = ColumnTypeVec::from_fields(field_list, tb_name);
             let th = self.open_table(tb_name, true).unwrap();
             th.insert_column_types(&columns);
             th.init_btrees();
-            th.insert_born_btree(&BTree::new(&th, vec![], ""));
-            if primary_index.len() > 0 {
-                th.insert_btree(&BTree::new(&th, primary_index, "primary"));
+            th.insert_born_btree(&BTree::new(&th, vec![], "", 0));
+            if primary_cols.len() > 0 {
+                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY", BTree::primary_ty()));
             }
+
+            for (ft_name, foreign_index) in foreign_indexes {
+                th.insert_btree(&BTree::new(&th, foreign_index, format!("FOREIGN_{}", ft_name).as_str(), BTree::foreign_ty()));
+            }
+
             th.close();
             RuaResult::ok(None, "table created".to_string())
         }
     }
 
-    // TODO: foreign key
     pub fn drop_table(&self, tb_name: &String) -> RuaResult {
         if self.check {
-            self.check_table_existence(tb_name, true)
+            let res = self.check_table_existence(tb_name, false);
+            if res.is_err() {
+                res
+            } else {
+                if check::check_drop_table(tb_name, &self) {
+                    RuaResult::default()
+                } else {
+                    RuaResult::err("invalid drop table".to_string())
+                }
+            }
         }
         else {
             let database = self.current_database.as_ref().unwrap();
@@ -224,7 +248,7 @@ impl SystemManager {
             let th = self.open_table(tb_name, false).unwrap();
             let cts = th.get_column_types();
             th.close();
-            let title = vec!["Field", "Type", "Null", "Key", "Default"].iter().map(|x| x.to_string()).collect();
+            let title = vec!["Field", "Type", "Null", "Key", "Default", "Foreign"].iter().map(|x| x.to_string()).collect();
             let print_content = cts.print();
             RuaResult::ok(Some(vec![title, print_content]), format!("{} row(s) in set", cts.cols.len()))
         }
@@ -233,33 +257,37 @@ impl SystemManager {
     pub fn insert(&self, tb_name: &String, value_lists: &Vec<Vec<Value>>) -> RuaResult {
         if self.check {
             let res = self.check_table_existence(tb_name, true);
-            let th = self.open_table(tb_name, false).unwrap();
-            let cts = th.get_column_types();
-            th.close();
-            if res.is_ok() {
-                if check::check_insert_value(value_lists, &cts) {
+            if res.is_err() {
+                res
+            } else {
+                if check::check_insert_value(tb_name, value_lists, &self) {
                     RuaResult::default()
                 } else {
                     RuaResult::err("invalid insert values".to_string())
                 }
-            } else {
-                res
             }
         }
         else {
-            // let database = self.current_database.as_ref().unwrap();
-            // let th = self.rm.borrow_mut().open_table(self.get_table_path(database, tb_name).to_str().unwrap(), false);
             let th = self.open_table(tb_name, false).unwrap();
             let cts = th.get_column_types();
             let records: Vec<Record> = value_lists.iter().map(|v| Record::from_value_lists(v, &cts.cols)).collect();
-            let ptrs: Vec<StrPointer> = records.iter().map(|record| th.insert_record(record)).collect();
+            let ptrs: Vec<(StrPointer, RecordInFile)> = records.iter().map(|record| th.insert_record_get_record_in_file(record)).collect();
 
-            // TODO: insert into every btree
             let mut born_btree = th.get_born_btree();
-            for ptr in ptrs {
+            let mut btrees = th.get_btrees_with_ptrs();
+            for (ptr, rif) in ptrs {
                 born_btree.insert_record(&RawIndex::from_u64(ptr.to_u64()), ptr.to_u64(), true);
+                // TODO: take advantage of cache
+                for (_, btree) in &mut btrees {
+                    btree.insert_record(&RawIndex::from(&rif.get_index(&th, &btree.index_col)), ptr.to_u64(), true);
+                }
             }
+
             th.update_born_btree(&born_btree);
+            for (p, btree) in &btrees {
+                th.update_btree(p, btree);
+            }
+
             th.close();
             RuaResult::ok(None, format!("{} row affected", records.len()))
         }
@@ -320,7 +348,7 @@ impl SystemManager {
                 let map = th.get_column_types_as_hashmap();
                 th.close();
 
-                let valid = check::check_delete(tb_name, &map, where_clause);
+                let valid = check::check_delete(tb_name, &map, where_clause, &self);
                 if !valid {
                     RuaResult::err("invalid delete".to_string())
                 } else {
@@ -405,7 +433,7 @@ impl SystemManager {
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let index_col: Vec<u32> = column_list.iter().map(|column_name| map.get(column_name).unwrap().index).collect();
-            let mut btree = BTree::new(&th, index_col.clone(), idx_name);
+            let mut btree = BTree::new(&th, index_col.clone(), idx_name, BTree::index_ty());
 
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
@@ -550,6 +578,10 @@ impl SystemManager {
         } else {
             let th = self.open_table(tb_name, false).unwrap();
             th.update_table_name(new_name);
+            let path = self.get_table_path(self.current_database.as_ref().unwrap(), tb_name);
+            let new_path = self.get_table_path(self.current_database.as_ref().unwrap(), new_name);
+            fs::rename(path, new_path).ok();
+
             RuaResult::default()
         }
     }

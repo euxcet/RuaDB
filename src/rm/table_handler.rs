@@ -66,6 +66,12 @@ impl TableHandler {
         self.fh.insert::<RecordInFile, u32>(&RecordInFile::from(self, record))
     }
 
+    pub fn insert_record_get_record_in_file(&self, record: &Record) -> (StrPointer, RecordInFile) {
+        let rif = RecordInFile::from(self, record);
+        let ptr = self.fh.insert::<RecordInFile, u32>(&rif);
+        (ptr, rif)
+    }
+
     pub fn get_record(&self, ptr: &StrPointer) -> (Record, RecordInFile) {
         let in_file = self.fh.get::<RecordInFile, u32>(ptr);
         (in_file.to_record(self), in_file)
@@ -168,6 +174,31 @@ impl TableHandler {
         }
     }
 
+    pub fn get_primary_cols(&self) -> Option<ColumnTypeVec> {
+        let btrees = self.get_btrees();
+        let pri_tree = btrees.iter().find(|t| t.is_primary());
+        match pri_tree {
+            Some(pri_tree) => {
+                let cts = self.get_column_types().cols;
+                Some(ColumnTypeVec {
+                    cols: pri_tree.index_col.iter().map(|i| cts[*i as usize].clone()).collect(),
+                })
+            },
+            None => None,
+        }
+    }
+
+    pub fn get_primary_column_index(&self) -> Option<Vec<u32>> {
+        let btrees = self.get_btrees();
+        let pri_tree = btrees.into_iter().find(|t| t.is_primary());
+        match pri_tree {
+            Some(pri_tree) => {
+                Some(pri_tree.index_col)
+            },
+            None => None,
+        }
+    }
+
     pub fn get_column_types_as_hashmap(&self) -> HashMap<String, ColumnType> {
         let ptr = StrPointer::new(self.fh.get_column_types_ptr());
         let s = self.get_string(&ptr);
@@ -245,11 +276,29 @@ impl TableHandler {
         self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
-
     pub fn get_btrees(&self) -> Vec<BTree> {
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
         let ptrs = self.__get_ptrs(&ptrs_ptr);
         ptrs.iter().map(|&p| self.__get_btree(&StrPointer::new(p))).collect()
+    }
+
+    pub fn get_primary_btree_with_ptr(&self) -> Option<(StrPointer, BTree)> {
+        let btrees = self.get_btrees_with_ptrs();
+        btrees.into_iter().find(|(p, t)| t.is_primary())
+    }
+
+    pub fn get_primary_btree(&self) -> Option<BTree> {
+        self.get_primary_btree_with_ptr().map(|(_, t)| t)
+    }
+
+    pub fn get_btrees_with_ptrs(&self) -> Vec<(StrPointer, BTree)> {
+        let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        ptrs.iter().map(|&p| {
+            let p = StrPointer::new(p);
+            let t = self.__get_btree(&p);
+            (p, t)
+        }).collect()
     }
 
     pub fn __get_btree(&self, ptr: &StrPointer) -> BTree {
@@ -273,7 +322,6 @@ impl TableHandler {
 
     // for BTreeNode
     pub fn insert_btree_node(&self) -> StrPointer {
-        use std::mem::size_of;
         self.fh.alloc(&vec![0u8; size_of::<BTreeNode>()], true)
     }
 

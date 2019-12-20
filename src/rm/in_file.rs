@@ -206,6 +206,7 @@ impl RecordInFile {
         unsafe {
             columns.sort_by(|a, b| b.index.cmp(&a.index));
         }
+        // TODO: use index instead
         for cols_id in cols {
             for column in &columns {
                 if column.index == *cols_id {
