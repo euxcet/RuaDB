@@ -219,6 +219,7 @@ struct PairCondition {
 
 impl PairCondition {
     fn match_(&self, record: &Record, ty: &Vec<ColumnType>) -> bool {
+        println!("{:?} {:?}", self.l_col, self.r_col);
         let l_data = record.get_match_data(&self.l_col, ty).0;
         let r_data = record.get_match_data(&self.r_col, ty).0;
         if l_data.is_none() || r_data.is_none() {
@@ -227,6 +228,7 @@ impl PairCondition {
         else {
             let l_data = l_data.unwrap();
             let r_data = r_data.unwrap();
+            println!("{:?} {:?}", l_data, r_data);
             match &self.op {
                 ast::Op::Equal => l_data == r_data,
                 ast::Op::NotEqual => l_data != r_data,
@@ -311,20 +313,20 @@ impl SelectNode {
                 if cond.col.col_name == ty[*index as usize].name {
                     if cond.range.min.is_some() {
                         raw_index.index.push(cond.range.min.clone().unwrap());
-                        direction = false;
+                        direction = true;
                         can_be_equal = cond.range.min_equal;
                     }
                     else {
                         raw_index.index.push(cond.range.max.clone().unwrap());
-                        direction = true;
+                        direction = false;
                         can_be_equal = cond.range.max_equal;
                     }
                     can_continue = cond.is_single();
                     break;
                 }
-                if !can_continue {
-                    break;
-                }
+            }
+            if !can_continue {
+                break;
             }
         }
         (raw_index, direction, can_be_equal)
@@ -366,14 +368,14 @@ impl QueryNode for SelectNode {
 
                 let btrees = th.get_btrees();
                 let mut best_btree: Option<&BTree> = None;
-                let max_used = 0;
+                let mut max_used = 0;
                 for btree in &btrees {
                     let used = self.used_index_count(&btree.index_col, &record_list.ty);
                     if used > max_used {
                         best_btree = Some(btree);
+                        max_used = used;
                     }
                 }
-
                 if best_btree.is_none() {
                     let btree = th.get_born_btree();
                     let mut bucket = btree.first_bucket();
@@ -406,7 +408,7 @@ impl QueryNode for SelectNode {
                             bucket = if bucket_.next == 0 {None} else {Some(th.get_bucket_(bucket_.next))};
                         }
                         else { // left
-                            bucket = if bucket_.prev == 0 {None} else {Some(th.get_bucket_(bucket_.next))};
+                            bucket = if bucket_.prev == 0 {None} else {Some(th.get_bucket_(bucket_.prev))};
                         }
                     }
                 }
@@ -620,7 +622,7 @@ impl QueryTree {
                                             col_name: col.col_name.clone(),
                                         },
                                         r_col: ast::Column {
-                                            tb_name: if r_col.tb_name.is_none() {Some(self.get_table_name(&name_cols, r_col))} else {col.tb_name.clone()},
+                                            tb_name: if r_col.tb_name.is_none() {Some(self.get_table_name(&name_cols, r_col))} else {r_col.tb_name.clone()},
                                             col_name: r_col.col_name.clone(),
                                         },
                                         op: op.clone(),
@@ -660,13 +662,7 @@ impl QueryTree {
                 }
             }
         }
-        for i in 0..table_list.len() {
-            println!("{:?} {:?}", table_list[i], table_range_conds[i]);
-        }
-
         self.root = Some(self.project_layer(table_list, selector, table_range_conds, table_null_conds, pair_conds))
-
-        // self.root = Some(self.project_layer(table_list, selector, where_clause));
     }
 
     fn project_layer(&self, table_list: &Vec<ast::Name>, selector: &ast::Selector, table_range_conds: Vec<Vec<RangeCondition>>, table_null_conds: Vec<Vec<NullCondition>>, pair_conds: Vec<PairCondition>) -> Box<dyn QueryNode> {
@@ -694,11 +690,6 @@ impl QueryTree {
                 range_conds: Vec::new(),
                 null_conds: Vec::new(),
                 pair_conds: pair_conds,
-
-                /*
-                table_list: table_list.clone(),
-                condition: where_clause.clone(),
-                */
             }
         )
     }
@@ -707,10 +698,8 @@ impl QueryTree {
         let mut son: Vec<Box<dyn QueryNode>> = Vec::new();
         let mut table_range_conds = table_range_conds;
         let mut table_null_conds = table_null_conds;
-        for i in (0..table_list.len()).rev() {
-            let range_conds = table_range_conds.pop().unwrap();
-            let null_conds = table_null_conds.pop().unwrap();
-            son.push(self.select_single_layer(table_list[i].clone(), range_conds, null_conds));
+        for i in 0..table_list.len() {
+            son.push(self.select_single_layer(table_list[i].clone(), table_range_conds[i].clone(), table_null_conds[i].clone()));
         }
         Box::new(
             ProductNode {

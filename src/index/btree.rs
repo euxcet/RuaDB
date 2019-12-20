@@ -1,5 +1,6 @@
 use std::mem::transmute;
 use std::cmp::Ordering;
+use std::cmp::min;
 use crate::rm::record::*;
 use crate::rm::table_handler::TableHandler;
 use crate::utils::convert;
@@ -96,35 +97,24 @@ impl RawIndex {
 
 impl PartialOrd for RawIndex {
     fn partial_cmp(&self, other: &RawIndex) -> Option<Ordering> {
-        if self.index.len() != other.index.len() {
-            None
-        }
-        else {
-            for i in 0..self.index.len() {
-                let res = self.index[i].partial_cmp(&other.index[i]);
-                if res != Some(Ordering::Equal) {
-                    return res;
-                }
+        for i in 0..min(self.index.len(), other.index.len()) {
+            let res = self.index[i].partial_cmp(&other.index[i]);
+            if res != Some(Ordering::Equal) {
+                return res;
             }
-            Some(Ordering::Equal)
         }
+        Some(Ordering::Equal)
     }
 }
 
 impl PartialEq for RawIndex {
     fn eq(&self, other: &RawIndex) -> bool {
-        if self.index.len() != other.index.len() {
-            false
-        }
-        else {
-            for i in 0..self.index.len() {
-                if self.index[i] != other.index[i] {
-                    return false;
-                }
+        for i in 0..min(self.index.len(), other.index.len()) {
+            if self.index[i] != other.index[i] {
+                return false;
             }
-            true
         }
-
+        true
     }
 }
 
@@ -278,7 +268,7 @@ impl Bucket {
     }
 }
 
-const BTREE_NODE_CAPACITY: usize = 4;
+const BTREE_NODE_CAPACITY: usize = 10;
 
 #[repr(C, packed)]
 pub struct BTreeNode {
