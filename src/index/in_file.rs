@@ -5,6 +5,7 @@ use super::btree::*;
 bytevec_decl! {
     pub struct BTreeInFile {
         root: u64, // StrPointer
+        ty: u8,
         index_col: String,
         index_name: String
     }
@@ -55,6 +56,7 @@ impl BTreeInFile {
     pub fn from(th: &TableHandler, btree: &BTree) -> Self {
         Self {
             root: btree.root,
+            ty: btree.ty,
             index_col: unsafe{convert::vec_u32_to_string(&btree.index_col)},
             index_name: btree.index_name.clone(),
         }
@@ -64,6 +66,7 @@ impl BTreeInFile {
         BTree {
             th: th,
             root: self.root,
+            ty: self.ty,
             index_col: unsafe{convert::string_to_vec_u32(&self.index_col)},
             index_name: self.index_name.clone(),
         }
@@ -202,7 +205,7 @@ mod tests {
         println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
         let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
-        let btree = BTree::new(&th, vec![0], "test");
+        let btree = BTree::new(&th, vec![0], "test", 0);
         let btree_ptr = th.__insert_btree(&btree);
         th.close();
 

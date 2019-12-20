@@ -3,6 +3,8 @@ use crate::parser::ast;
 use crate::utils::convert;
 use super::pagedef::StrPointer;
 
+use crate::defer;
+
 #[derive(Clone, PartialEq, PartialOrd, Debug)]
 pub enum Data {
     Str(String),
@@ -211,9 +213,9 @@ pub struct ColumnTypeVec {
 }
 
 impl ColumnTypeVec {
-    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> (Self, Vec<u32>) {
+    pub fn from_fields(field_list: &Vec<ast::Field>, tb_name: &String) -> (Self, Vec<u32>, Vec<(&String, Vec<u32>)>) {
         let mut primary_key: &Vec<String> = &Vec::new();
-        let mut foreign_key = Vec::new();
+        let mut foreign_list = Vec::new();
 
         let mut cols: Vec<ColumnType> = Vec::new();
         let mut map: HashMap<String, usize> = HashMap::new();
@@ -244,8 +246,8 @@ impl ColumnTypeVec {
                 ast::Field::PrimaryKeyField {column_list} => {
                     primary_key = column_list;
                 },
-                ast::Field::ForeignKeyField {col_name, foreign_tb_name, foreign_col_name } => {
-                    foreign_key.push((col_name, foreign_tb_name, foreign_col_name));
+                ast::Field::ForeignKeyField { column_list, foreign_tb_name, foreign_column_list } => {
+                    foreign_list.push((column_list, foreign_tb_name, foreign_column_list))
                 }
             }
         }
@@ -258,14 +260,27 @@ impl ColumnTypeVec {
             cols[*index].can_be_null = false;
         }
 
-        for fk in &foreign_key {
-            let index = map.get(fk.0).unwrap() ;
-            cols[*index].is_foreign = true;
-            cols[*index].foreign_table_name = fk.1.clone();
-            cols[*index].foreign_table_column = fk.2.clone();
+        let mut foreign_col_index  = Vec::new();
+
+        for (cs, ft_name, fcs) in foreign_list {
+            for (c_name, fc_name) in cs.iter().zip(fcs.iter()) {
+                let index = map.get(c_name).unwrap();
+                cols[*index].is_foreign = true;
+                cols[*index].foreign_table_name = ft_name.clone();
+                cols[*index].foreign_table_column = fc_name.clone();
+            }
+
+            foreign_col_index.push((ft_name, cs.iter().map(|c_name| *map.get(c_name).unwrap() as u32).collect()));
         }
 
-        (Self { cols: cols, }, primary_cols)
+        // for fk in &foreign_key {
+        //     let index = map.get(fk.0).unwrap() ;
+        //     cols[*index].is_foreign = true;
+        //     cols[*index].foreign_table_name = fk.1.clone();
+        //     cols[*index].foreign_table_column = fk.2.clone();
+        // }
+
+        (Self { cols: cols, }, primary_cols, foreign_col_index)
     }
 
     pub fn get_primary_index(&self) -> Vec<u32> {

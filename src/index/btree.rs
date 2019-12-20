@@ -136,21 +136,30 @@ pub struct BTree<'a> {
     // "" : born btree,
     // "primary": primary btree,
     // "i[_(index)]+": costom index btree,
+    // "f[_(index)]+": foreign index,
     pub index_name: String, 
+    // born, primary, index, foreign
+    // 0, 1, 2, 3
+    pub ty: u8, 
 }
 
 impl<'a> BTree<'a> {
-    pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str) -> Self {
+    pub fn new(th: &'a TableHandler, index_col: Vec<u32>, index_name: &str, ty: u8) -> Self {
         Self {
             th: th,
             root: th.insert_btree_node().to_u64(),
             index_col: index_col,
             index_name: index_name.to_string(),
+            ty: ty,
         }
     }
 
     pub fn is_primary(&self) -> bool {
-        self.index_name.as_str() == "PRIMARY"
+        self.ty == 1
+    }
+
+    pub fn is_foreign(&self) -> bool {
+        self.ty == 3
     }
 
     // offset

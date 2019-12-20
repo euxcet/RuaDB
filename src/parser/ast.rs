@@ -149,9 +149,9 @@ pub enum Field {
     },
 
     ForeignKeyField {
-        col_name: Name,
+        column_list: Vec<Name>,
         foreign_tb_name: Name, 
-        foreign_col_name: Name,
+        foreign_column_list: Vec<Name>,
     },
 }
 

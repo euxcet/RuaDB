@@ -139,7 +139,7 @@ PrimaryKeyField: Field = {
 };
 
 ForeignKeyField: Field = {
-    "foreign" "key" "(" <col_name: ColName> ")" "references" <foreign_tb_name: TableName> "(" <foreign_col_name: ColName> ")" => Field::ForeignKeyField { <> },
+    "foreign" "key" "(" <column_list: CommaList<ColName>> ")" "references" <foreign_tb_name: TableName> "(" <foreign_column_list: CommaList<ColName>> ")" => Field::ForeignKeyField { <> },
 };
 
 Field: Field = {

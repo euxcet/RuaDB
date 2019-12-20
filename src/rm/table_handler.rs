@@ -266,7 +266,6 @@ impl TableHandler {
         self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
-
     pub fn get_btrees(&self) -> Vec<BTree> {
         let ptrs_ptr = StrPointer::new(self.fh.get_btrees_ptr());
         let ptrs = self.__get_ptrs(&ptrs_ptr);

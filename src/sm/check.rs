@@ -8,10 +8,11 @@ use std::collections::HashSet;
 
 use crate::defer;
 
+
 pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
     let mut name_field = HashMap::new();
     let mut primary_key: Vec<&Vec<String>> = Vec::new();
-    let mut name_foreign_key = HashMap::new();
+    let mut foreign_list: Vec<(&Vec<String>, &String, &Vec<String>)> = Vec::new();
 
     for field in field_list {
         match field {
@@ -29,11 +30,8 @@ pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
             Field::PrimaryKeyField {column_list} => {
                 primary_key.push(column_list);
             },
-            Field::ForeignKeyField {col_name, foreign_tb_name, foreign_col_name } => {
-                if name_foreign_key.contains_key(col_name) {
-                    return false;
-                }
-                name_foreign_key.insert(col_name, (col_name, foreign_tb_name, foreign_col_name));
+            Field::ForeignKeyField { column_list, foreign_tb_name, foreign_column_list } => {
+                foreign_list.push((column_list, foreign_tb_name, foreign_column_list))
             }
         }
     }
@@ -55,35 +53,84 @@ pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         }
     }
 
-    for (name, fk) in &name_foreign_key {
-        if !name_field.contains_key(name) {
+    for (cols, ft_name, fcols) in foreign_list {
+        if cols.len() != fcols.len() {
             return false;
         }
-        let th = sm.open_table(fk.1, false);
+        let no_repeat = check_no_repeat(cols) && check_no_repeat(fcols);
+        if !no_repeat {
+            return false;
+        }
+
+        let all_found = cols.iter().fold(true, |all_found, col_name| all_found && name_field.contains_key(col_name));
+        if !all_found {
+            return false;
+        }
+
+        let th = sm.open_table(ft_name, false);
         if th.is_none() {
             return false;
         }
+
         let th = th.unwrap();
-        let primary_cols = th.get_primary_cols();
         defer!(th.close());
-
-        if primary_cols.is_none() {
-            return false;
-        }
-        let primary_cols = primary_cols.unwrap().cols;
-        if primary_cols.len() != 1 {
-            return false;
-        }
-        if &primary_cols[0].name != fk.2 {
+        let fmap = th.get_column_types_as_hashmap();
+        let all_found = fcols.iter().fold(true, |all_found, fcol_name| all_found && fmap.contains_key(fcol_name));
+        if !all_found {
             return false;
         }
 
-        let foreign_type = &primary_cols[0].data_type;
-        let this_type = name_field.get(name).unwrap().1;
-        if !foreign_type.of_same_type(this_type) {
+        use crate::parser::ast;
+        let tys: Vec<&ast::Type> = cols.iter().map(|col_name| name_field.get(col_name).unwrap().1).collect();
+        let fcts: Vec<&ColumnType> = fcols.iter().map(|fcol_name| fmap.get(fcol_name).unwrap()).collect();
+
+        let type_valid = tys.iter().zip(fcts.iter()).fold(true, |all_valid, (ty, fct)| all_valid && (fct.data_type.of_same_type(ty)));
+        if !type_valid {
+            return false;
+        }
+
+        let pri_cols = th.get_primary_cols();
+        if pri_cols.is_none() {
+            return false;
+        }
+
+        let pri_cols = pri_cols.unwrap().cols;
+        assert!(fcts.len() <= pri_cols.len());
+        let is_prefix = fcts.iter().zip(pri_cols.iter()).fold(true, |prefix, (fct, pri_col)| prefix && (fct == &pri_col));
+        if !is_prefix {
             return false;
         }
     }
+
+    // for (name, fk) in &name_foreign_key {
+    //     if !name_field.contains_key(name) {
+    //         return false;
+    //     }
+    //     let th = sm.open_table(fk.1, false);
+    //     if th.is_none() {
+    //         return false;
+    //     }
+    //     let th = th.unwrap();
+    //     let primary_cols = th.get_primary_cols();
+    //     defer!(th.close());
+
+    //     if primary_cols.is_none() {
+    //         return false;
+    //     }
+    //     let primary_cols = primary_cols.unwrap().cols;
+    //     if primary_cols.len() != 1 {
+    //         return false;
+    //     }
+    //     if &primary_cols[0].name != fk.2 {
+    //         return false;
+    //     }
+
+    //     let foreign_type = &primary_cols[0].data_type;
+    //     let this_type = name_field.get(name).unwrap().1;
+    //     if !foreign_type.of_same_type(this_type) {
+    //         return false;
+    //     }
+    // }
 
     true
 }
@@ -175,6 +222,7 @@ pub fn check_insert_value(tb_name: &String, value_lists: &Vec<Vec<Value>>, sm: &
         assert!(fk_this_col.len() == primary_cols.len());
 
         // TODO: support part of primary key
+        // TODO: support null foreign key
         let ordered_index: Vec<u32> = primary_cols.iter().map(|p| fk_this_col.get(&p.name).unwrap().index).collect();
         for record in &records {
             let ri = RawIndex::from_record(record, &ordered_index);

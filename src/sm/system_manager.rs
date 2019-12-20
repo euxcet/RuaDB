@@ -206,14 +206,19 @@ impl SystemManager {
             }
         }
         else {
-            let (columns, primary_cols) = ColumnTypeVec::from_fields(field_list, tb_name);
+            let (columns, primary_cols, foreign_indexes) = ColumnTypeVec::from_fields(field_list, tb_name);
             let th = self.open_table(tb_name, true).unwrap();
             th.insert_column_types(&columns);
             th.init_btrees();
-            th.insert_born_btree(&BTree::new(&th, vec![], ""));
+            th.insert_born_btree(&BTree::new(&th, vec![], "", 0));
             if primary_cols.len() > 0 {
-                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY"));
+                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY", 1));
             }
+
+            for (ft_name, foreign_index) in foreign_indexes {
+                th.insert_btree(&BTree::new(&th, foreign_index, format!("FOREIGN_{}", ft_name).as_str(), 3));
+            }
+
             th.close();
             RuaResult::ok(None, "table created".to_string())
         }
@@ -433,7 +438,7 @@ impl SystemManager {
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let index_col: Vec<u32> = column_list.iter().map(|column_name| map.get(column_name).unwrap().index).collect();
-            let mut btree = BTree::new(&th, index_col.clone(), idx_name);
+            let mut btree = BTree::new(&th, index_col.clone(), idx_name, 2);
 
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
