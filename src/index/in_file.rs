@@ -205,7 +205,7 @@ mod tests {
         println!("insert records {:?}", SystemTime::now().duration_since(start_time).unwrap().as_millis());
 
         let th = r.open_table(&(rd.clone() + "alloc_btree_test.rua"), false);
-        let btree = BTree::new(&th, vec![0], "test", 0);
+        let btree = BTree::new(&th, vec![0], "test", BTree::primary_ty());
         let btree_ptr = th.__insert_btree(&btree);
         th.close();
 

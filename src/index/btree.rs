@@ -155,11 +155,15 @@ impl<'a> BTree<'a> {
     }
 
     pub fn is_primary(&self) -> bool {
-        self.ty == 1
-    }
+        self.ty == Self::primary_ty()
+    } 
+    pub fn born_ty() -> u8 {0}
+    pub fn primary_ty() -> u8 {1}
+    pub fn index_ty() -> u8 {2}
+    pub fn foreign_ty() -> u8 {3}
 
     pub fn is_foreign(&self) -> bool {
-        self.ty == 3
+        self.ty == Self::foreign_ty()
     }
 
     // offset

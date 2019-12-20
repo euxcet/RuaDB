@@ -258,6 +258,7 @@ impl ColumnTypeVec {
             let index = map.get(primary).unwrap();
             cols[*index].is_primary = true;
             cols[*index].can_be_null = false;
+            primary_cols.push(*index as u32);
         }
 
         let mut foreign_col_index  = Vec::new();

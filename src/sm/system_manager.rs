@@ -212,11 +212,11 @@ impl SystemManager {
             th.init_btrees();
             th.insert_born_btree(&BTree::new(&th, vec![], "", 0));
             if primary_cols.len() > 0 {
-                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY", 1));
+                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY", BTree::primary_ty()));
             }
 
             for (ft_name, foreign_index) in foreign_indexes {
-                th.insert_btree(&BTree::new(&th, foreign_index, format!("FOREIGN_{}", ft_name).as_str(), 3));
+                th.insert_btree(&BTree::new(&th, foreign_index, format!("FOREIGN_{}", ft_name).as_str(), BTree::foreign_ty()));
             }
 
             th.close();

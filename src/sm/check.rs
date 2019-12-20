@@ -85,6 +85,7 @@ pub fn check_create_table(field_list: &Vec<Field>, sm: &SystemManager) -> bool {
         let fcts: Vec<&ColumnType> = fcols.iter().map(|fcol_name| fmap.get(fcol_name).unwrap()).collect();
 
         let type_valid = tys.iter().zip(fcts.iter()).fold(true, |all_valid, (ty, fct)| all_valid && (fct.data_type.of_same_type(ty)));
+
         if !type_valid {
             return false;
         }
