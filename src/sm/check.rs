@@ -413,7 +413,7 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
         for name in foreign_tables {
             let fth = sm.open_table(&name, false).unwrap();
             defer!(fth.close());
-            let foreign_btree = fth.get_btrees().into_iter().filter_map(
+            let foreign_btrees = fth.get_btrees().into_iter().filter_map(
                 |btree| {
                     if btree.is_foreign() && btree.index_name == format!("FOREIGN_{}", tb_name) {
                         Some(btree)
@@ -422,7 +422,7 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
                     }
                 }
             );
-            for fb in foreign_btree {
+            for fb in foreign_btrees {
                 for ri in &ris {
                     if fb.search_record(ri).is_some() {
                         return false;
@@ -492,15 +492,96 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
         return false;
     }
 
-    let foreign_table = table_foreign_this_table(tb_name, sm);
 
-    if foreign_table.len() > 0 {
-        use super::query_tree::QueryTree;
-        let database = sm.current_database.as_ref().unwrap();
-        let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
-        tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
-        let record_list = tree.query();
+    let database = sm.current_database.as_ref().unwrap();
+    let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+    tree.build(&vec![tb_name.clone()], &Selector::All, where_clause);
+    let record_list = tree.query();
 
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+
+    let affected_cols_index: HashSet<_> = set_column.iter().map(|name| map.get(name).unwrap().index).collect();
+    let pri_cols = th.get_primary_column_index().unwrap();
+    let pri_affected = pri_cols.iter().fold(false, |affected, pri_index| affected || affected_cols_index.contains(pri_index));
+    if pri_affected {
+        // primary key affected
+        let foreign_table = table_foreign_this_table(tb_name, sm);
+        if foreign_table.len() > 0 {
+            // referenced by other table
+            for table in foreign_table {
+                let fth = sm.open_table(&table, false).unwrap();
+                defer!(fth.close());
+                // find other table reference these primary columns
+                let foreign_btrees = fth.get_btrees().into_iter().filter_map(
+                    |btree| {
+                        if btree.is_foreign() && btree.index_name == format!("FOREIGN_{}", tb_name) {
+                            Some(btree)
+                        } else {
+                            None
+                        }
+                    }
+                );
+                // tranverse all foreign keys btrees to find any row reference these record
+                for ftree in foreign_btrees {
+                    for record in &record_list.record {
+                        if ftree.search_record(&RawIndex::from_record(record, &pri_cols)).is_some() {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        // affect foreign btree
+        // let affected_foreign_btree: Vec<BTree>
+
+        let (ptr, mut pri_btree) = th.get_primary_btree_with_ptr().unwrap();
+        let mut deleted = Vec::new();
+        let mut inserted = Vec::new();
+
+        let mut duplicate = false;
+        let mut foreign_incorrect = false;
+
+            // 
+            // btree in affected_foreign_btree 
+            // open table 
+            // get primary btree
+            // form a tuple
+
+        for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+            let mut new_record = record.clone();
+            new_record.set_(set_clause, &record_list.ty);
+
+            // tranverse the affected foreign btree
+            // find in primary btree
+            // not found exit
+
+            let ri = RawIndex::from_record(record, &pri_cols);
+            pri_btree.delete_record(&ri, ptr.to_u64());
+            deleted.push((ptr, ri));
+
+            let new_ri = RawIndex::from_record(&new_record, &pri_cols);
+            let dup = pri_btree.insert_record(&new_ri, ptr.to_u64(), false);
+            if dup {
+                duplicate = true;
+                break;
+            } else {
+                inserted.push((ptr, new_ri));
+            }
+        }
+
+        while let Some((ptr, ri)) = inserted.pop() {
+            pri_btree.delete_record(&ri, ptr.to_u64());
+        }
+
+        while let Some((ptr, ri)) = deleted.pop() {
+            pri_btree.insert_record(&ri, ptr.to_u64(), false);
+        }
+        th.update_btree(&ptr, &pri_btree);
+
+        if duplicate {
+            return false;
+        }
     }
 
     true
