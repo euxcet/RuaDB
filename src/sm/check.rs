@@ -664,8 +664,38 @@ pub fn check_change_column(map: &HashMap<String, ColumnType>, col_name: &String,
     true
 }
 
-pub fn check_add_primary_key(map: &HashMap<String, ColumnType>, column_list: &Vec<String>) -> bool {
-    check_no_repeat(column_list)
+// TODO: merge: btree
+pub fn check_add_primary_key(tb_name: &String, column_list: &Vec<String>, sm: &SystemManager) -> bool {
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+    let map = th.get_column_types_as_hashmap();
+    if !(check_no_repeat(column_list)
         && map.iter().fold(true, |no_primary, (_, ct)| no_primary && ct.is_primary)
-        && column_list.iter().fold(true, |all_found, name| all_found && map.contains_key(name))
+        && column_list.iter().fold(true, |all_found, name| all_found && map.contains_key(name))) {
+            return false;
+    }
+    let pri_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
+
+    let database = sm.current_database.as_ref().unwrap();
+    let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+    tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+    let record_list = tree.query();
+    let mut btree = BTree::new(&th, pri_cols.clone(), "PRIMARY", BTree::primary_ty());
+
+    let mut duplicate = false;
+    for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+        let ri = RawIndex::from_record(record, &pri_cols);
+        let dup = btree.insert_record(&ri, ptr.to_u64(), false);
+        if dup {
+            duplicate = true;
+            break;
+        }
+    }
+    btree.clear();
+    if duplicate {
+        return false;
+    }
+
+    true
 }

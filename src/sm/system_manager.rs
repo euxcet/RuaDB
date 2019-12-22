@@ -649,9 +649,7 @@ impl SystemManager {
             if exist.is_err() {
                 exist
             } else {
-                let th = self.open_table(tb_name, false).unwrap();
-                let map = th.get_column_types_as_hashmap();
-                let valid = check::check_add_primary_key(&map, column_list);
+                let valid = check::check_add_primary_key(tb_name, column_list, self);
                 if !valid {
                     RuaResult::err("invalid add primary key".to_string())
                 } else {
@@ -659,7 +657,32 @@ impl SystemManager {
                 }
             }
         } else {
-            // TODO: add index and primary key
+            let th = self.open_table(tb_name, false).unwrap();
+            let map = th.get_column_types_as_hashmap();
+            let pri_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
+
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let record_list = tree.query();
+            let mut btree = BTree::new(&th, pri_cols.clone(), "PRIMARY", BTree::primary_ty());
+
+            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+                let ri = RawIndex::from_record(record, &pri_cols);
+                btree.insert_record(&ri, ptr.to_u64(), false);
+            }
+            th.insert_btree(&btree);
+            let mut cts = th.get_column_types_with_ptrs();
+
+            for i in pri_cols {
+                let (ptr, mut ct) = cts[i as usize].clone();
+                ct.is_primary = true;
+                ct.can_be_null = false;
+                th.update_column_type(&ptr, &ct);
+            }
+
+            th.close();
             RuaResult::default()
         }
     }
