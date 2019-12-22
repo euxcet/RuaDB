@@ -543,10 +543,7 @@ impl SystemManager {
             if exist.is_err() {
                 exist
             } else {
-                let th = self.open_table(tb_name, false).unwrap();
-                let map = th.get_column_types_as_hashmap();
-
-                let valid = check::check_drop_column(&map, col_name);
+                let valid = check::check_drop_column(tb_name, col_name, self);
                 if !valid {
                     RuaResult::err("invalid drop column".to_string())
                 } else {
@@ -563,13 +560,33 @@ impl SystemManager {
 
             th.delete_column_type_from_index(index);
 
+            let mut deleted_btree_index: Vec<usize> = Vec::new();
+            let mut btrees = th.get_btrees_with_ptrs();
+            for (i, (ptr, btree)) in (0..).zip(btrees.iter_mut()) {
+                if btree.index_col == vec![index as u32] {
+                    deleted_btree_index.push(i);
+                } else {
+                    let mut update = false;
+                    for ci in &mut btree.index_col {
+                        if *ci > index as u32 {
+                            *ci -= 1;
+                            update = true;
+                        }
+                    }
+                    if update {
+                        th.update_btree(&ptr, &btree);
+                    }
+                }
+            } 
+
+            while let Some(i) = deleted_btree_index.pop() {
+                th.delete_btree_from_index(i);
+            }
+
             let record_list = tree.query();
             for ptr in &record_list.ptrs {
                 th.delete_record_data_column(ptr, index);
             }
-            // TODO: primary key change
-            // TODO: foreign key constraint
-            // TODO: index change
 
             th.close();
             RuaResult::ok(None, "column deleted".to_string())
@@ -583,7 +600,6 @@ impl SystemManager {
     }
 
     pub fn rename_table(&self, tb_name: &String, new_name: &String) -> RuaResult {
-        // TODO: foreign key
         if self.check {
             let exist = self.check_table_existence(tb_name, true);
             if exist.is_err() {
@@ -601,6 +617,26 @@ impl SystemManager {
             th.update_table_name(new_name);
             let path = self.get_table_path(self.current_database.as_ref().unwrap(), tb_name);
             let new_path = self.get_table_path(self.current_database.as_ref().unwrap(), new_name);
+            th.close();
+
+            for table in self.get_tables() {
+                if &table != tb_name {
+                    let fth = self.open_table(&table, false).unwrap();
+                    for (ptr, mut ct) in fth.get_column_types_with_ptrs() {
+                        if &ct.foreign_table_name == tb_name {
+                            ct.foreign_table_name = new_name.clone();
+                            fth.update_column_type(&ptr, &ct);
+                        }
+                    }
+                    for (ptr, mut bt) in fth.get_btrees_with_ptrs() {
+                        if bt.is_foreign() && bt.index_name == format!("FOREIGN_{}", tb_name) {
+                            bt.index_name = format!("FOREIGN_{}", new_name);
+                            fth.update_btree(&ptr, &bt);
+                        }
+                    }
+                    fth.close();
+                }
+            }
             fs::rename(path, new_path).ok();
 
             RuaResult::default()

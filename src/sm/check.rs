@@ -155,20 +155,16 @@ pub fn check_drop_table(tb_name: &String, sm: &SystemManager) -> bool {
 }
 
 pub fn table_foreign_this_table(tb_name: &String, sm: &SystemManager) -> Vec<String> {
-    sm.get_tables().into_iter().filter_map( 
+    sm.get_tables().into_iter().filter(
         |name| {
-            if &name == tb_name {
-                None
+            if name == tb_name {
+                false
             } else {
                 let th = sm.open_table(&name, false).unwrap();
                 defer!(th.close());
                 let cts = th.get_column_types().cols;
                 let foreign_this = cts.iter().fold(false, |foreign, ct| foreign || (ct.is_foreign && &ct.foreign_table_name == tb_name));
-                if foreign_this {
-                    Some(name)
-                } else {
-                    None
-                }
+                foreign_this
             }
         }
     ).collect()
@@ -596,8 +592,7 @@ pub fn check_create_index(idx_name: &String, map: &HashMap<String, ColumnType>, 
 }
 
 pub fn check_drop_index(idx_name: &String, btrees: &Vec<BTree>) -> bool {
-    idx_name != "PRIMARY"
-        && btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
+    btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name && btree.is_index()))
 }
 
 pub fn check_add_column(map: &HashMap<String, ColumnType>, field: &Field) -> bool {
@@ -612,8 +607,47 @@ pub fn check_add_column(map: &HashMap<String, ColumnType>, field: &Field) -> boo
     true
 }
 
-pub fn check_drop_column(map: &HashMap<String, ColumnType>, col_name: &String) -> bool {
-    map.contains_key(col_name)
+pub fn check_drop_column(tb_name: &String, col_name: &String, sm: &SystemManager) -> bool {
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+    let map = th.get_column_types_as_hashmap();
+
+    if !map.contains_key(col_name) {
+        return false;
+    }
+
+    let del_index = map.get(col_name).unwrap().index;
+    let pri_cols = th.get_primary_column_index();
+
+    if let Some(pri_cols) = pri_cols {
+        if pri_cols.len() >= 2 {
+            for i in pri_cols {
+                if i == del_index {
+                    return false;
+                }
+            }
+        } else if pri_cols == vec![del_index] {
+            if table_foreign_this_table(tb_name, sm).len() > 0 {
+                return false;
+            }
+        }
+    }
+
+    let btrees = th.get_btrees();
+
+    for t in btrees {
+        let cols = t.index_col;
+        if cols.len() > 1 {
+            for i in cols {
+                if i == del_index {
+                    return false;
+                }
+            }
+        }
+    }
+
+
+    true
 }
 
 pub fn check_change_column(map: &HashMap<String, ColumnType>, col_name: &String, field: &Field) -> bool {

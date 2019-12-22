@@ -134,7 +134,8 @@ pub struct BTree<'a> {
     pub index_col: Vec<u32>, // should be orderly
     // default_name: 
     // "" : born btree,
-    // "primary": primary btree,
+    // "PRIMARY": primary btree,
+    // "FOREIGN_{}, tb_name": foreign index
     // "i[_(index)]+": costom index btree,
     // "f[_(index)]+": foreign index,
     pub index_name: String, 
@@ -154,17 +155,14 @@ impl<'a> BTree<'a> {
         }
     }
 
-    pub fn is_primary(&self) -> bool {
-        self.ty == Self::primary_ty()
-    } 
+    pub fn is_primary(&self) -> bool { self.ty == Self::primary_ty() } 
+    pub fn is_foreign(&self) -> bool { self.ty == Self::foreign_ty() }
+    pub fn is_index(&self) -> bool { self.ty == Self::primary_ty() }
     pub fn born_ty() -> u8 {0}
     pub fn primary_ty() -> u8 {1}
     pub fn index_ty() -> u8 {2}
     pub fn foreign_ty() -> u8 {3}
 
-    pub fn is_foreign(&self) -> bool {
-        self.ty == Self::foreign_ty()
-    }
 
     // offset
     pub fn get_offset_root() -> usize {
