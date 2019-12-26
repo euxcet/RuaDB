@@ -12,6 +12,13 @@ pub enum Stmt {
     Table(TableStmt),
     Index(IndexStmt),
     Alter(AlterStmt),
+    Copy(CopyStmt),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CopyStmt {
+    pub tb_name: Name,
+    pub path: Name,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
