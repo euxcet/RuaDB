@@ -25,6 +25,13 @@ Stmt: Stmt = {
     <TableStmt> ";" => Stmt::Table(<>),
     <IndexStmt> ";" => Stmt::Index(<>),
     <AlterStmt> ";" => Stmt::Alter(<>),
+    <CopyStmt> ";" => Stmt::Copy(<>),
+};
+
+PathName = Name;
+
+CopyStmt: CopyStmt = {
+    "copy" <tb_name: TableName> "from" <path: PathName> => CopyStmt { <> },
 };
 
 SystemStmt: SystemStmt = {
@@ -307,6 +314,7 @@ extern {
         "commit" => Tok::Commit,
         "conflict" => Tok::Conflict,
         "constraint" => Tok::Constraint,
+        "copy" => Tok::Copy,
         "create" => Tok::Create,
         "cross" => Tok::Cross,
         "current_date" => Tok::CurrentDate,

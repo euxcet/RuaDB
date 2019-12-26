@@ -2,9 +2,11 @@ use crate::rm::record_manager::RecordManager;
 use crate::logger::logger::RuaResult;
 use crate::sm::system_manager::SystemManager;
 use crate::parser::ast::*;
-
+use crate::logger::logger::*;
+use crate::parser::sql;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::io;
 
 pub struct Executor {
     sm: Rc<RefCell<SystemManager>>,
@@ -12,9 +14,9 @@ pub struct Executor {
 }
 
 impl Executor {
-    pub fn new(rm: Rc<RefCell<RecordManager>>, sm:Rc<RefCell<SystemManager>>) -> Self {
-        // let rm = Rc::new(RefCell::new(RecordManager::new()));
-        // let sm = Rc::new(RefCell::new(SystemManager::new(rm.clone())));
+    pub fn new() -> Self {
+        let rm = Rc::new(RefCell::new(RecordManager::new()));
+        let sm = Rc::new(RefCell::new(SystemManager::new(rm.clone())));
         Self {
             rm: rm,
             sm: sm,
@@ -63,6 +65,11 @@ impl Executor {
                     _ => unreachable!(),
                 }
             },
+            Stmt::Copy(ref s) => {
+                match s {
+                    CopyStmt { tb_name, path } => sm.copy(&tb_name, &path),
+                }
+            },
             _ => unreachable!(),
         }
     }
@@ -75,108 +82,75 @@ impl Executor {
         self.process(stmt, true)
     }
 
+    pub fn process_string(&self, input: &String, logger: &RuaLogger) {
+        match sql::parse_sql(&input) {
+            Ok(sql) => {
+                for stmt in &sql.stmt_list {
+                    let res = self.check(stmt);
+                    if res.is_ok() {
+                        logger.log(&self.execute(stmt));
+                    }
+                    else {
+                        logger.log(&res);
+                    }
+                }
+            },
+            Err(e) => {
+                logger.log(&RuaResult::err(String::from("Invalid syntax")));
+            }
+        }
+    }
+
+    pub fn process_string_list(&self, cmds: &Vec<String>, logger: &RuaLogger) {
+        for cmd in cmds {
+            self.process_string(&cmd, logger);
+        }
+    }
+
+    pub fn process_from_stdin(&self, logger: &RuaLogger) -> bool {
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).expect("Failed to read line.");
+        if input.trim() == "exit" {
+            println!("bye!");
+            true
+        }
+        else {
+            self.process_string(&input, logger);
+            false
+        }
+    }
+
+    pub fn process_from_file(&self, path: &str, logger: &RuaLogger) {
+        use std::error::Error;
+        use std::fs::File;
+        use std::io::{BufRead, BufReader};
+        use std::path::Path;
+
+        let path = Path::new(path);
+        let display = path.display();
+        let file = match File::open(&path) {
+            Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+            Ok(file) => file,
+        };
+        let reader = BufReader::new(file);
+
+        for line in reader.lines() {
+            let line = line.unwrap();
+            self.process_string(&line, logger);
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use super::Executor;
     use crate::logger;
-    use crate::executor;
-    use crate::parser::sql;
 
     #[test]
     pub fn sql_select() {
+        let executor = Executor::new();
         let logger = logger::logger::RuaLogger::new();
-        let rm = Rc::new(RefCell::new(RecordManager::new()));
-        let sm = Rc::new(RefCell::new(SystemManager::new(rm.clone())));
-        let executor = executor::executor::Executor::new(rm.clone(), sm.clone());
-
-        let cmds = vec![
-            String::from("create database sql_select;"),
-            String::from("use sql_select;"),
-
-            // String::from("create table test(id int(4), fuck int(4));"),
-            String::from("create table test(id int(4), fuck varchar(4));"),
-
-            String::from("desc test;"),
-
-            String::from("create index id_index on test (id, fuck);"),
-            String::from("insert into test values (null, \"c\");"),
-            String::from("insert into test values (null, \"a\");"),
-            String::from("insert into test values (null, \"d\");"),
-            String::from("insert into test values (null ,\"b\");"),
-
-            /*
-            String::from("create table b_test(id int(4), rua float);"),
-            String::from("create index id_index on b_test (id);"),
-            String::from("insert into b_test values (1, 1.23);"),
-            String::from("insert into b_test values (2, 3.0);"),
-            String::from("insert into b_test values (3, 42.12);"),
-            String::from("insert into b_test values (4, -4.2);"),
-            */
-
-            String::from("select * from test where id is null and fuck >= \"a\";"),
-            // String::from("select * from b_test where id > 1;"),
-
-            // String::from("select * from test where id > 0 and fuck > -2.0;"),
-            // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and test.id = b_test.id;"),
-            // String::from("select * from test, b_test where test.id >= 0 and test.id < 5 and b_test.id > 2;"),
-            /*
-            String::from("create table b_test(id int(4), rua float);"),
-            String::from("insert into b_test values (1, 1.23);"),
-            String::from("insert into b_test values (2, 3.0);"),
-            String::from("insert into b_test values (3, 42.12);"),
-            String::from("insert into b_test values (4, -4.2);"),
-
-            String::from("select * from test where id > 0;"),
-            String::from("select * from test where id < -1;"),
-            String::from("select * from test where id > 12;"),
-            String::from("select * from test where id > 12 and id < 32;"),
-            String::from("select * from b_test;"),
-            String::from("select * from test, b_test where test.id >= b_test.id;"),
-            String::from("select fuck from test;"),
-
-            String::from("select * from test;"),
-            String::from("delete from test where id > 5;"),
-            String::from("select * from test;"),
-            String::from("delete from test where id < 4;"),
-            String::from("select * from test;"),
-
-            String::from("insert into test values (-10, \"123124\");"),
-            String::from("insert into test values (40, \"224\");"),
-            String::from("insert into test values (3, \"23124\");"),
-
-            String::from("update test set id = 10 where id > 3;"),
-            String::from("select * from test;"),
-            
-            String::from("desc test;"),
-
-            String::from("create table date_test(id int(4), s_date date, num numeric(5, 2));"),
-            String::from("desc date_test;"),
-            String::from("insert into date_test values (3, '2019-04-22', 321.42);"),
-            String::from("select * from date_test;"),
-            */
-
-            String::from("drop database sql_select;"),
-        ];
-
-        for cmd in cmds {
-            match sql::parse_sql(&cmd) {
-                Ok(sql) => {
-                    for stmt in &sql.stmt_list {
-                        let res = executor.check(stmt);
-                        if res.is_ok() {
-                            let res = executor.execute(stmt);
-                            logger.log(&res);
-                        } else {
-                            logger.log(&res);
-                        }
-                    }
-                },
-                Err(_) => {
-                    println!("Invalid syntax");
-                }
-            }
-        }
+        executor.process_from_file("sql/small.rsql", &logger);
+        // executor.process_from_file("sql/test.rsql", &logger);
     }
 }

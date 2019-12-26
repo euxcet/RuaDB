@@ -627,4 +627,61 @@ impl SystemManager {
             RuaResult::default()
         }
     }
+
+    pub fn copy(&self, tb_name: &String, path_name: &String) -> RuaResult {
+        use std::error::Error;
+        use std::fs::File;
+        use std::io::{BufRead, BufReader};
+        use std::path::Path;
+        use crate::rm::record;
+
+        let path_name = String::from("dataset/dataset_small/") + path_name + &String::from(".tbl");
+
+        if self.check {
+            let path = Path::new(&path_name);
+            let display = path.display();
+            self.check_table_existence(tb_name, true) & match File::open(&path) {
+                Err(why) => RuaResult::err(format!("couldn't open {}: {}", display, why.description())),
+                Ok(_) => RuaResult::default(),
+            }
+        }
+        else {
+            let path = Path::new(&path_name);
+            let display = path.display();
+            let file = match File::open(&path) {
+                Err(why) => panic!("couldn't open {}: {}", display, why.description()),
+                Ok(file) => file,
+            };
+            let reader = BufReader::new(file);
+
+            let th = self.open_table(tb_name, false).unwrap();
+            let cts = th.get_column_types();
+            let mut value_lists = Vec::new();
+            for line in reader.lines() {
+                let line: String = line.unwrap();
+                let s_values: Vec<&str> = line.split('|').collect();
+                let mut values: Vec<Value> = Vec::new();
+                for pair in cts.cols.iter().zip(s_values.iter()) {
+                    let col = pair.0;
+                    let val: String = pair.1.to_string();
+                    if val.len() == 0 {
+                        values.push(Value::Null);
+                    }
+                    else {
+                        values.push(match col.data_type {
+                            record::Type::Str(_) => Value::Str(val),
+                            record::Type::Int(_) => Value::Int(val),
+                            record::Type::Float(_) => Value::Float(val),
+                            record::Type::Date(_) => Value::Date(val),
+                            record::Type::Numeric(_) => Value::Float(val),
+                        });
+                    }
+                }
+                value_lists.push(values);
+            }
+            th.close();
+            self.insert(tb_name, &value_lists);
+            RuaResult::default()
+        }
+    }
 }
