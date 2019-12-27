@@ -134,10 +134,8 @@ pub struct BTree<'a> {
     pub index_col: Vec<u32>, // should be orderly
     // default_name: 
     // "" : born btree,
-    // "PRIMARY": primary btree,
-    // "FOREIGN_{}, tb_name": foreign index
-    // "i[_(index)]+": costom index btree,
-    // "f[_(index)]+": foreign index,
+    // "[pk_name_name]": primary btree,
+    // "foreign_constraint_name tb_name": foreign index
     pub index_name: String, 
     // born, primary, index, foreign
     // 0, 1, 2, 3
@@ -163,6 +161,25 @@ impl<'a> BTree<'a> {
     pub fn index_ty() -> u8 {2}
     pub fn foreign_ty() -> u8 {3}
 
+    pub fn get_foreign_constraint_name(&self) -> &str {
+        if !self.is_foreign() {
+            panic!("not foreign btree");
+        }
+        self.index_name.split_whitespace().next().unwrap()
+    }
+
+    pub fn get_foreign_table_name(&self) -> &str {
+        assert!(self.is_foreign());
+
+        let mut iter = self.index_name.split_whitespace();
+        iter.next();
+        iter.next().unwrap()
+    }
+
+    pub fn set_foreign_index_name(&mut self, constraint: &str, table: &str) {
+        assert!(self.is_foreign());
+        self.index_name = format!("{} {}", constraint, table);
+    }
 
     // offset
     pub fn get_offset_root() -> usize {

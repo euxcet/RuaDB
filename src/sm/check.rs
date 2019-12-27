@@ -411,7 +411,7 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
             defer!(fth.close());
             let foreign_btrees = fth.get_btrees().into_iter().filter_map(
                 |btree| {
-                    if btree.is_foreign() && btree.index_name == format!("FOREIGN_{}", tb_name) {
+                    if btree.is_foreign() && btree.get_foreign_table_name() == tb_name {
                         Some(btree)
                     } else {
                         None
@@ -511,7 +511,7 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
                 // find other table reference these primary columns
                 let foreign_btrees = fth.get_btrees().into_iter().filter_map(
                     |btree| {
-                        if btree.is_foreign() && btree.index_name == format!("FOREIGN_{}", tb_name) {
+                        if btree.is_foreign() && btree.get_foreign_table_name() == tb_name {
                             Some(btree)
                         } else {
                             None
@@ -529,7 +529,11 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
             }
         }
         // affect foreign btree
-        // let affected_foreign_btree: Vec<BTree>
+        let affected_foreign_btree: Vec<BTree> = th.get_btrees().into_iter().filter(
+            |t| 
+                t.is_foreign() &&
+                t.index_col.iter().fold(false, |affected, i| affected || affected_cols_index.contains(i))
+        ).collect();
 
         let (ptr, mut pri_btree) = th.get_primary_btree_with_ptr().unwrap();
         let mut deleted = Vec::new();
@@ -538,19 +542,26 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
         let mut duplicate = false;
         let mut foreign_incorrect = false;
 
-            // 
-            // btree in affected_foreign_btree 
-            // open table 
-            // get primary btree
-            // form a tuple
+        for btree in affected_foreign_btree {
+            let foreign_table = btree.get_foreign_table_name();
+            let fth = sm.open_table(foreign_table, false).unwrap();
+            defer!(fth.close());
+            let pri_btree = fth.get_primary_btree().unwrap();
+
+            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+                let mut new_record = record.clone();
+                new_record.set_(set_clause, &record_list.ty);
+
+                let ri = RawIndex::from_record(record, &btree.index_col);
+                if pri_btree.search_record(&ri).is_none() {
+                    return false;
+                }
+            }
+        }
 
         for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
             let mut new_record = record.clone();
             new_record.set_(set_clause, &record_list.ty);
-
-            // tranverse the affected foreign btree
-            // find in primary btree
-            // not found exit
 
             let ri = RawIndex::from_record(record, &pri_cols);
             pri_btree.delete_record(&ri, ptr.to_u64());
@@ -584,8 +595,7 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
 }
 
 pub fn check_create_index(idx_name: &String, map: &HashMap<String, ColumnType>, column_list: &Vec<String>, btrees: &Vec<BTree>) -> bool {
-    idx_name != "PRIMARY" 
-        && column_list.len() > 0 
+    column_list.len() > 0 
         && check_no_repeat(column_list)
         && !btrees.iter().fold(false, |found, btree| found || (&btree.index_name == idx_name))
         && column_list.iter().fold(true, |found, column_name| found && map.contains_key(column_name))
@@ -670,7 +680,7 @@ pub fn check_add_primary_key(tb_name: &String, column_list: &Vec<String>, sm: &S
     defer!(th.close());
     let map = th.get_column_types_as_hashmap();
     if !(check_no_repeat(column_list)
-        && map.iter().fold(true, |no_primary, (_, ct)| no_primary && ct.is_primary)
+        && th.get_primary_btree().is_none()
         && column_list.iter().fold(true, |all_found, name| all_found && map.contains_key(name))) {
             return false;
     }
@@ -681,7 +691,7 @@ pub fn check_add_primary_key(tb_name: &String, column_list: &Vec<String>, sm: &S
     tree.build(&vec![tb_name.clone()], &Selector::All, &None);
 
     let record_list = tree.query();
-    let mut btree = BTree::new(&th, pri_cols.clone(), "PRIMARY", BTree::primary_ty());
+    let mut btree = BTree::new(&th, pri_cols.clone(), "", BTree::primary_ty());
 
     let mut duplicate = false;
     for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
@@ -694,6 +704,128 @@ pub fn check_add_primary_key(tb_name: &String, column_list: &Vec<String>, sm: &S
     }
     btree.clear();
     if duplicate {
+        return false;
+    }
+
+    true
+}
+
+pub fn check_drop_primary_key(tb_name: &String, sm: &SystemManager) -> bool {
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+
+    let btree = th.get_primary_btree();
+    if btree.is_none() {
+        return false;
+    }
+
+    let foreign_tables = table_foreign_this_table(tb_name, sm);
+    if foreign_tables.len() > 0 {
+        return false;
+    }
+
+    true
+}
+
+pub fn check_drop_constraint_primary_key(tb_name: &String, pk_name: &String, sm: &SystemManager) -> bool {
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+
+    let btree = th.get_primary_btree();
+    if btree.is_none() {
+        return false;
+    } else if &btree.unwrap().index_name == pk_name {
+        return false;
+    }
+
+    let foreign_tables = table_foreign_this_table(tb_name, sm);
+    if foreign_tables.len() > 0 {
+        return false;
+    }
+
+    true
+}
+
+pub fn check_add_constraint_foreign_key(tb_name: &String, fk_name: &String, column_list: &Vec<String>, foreign_tb_name: &String, foreign_column_list: &Vec<String>, sm: &SystemManager) -> bool {
+    if column_list.len() != foreign_column_list.len() {
+        return false;
+    }
+    let th = sm.open_table(tb_name, false).unwrap();
+    let exists = th.get_btrees().iter().filter(|t| t.is_foreign() && t.get_foreign_constraint_name() == fk_name).next().is_some();
+    if exists {
+        th.close();
+        return false;
+    }
+
+    let map = th.get_column_types_as_hashmap();
+
+    let all_found = column_list.iter().fold(true, |all_found, c| all_found && map.contains_key(c));
+    if !all_found {
+        th.close();
+        return false;
+    }
+
+    let fth = sm.open_table(foreign_tb_name, false);
+    if fth.is_none() {
+        th.close();
+        return false;
+    }
+
+    let fth = fth.unwrap();
+    defer!(fth.close());
+    let fmap = fth.get_column_types_as_hashmap();
+
+    let all_found = foreign_column_list.iter().fold(true, |all_found, c| all_found && fmap.contains_key(c));
+    if !all_found {
+        th.close();
+        return false;
+    }
+
+    let this_table_column: Vec<ColumnType> = column_list.iter().map(|c| map.get(c).unwrap().clone()).collect();
+    let foreign_table_column: Vec<ColumnType> = foreign_column_list.iter().map(|c| fmap.get(c).unwrap().clone()).collect();
+
+    let this_cols_index: Vec<u32> = this_table_column.iter().map(|c| c.index).collect();
+    let foreign_cols_index: Vec<u32> = foreign_table_column.iter().map(|c| c.index).collect();
+    let pri_btree = fth.get_primary_btree();
+    if pri_btree.is_none() {
+        th.close();
+        return false;
+    }
+    let pri_btree = pri_btree.unwrap();
+    if &pri_btree.index_col != &foreign_cols_index {
+        th.close();
+        return false;
+    }
+
+    for (this_col, foreign_col) in this_table_column.iter().zip(foreign_table_column.iter()) {
+        let this_type = &this_col.data_type;
+        let foreign_type = &foreign_col.data_type;
+        if !this_type.comparable(foreign_type) {
+            th.close();
+            return false;
+        }
+    }
+
+    let database = sm.current_database.as_ref().unwrap();
+    let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
+    tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+    let record_list = tree.query();
+    for record in &record_list.record {
+        let bucket = pri_btree.search_record(&RawIndex::from_record(record, &this_cols_index));
+        if bucket.is_none() {
+            return false;
+        }
+    }
+
+    true
+}
+
+pub fn check_drop_constraint_foreign_key(tb_name: &String, fk_name: &String, sm: &SystemManager) -> bool {
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+    let exists = th.get_btrees().iter().filter(|t| t.is_foreign() && t.get_foreign_constraint_name() == fk_name).next().is_some();
+    if !exists {
         return false;
     }
 
