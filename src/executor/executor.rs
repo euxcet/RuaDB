@@ -59,10 +59,14 @@ impl Executor {
                 match s {
                     AlterStmt::AddColumn { tb_name, field } => sm.add_column(&tb_name, &field),
                     AlterStmt::DropColumn { tb_name, col_name } => sm.drop_column(&tb_name, &col_name),
-
+                    AlterStmt::ChangeColumn { tb_name, col_name, field } => sm.change_column(&tb_name, &col_name, &field),
                     AlterStmt::RenameTable { tb_name, new_name } => sm.rename_table(&tb_name, &new_name),
                     AlterStmt::AddPrimaryKey { tb_name, column_list } => sm.add_primary_key(&tb_name, &column_list),
-                    _ => unreachable!(),
+                    AlterStmt::DropPrimaryKey { tb_name } => sm.drop_primary_key(&tb_name),
+                    AlterStmt::AddConstraintPrimaryKey { tb_name, pk_name, column_list } => sm.add_constraint_primary_key(&tb_name, &pk_name, &column_list),
+                    AlterStmt::DropConstraintPrimaryKey { tb_name, pk_name } => sm.drop_constraint_primary_key(&tb_name, &pk_name),
+                    AlterStmt::AddConstraintForeignKey { tb_name, fk_name, column_list, foreign_tb_name, foreign_column_list } => sm.add_constraint_foreign_key(&tb_name, &fk_name, &column_list, &foreign_tb_name, &foreign_column_list),
+                    AlterStmt::DropConstraintForeignKey { tb_name, fk_name } => sm.drop_constraint_foreign_key(&tb_name, &fk_name),
                 }
             },
             Stmt::Copy(ref s) => {

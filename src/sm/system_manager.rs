@@ -52,8 +52,8 @@ impl SystemManager {
         path
     }
 
-    pub fn get_table_path(&self, database: &String, tb_name: &String) -> PathBuf {
-        let mut path: PathBuf = [self.root_dir.clone(), database.clone(), tb_name.clone()].iter().collect();
+    pub fn get_table_path(&self, database: &str, tb_name: &str) -> PathBuf {
+        let mut path: PathBuf = [self.root_dir.clone(), database.to_string(), tb_name.to_string()].iter().collect();
         path.set_extension("rua");
         path
     }
@@ -73,7 +73,7 @@ impl SystemManager {
         ).collect()
     }
 
-    pub fn open_table(&self, tb_name: &String, create: bool) -> Option<TableHandler>{
+    pub fn open_table(&self, tb_name: &str, create: bool) -> Option<TableHandler>{
         match &self.current_database {
             Some(database) => {
                 let path = self.get_table_path(database, tb_name);
@@ -207,11 +207,11 @@ impl SystemManager {
             th.init_btrees();
             th.insert_born_btree(&BTree::new(&th, vec![], "", 0));
             if primary_cols.len() > 0 {
-                th.insert_btree(&BTree::new(&th, primary_cols, "PRIMARY", BTree::primary_ty()));
+                th.insert_btree(&BTree::new(&th, primary_cols, "", BTree::primary_ty()));
             }
 
             for (ft_name, foreign_index) in foreign_indexes {
-                th.insert_btree(&BTree::new(&th, foreign_index, format!("FOREIGN_{}", ft_name).as_str(), BTree::foreign_ty()));
+                th.insert_btree(&BTree::new(&th, foreign_index, format!("foreign {}", ft_name).as_str(), BTree::foreign_ty()));
             }
 
             th.close();
@@ -543,10 +543,7 @@ impl SystemManager {
             if exist.is_err() {
                 exist
             } else {
-                let th = self.open_table(tb_name, false).unwrap();
-                let map = th.get_column_types_as_hashmap();
-
-                let valid = check::check_drop_column(&map, col_name);
+                let valid = check::check_drop_column(tb_name, col_name, self);
                 if !valid {
                     RuaResult::err("invalid drop column".to_string())
                 } else {
@@ -563,13 +560,33 @@ impl SystemManager {
 
             th.delete_column_type_from_index(index);
 
+            let mut deleted_btree_index: Vec<usize> = Vec::new();
+            let mut btrees = th.get_btrees_with_ptrs();
+            for (i, (ptr, btree)) in (0..).zip(btrees.iter_mut()) {
+                if btree.index_col == vec![index as u32] {
+                    deleted_btree_index.push(i);
+                } else {
+                    let mut update = false;
+                    for ci in &mut btree.index_col {
+                        if *ci > index as u32 {
+                            *ci -= 1;
+                            update = true;
+                        }
+                    }
+                    if update {
+                        th.update_btree(&ptr, &btree);
+                    }
+                }
+            } 
+
+            while let Some(i) = deleted_btree_index.pop() {
+                th.delete_btree_from_index(i);
+            }
+
             let record_list = tree.query();
             for ptr in &record_list.ptrs {
                 th.delete_record_data_column(ptr, index);
             }
-            // TODO: primary key change
-            // TODO: foreign key constraint
-            // TODO: index change
 
             th.close();
             RuaResult::ok(None, "column deleted".to_string())
@@ -583,7 +600,6 @@ impl SystemManager {
     }
 
     pub fn rename_table(&self, tb_name: &String, new_name: &String) -> RuaResult {
-        // TODO: foreign key
         if self.check {
             let exist = self.check_table_existence(tb_name, true);
             if exist.is_err() {
@@ -601,6 +617,27 @@ impl SystemManager {
             th.update_table_name(new_name);
             let path = self.get_table_path(self.current_database.as_ref().unwrap(), tb_name);
             let new_path = self.get_table_path(self.current_database.as_ref().unwrap(), new_name);
+            th.close();
+
+            for table in self.get_tables() {
+                if &table != tb_name {
+                    let fth = self.open_table(&table, false).unwrap();
+                    for (ptr, mut ct) in fth.get_column_types_with_ptrs() {
+                        if &ct.foreign_table_name == tb_name {
+                            ct.foreign_table_name = new_name.clone();
+                            fth.update_column_type(&ptr, &ct);
+                        }
+                    }
+                    for (ptr, mut bt) in fth.get_btrees_with_ptrs() {
+                        if bt.is_foreign() && bt.get_foreign_table_name() == tb_name {
+                            let constraint = bt.get_foreign_constraint_name().to_string();
+                            bt.set_foreign_index_name(constraint.as_str(), new_name);
+                            fth.update_btree(&ptr, &bt);
+                        }
+                    }
+                    fth.close();
+                }
+            }
             fs::rename(path, new_path).ok();
 
             RuaResult::default()
@@ -613,9 +650,7 @@ impl SystemManager {
             if exist.is_err() {
                 exist
             } else {
-                let th = self.open_table(tb_name, false).unwrap();
-                let map = th.get_column_types_as_hashmap();
-                let valid = check::check_add_primary_key(&map, column_list);
+                let valid = check::check_add_primary_key(tb_name, column_list, self);
                 if !valid {
                     RuaResult::err("invalid add primary key".to_string())
                 } else {
@@ -623,7 +658,210 @@ impl SystemManager {
                 }
             }
         } else {
-            // TODO: add index and primary key
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let th = self.open_table(tb_name, false).unwrap();
+            let map = th.get_column_types_as_hashmap();
+            let pri_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
+
+            let record_list = tree.query();
+            let mut btree = BTree::new(&th, pri_cols.clone(), "", BTree::primary_ty());
+
+            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+                let ri = RawIndex::from_record(record, &pri_cols);
+                btree.insert_record(&ri, ptr.to_u64(), false);
+            }
+            th.insert_btree(&btree);
+            let cts = th.get_column_types_with_ptrs();
+
+            for i in pri_cols {
+                let (ptr, mut ct) = cts[i as usize].clone();
+                ct.is_primary = true;
+                ct.can_be_null = false;
+                th.update_column_type(&ptr, &ct);
+            }
+
+            th.close();
+            RuaResult::default()
+        }
+    }
+
+    pub fn drop_primary_key(&self, tb_name: &String) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let valid = check::check_drop_primary_key(tb_name, self);
+                if !valid {
+                    RuaResult::err("invalid drop primary key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let btrees = th.get_btrees();
+            let i = btrees.iter().position(|t| t.is_primary()).unwrap();
+            btrees[i].clear();
+            th.delete_btree_from_index(i);
+            th.close();
+            RuaResult::default()
+        }
+    }
+
+    pub fn add_constraint_primary_key(&self, tb_name: &String, pk_name: &String, column_list: &Vec<String>) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let valid = check::check_add_primary_key(tb_name, column_list, self);
+                if !valid {
+                    RuaResult::err("invalid add primary key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let th = self.open_table(tb_name, false).unwrap();
+            let map = th.get_column_types_as_hashmap();
+            let pri_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
+
+            let record_list = tree.query();
+            let mut btree = BTree::new(&th, pri_cols.clone(), pk_name, BTree::primary_ty());
+
+            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+                let ri = RawIndex::from_record(record, &pri_cols);
+                btree.insert_record(&ri, ptr.to_u64(), false);
+            }
+            th.insert_btree(&btree);
+            let cts = th.get_column_types_with_ptrs();
+
+            for i in pri_cols {
+                let (ptr, mut ct) = cts[i as usize].clone();
+                ct.is_primary = true;
+                ct.can_be_null = false;
+                th.update_column_type(&ptr, &ct);
+            }
+
+            th.close();
+            RuaResult::default()
+        }
+    }
+    pub fn drop_constraint_primary_key(&self, tb_name: &String, pk_name: &String) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let valid = check::check_drop_constraint_primary_key(tb_name, pk_name, self);
+                if !valid {
+                    RuaResult::err("invalid drop primary key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let btrees = th.get_btrees();
+            let i = btrees.iter().position(|t| t.is_primary()).unwrap();
+            let pri_cols = btrees[i].index_col.clone();
+            btrees[i].clear();
+            th.delete_btree_from_index(i);
+
+            let cts = th.get_column_types_with_ptrs();
+            for i in pri_cols {
+                let (ptr, mut ct) = cts[i as usize].clone();
+                ct.is_primary = false;
+                th.update_column_type(&ptr, &ct);
+            }
+
+            th.close();
+            RuaResult::default()
+        }
+    }
+    pub fn add_constraint_foreign_key(&self, tb_name: &String, fk_name: &String, column_list: &Vec<String>, foreign_tb_name: &String, foreign_column_list: &Vec<String>)  -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let valid = check::check_add_constraint_foreign_key(tb_name, fk_name, column_list, foreign_tb_name, foreign_column_list, self);
+                if !valid {
+                    RuaResult::err("invalid add foreign key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let database = self.current_database.as_ref().unwrap();
+            let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
+            tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+
+            let th = self.open_table(tb_name, false).unwrap();
+            let map = th.get_column_types_as_hashmap();
+            let index_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
+
+            let record_list = tree.query();
+            let mut btree = BTree::new(&th, index_cols.clone(), format!("{} {}", fk_name, foreign_tb_name).as_str(), BTree::foreign_ty());
+
+            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+                let ri = RawIndex::from_record(record, &index_cols);
+                btree.insert_record(&ri, ptr.to_u64(), false);
+            }
+            th.insert_btree(&btree);
+            let cts = th.get_column_types_with_ptrs();
+
+            for (i, c) in index_cols.iter().enumerate() {
+                let (ptr, mut ct) = cts[*c as usize].clone();
+                ct.is_foreign = true;
+                ct.foreign_table_name = foreign_tb_name.clone();
+                ct.foreign_table_column = foreign_column_list[i].clone();
+                th.update_column_type(&ptr, &ct);
+            }
+
+            th.close();
+            RuaResult::default()
+        }
+    }
+    pub fn drop_constraint_foreign_key(&self, tb_name: &String, fk_name: &String) -> RuaResult {
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let valid = check::check_drop_constraint_foreign_key(tb_name, fk_name, self);
+                if !valid {
+                    RuaResult::err("invalid drop foreign key".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let btrees = th.get_btrees();
+            let i = btrees.iter().position(|t| t.is_foreign() && t.get_foreign_constraint_name() == fk_name).unwrap();
+            let fore_cols = btrees[i].index_col.clone();
+            btrees[i].clear();
+            th.delete_btree_from_index(i);
+
+            let cts = th.get_column_types_with_ptrs();
+            for i in fore_cols {
+                let (ptr, mut ct) = cts[i as usize].clone();
+                ct.is_foreign = false;
+                ct.foreign_table_name = "".to_string();
+                ct.foreign_table_column = "".to_string();
+                th.update_column_type(&ptr, &ct);
+            }
+
+            th.close();
             RuaResult::default()
         }
     }

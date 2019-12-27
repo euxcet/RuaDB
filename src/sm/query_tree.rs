@@ -366,7 +366,6 @@ impl QueryNode for SelectNode {
                 let mut path: PathBuf = [self.root_dir.clone(), self.database.clone(), self.table_list.clone().unwrap()].iter().collect();
                 path.set_extension("rua");
                 let th = self.rm.borrow_mut().open_table(path.to_str().unwrap(), false);
-
                 let mut record_list = RecordList {
                     ty: th.get_column_types().cols,
                     record: Vec::new(),

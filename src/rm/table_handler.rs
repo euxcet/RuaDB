@@ -146,6 +146,13 @@ impl TableHandler {
         assert!(index < ptrs.len());
         self.delete(&StrPointer::new(ptrs[index]));
         ptrs.remove(index);
+
+        for i in index..ptrs.len() {
+            let p = StrPointer::new(ptrs[i]);
+            let mut ct = self.get_column_type(&p);
+            ct.index = i as u32;
+            self.update_column_type(&p, &ct);
+        }
         self.update_string(&ptrs_ptr, &unsafe{convert::vec_u64_to_string(&ptrs)});
     }
 
@@ -159,8 +166,8 @@ impl TableHandler {
     pub fn update_table_name(&self, tb_name: &String) {
         let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
         let ptrs = self.__get_ptrs(&ptrs_ptr);
-        for ptr in &ptrs {
-            let p = &StrPointer::new(*ptr);
+        for ptr in ptrs {
+            let p = &StrPointer::new(ptr);
             let mut ct = self.get_column_type(&p);
             ct.tb_name = tb_name.clone();
             self.update_column_type(&p, &ct);
@@ -169,10 +176,22 @@ impl TableHandler {
 
     pub fn get_column_types(&self) -> ColumnTypeVec {
         let ptr = StrPointer::new(self.fh.get_column_types_ptr());
-        let c_ptrs = unsafe{convert::string_to_vec_u64(&self.get_string(&ptr))};
+        let c_ptrs = self.__get_ptrs(&ptr);
         ColumnTypeVec {
             cols: c_ptrs.iter().map(|&p| self.get_column_type(&StrPointer::new(p))).collect(),
         }
+    }
+
+    pub fn get_column_types_with_ptrs(&self) -> Vec<(StrPointer, ColumnType)> {
+        let ptrs_ptr = StrPointer::new(self.fh.get_column_types_ptr());
+        let ptrs = self.__get_ptrs(&ptrs_ptr);
+        ptrs.into_iter().map(
+            |p| {
+                let ptr = StrPointer::new(p);
+                let ct = self.get_column_type(&ptr);
+                (ptr, ct)
+            }
+        ).collect()
     }
 
     pub fn get_primary_cols(&self) -> Option<ColumnTypeVec> {
