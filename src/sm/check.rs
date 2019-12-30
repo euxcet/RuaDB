@@ -660,16 +660,42 @@ pub fn check_drop_column(tb_name: &String, col_name: &String, sm: &SystemManager
     true
 }
 
-pub fn check_change_column(map: &HashMap<String, ColumnType>, col_name: &String, field: &Field) -> bool {
+pub fn check_change_column(tb_name: &String, col_name: &String, field: &Field, sm: &SystemManager) -> bool {
+    let th = sm.open_table(tb_name, false).unwrap();
+    defer!(th.close());
+    let map = th.get_column_types_as_hashmap();
     if !map.contains_key(col_name) {
+        return false;
+    }
+
+    let cf = match field {
+        Field::ColumnField{ col_name: _, ty: _, not_null: _, default_value: _ } => true,
+        _ => false,
+    };
+
+    if !cf {
         return false;
     }
 
     let origin_col = map.get(col_name).unwrap();
     let index = origin_col.index;
+
+    let affected = th.get_btrees().iter().fold(false, 
+        |affected, t| 
+            affected || t.index_col.iter().fold(false, |affected, &i| affected || index == i)
+    );
+    if affected {
+        return false;
+    }
+
     let new_col = ColumnType::from_field(&origin_col.tb_name, index, field);
-    // TODO: ensure column type can be converted
-    // TODO: out of range value
+    if map.contains_key(&new_col.name) {
+        return false;
+    }
+
+    if !origin_col.data_type.comparable(&new_col.data_type) {
+        return false;
+    }
 
     true
 }
