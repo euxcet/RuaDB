@@ -497,7 +497,7 @@ impl SystemManager {
             btrees[i].clear();
             th.delete_btree_from_index(i);
             th.close();
-            RuaResult::ok(None, "index created".to_string())
+            RuaResult::ok(None, "index dropped".to_string())
         }
     }
 
@@ -724,9 +724,18 @@ impl SystemManager {
         } else {
             let th = self.open_table(tb_name, false).unwrap();
             let btrees = th.get_btrees();
-            let i = btrees.iter().position(|t| t.is_primary()).unwrap();
-            btrees[i].clear();
-            th.delete_btree_from_index(i);
+            let index = btrees.iter().position(|t| t.is_primary()).unwrap();
+
+            let cts = th.get_column_types_with_ptrs();
+            for i in &btrees[index].index_col {
+                let (ptr, mut ct) = cts[*i as usize].clone();
+                ct.is_primary = false;
+                th.update_column_type(&ptr, &ct);
+            }
+
+            btrees[index].clear();
+            th.delete_btree_from_index(index);
+
             th.close();
             RuaResult::default()
         }
@@ -834,7 +843,7 @@ impl SystemManager {
 
             for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
                 let ri = RawIndex::from_record(record, &index_cols);
-                btree.insert_record(&ri, ptr.to_u64(), false);
+                btree.insert_record(&ri, ptr.to_u64(), true);
             }
             th.insert_btree(&btree);
             let cts = th.get_column_types_with_ptrs();

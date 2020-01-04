@@ -90,7 +90,21 @@ impl RawIndex {
 
     pub fn from_record(record: &Record, sub_col: &Vec<u32>) -> Self {
         Self {
-            index: sub_col.iter().map(|i| record.cols[*i as usize].data.clone().unwrap()).collect()
+            index: sub_col.iter().map(|i| 
+                if record.cols[*i as usize].data.is_some() {
+                    record.cols[*i as usize].data.clone().unwrap()
+                }
+                else {
+                    match record.cols[*i as usize].flags {
+                        0 => Data::Str(String::from("")),
+                        1 => Data::Int(0),
+                        2 => Data::Float(0.0),
+                        3 => Data::Date(0),
+                        4 => Data::Numeric(0),
+                        _ => unreachable!(),
+                    }
+                }
+            ).collect()
         }
     }
 }
@@ -103,7 +117,18 @@ impl PartialOrd for RawIndex {
                 return res;
             }
         }
-        Some(Ordering::Equal)
+        if self.index.len() == 0 && other.index.len() == 0 {
+            Some(Ordering::Equal)
+        }
+        else if self.index.len() == 0 {
+            Some(Ordering::Less)
+        }
+        else if other.index.len() == 0 {
+            Some(Ordering::Greater)
+        }
+        else {
+            Some(Ordering::Equal)
+        }
     }
 }
 
@@ -114,7 +139,18 @@ impl PartialEq for RawIndex {
                 return false;
             }
         }
-        true
+        if self.index.len() == 0 && other.index.len() == 0 {
+            true
+        }
+        else if self.index.len() == 0 {
+            false
+        }
+        else if other.index.len() == 0 {
+            false
+        }
+        else {
+            true
+        }
     }
 }
 
@@ -145,7 +181,7 @@ impl<'a> BTree<'a> {
 
     pub fn is_primary(&self) -> bool { self.ty == Self::primary_ty() } 
     pub fn is_foreign(&self) -> bool { self.ty == Self::foreign_ty() }
-    pub fn is_index(&self) -> bool { self.ty == Self::primary_ty() }
+    pub fn is_index(&self) -> bool { self.ty == Self::index_ty() }
     pub fn born_ty() -> u8 {0}
     pub fn primary_ty() -> u8 {1}
     pub fn index_ty() -> u8 {2}

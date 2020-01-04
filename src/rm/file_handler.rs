@@ -82,8 +82,6 @@ impl FileHandler {
         assert!(fsi < max_number as u32);
         set_used(&mut ph.free_slot, fsi);
 
-        assert_eq!(all_used(ph.free_slot, max_number), fsi + 1 == max_number as u32);
-
         if all_used(ph.free_slot, max_number) {
             unsafe{self.header_mut()}.free_page = ph.next_free_page;
         }

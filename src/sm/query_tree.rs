@@ -309,7 +309,7 @@ impl SelectNode {
     }
 
     fn get_index(&self, index_col: &Vec<u32>, ty: &Vec<ColumnType>) -> (RawIndex, bool, bool) {
-        let mut direction = false; // false -> left,  true -> right
+        let mut direction = true; // false -> left,  true -> right
         let mut can_be_equal = false;
         let mut raw_index = RawIndex {
             index: Vec::new(),
@@ -323,7 +323,7 @@ impl SelectNode {
                         direction = true;
                         can_be_equal = cond.range.min_equal;
                     }
-                    else {
+                    else if cond.range.max.is_some() {
                         raw_index.index.push(cond.range.max.clone().unwrap());
                         direction = false;
                         can_be_equal = cond.range.max_equal;
