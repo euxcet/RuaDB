@@ -161,7 +161,7 @@ pub fn numeric_to_str(num: i64, precision: u8) -> String {
         integer /= 10;
         exp10 *= 10;
     }
-    let decimal = num - integer * exp10;
+    let decimal = i64::abs(num - integer * exp10);
     let mut tmp_d = decimal;
     let mut len = if tmp_d == 0 { 1 } else { 0 };
     while tmp_d > 0 {
