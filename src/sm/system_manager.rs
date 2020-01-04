@@ -594,9 +594,28 @@ impl SystemManager {
     }
 
     pub fn change_column(&self, tb_name: &String, col_name: &Name, field: &Field) -> RuaResult {
-        // TODO: ensure column type can be converted
-        // TODO: out of range value
-        unimplemented!();
+        if self.check {
+            let exist = self.check_table_existence(tb_name, true);
+            if exist.is_err() {
+                exist
+            } else {
+                let valid = check::check_change_column(tb_name, col_name, field, self);
+                if !valid {
+                    RuaResult::err("invalid change column".to_string())
+                } else {
+                    RuaResult::default()
+                }
+            }
+        } else {
+            let th = self.open_table(tb_name, false).unwrap();
+            let map = th.get_column_types_as_hashmap();
+            let origin_col = map.get(col_name).unwrap().clone();
+            let new_col = ColumnType::from_field(tb_name, origin_col.index, field);
+            
+            th.update_column_type_from_index(origin_col.index as usize, &new_col);
+            th.close();
+            RuaResult::default()
+        }
     }
 
     pub fn rename_table(&self, tb_name: &String, new_name: &String) -> RuaResult {

@@ -205,7 +205,29 @@ impl ColumnType {
     }
 
     pub fn from_field(tb_name: &String, index: u32, field: &ast::Field) -> Self {
-        unimplemented!();
+        match field {
+            ast::Field::ColumnField { col_name, ty, not_null, default_value } => {
+                ColumnType {
+                    tb_name: tb_name.clone(),
+                    name: col_name.clone(),
+                    index: index,
+                    data_type: Type::from_type(&ty, &default_value),
+                    numeric_precision: match &ty {
+                        ast::Type::Numeric(_, p) => *p as u8 + 1,
+                        _ => 0,
+                    },
+                    can_be_null: !not_null,
+                    has_index: false,
+                    has_default: default_value.is_some(),
+                    is_primary: false,
+                    is_foreign: false,
+                    default_null: default_value.is_some() && default_value.as_ref().unwrap().is_null(),
+                    foreign_table_name: String::new(),
+                    foreign_table_column: String::new(),
+                }
+            },
+            _ => unreachable!(),
+        }
     }
 }
 
