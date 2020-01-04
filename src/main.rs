@@ -37,7 +37,11 @@ fn main() {
     
     // let mut checker = executor::checker::Checker::new(rm.clone(), sm.clone());
     let logger = logger::logger::RuaLogger::new();
+    let executor = executor::executor::Executor::new();
     loop {
         print_prompt();
+        if executor.process_from_stdin(&logger) {
+            break;
+        }
     }
 }
