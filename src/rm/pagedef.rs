@@ -43,6 +43,7 @@ impl StrPointer {
 pub struct PageHeader {
     pub next_free_page: u32,
     pub free_slot: u32,
+    pub is_large: bool,
 }
 
 #[repr(C)]

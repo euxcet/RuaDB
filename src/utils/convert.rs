@@ -126,10 +126,10 @@ pub fn str_to_numeric(s: &str, precision: u8) -> i64 {
     assert!(precision > 0);
     let precision = precision - 1;
     let num_vec: Vec<&str> = s.split(".").collect();
-    if num_vec.len() != 2 {
-        0
+    if num_vec.len() == 1 {
+        i64::from_str_radix(&format!("{}{}", num_vec[0], String::from_utf8(vec![48; precision as usize]).unwrap()), 10).unwrap()
     }
-    else {
+    else if num_vec.len() == 2 {
         let integer = num_vec[0];
         let decimal = num_vec[1];
         if decimal.len() > precision as usize {
@@ -147,6 +147,9 @@ pub fn str_to_numeric(s: &str, precision: u8) -> i64 {
             ).unwrap()
         }
     }
+    else {
+        0
+    }
 }
 
 pub fn numeric_to_str(num: i64, precision: u8) -> String {
@@ -159,11 +162,17 @@ pub fn numeric_to_str(num: i64, precision: u8) -> String {
         exp10 *= 10;
     }
     let decimal = num - integer * exp10;
+    let mut tmp_d = decimal;
+    let mut len = if tmp_d == 0 { 1 } else { 0 };
+    while tmp_d > 0 {
+        tmp_d /= 10;
+        len += 1;
+    }
     if precision == 0 {
         format!("{}", integer)
     }
     else {
-        format!("{}.{}", integer, decimal)
+        format!("{}.{}{}", integer, String::from_utf8(vec![48; precision as usize - len]).unwrap(), decimal)
     }
 }
 
