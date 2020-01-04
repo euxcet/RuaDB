@@ -154,7 +154,7 @@ mod test {
     pub fn sql_select() {
         let executor = Executor::new();
         let logger = logger::logger::RuaLogger::new();
-        // executor.process_from_file("sql/bug.rsql", &logger);
-        executor.process_from_file("sql/small.rsql", &logger);
+        executor.process_from_file("sql/bug.rsql", &logger);
+        // executor.process_from_file("sql/small.rsql", &logger);
     }
 }

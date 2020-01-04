@@ -30,6 +30,7 @@ impl FileHandler {
         if header.has_used == 0 {
             header.has_used = 1;
             header.free_page = 0;
+            header.free_large_page = 0;
             header.least_unused_page = 1;
             header.btrees_ptr = 0;
             header.column_types_ptr = 0;
@@ -80,6 +81,9 @@ impl FileHandler {
         ph.is_large = false;
         assert!(fsi < max_number as u32);
         set_used(&mut ph.free_slot, fsi);
+
+        assert_eq!(all_used(ph.free_slot, max_number), fsi + 1 == max_number as u32);
+
         if all_used(ph.free_slot, max_number) {
             unsafe{self.header_mut()}.free_page = ph.next_free_page;
         }

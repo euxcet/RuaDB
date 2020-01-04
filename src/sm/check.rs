@@ -715,8 +715,8 @@ pub fn check_add_primary_key(tb_name: &String, column_list: &Vec<String>, sm: &S
     let database = sm.current_database.as_ref().unwrap();
     let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
     tree.build(&vec![tb_name.clone()], &Selector::All, &None);
-
     let record_list = tree.query();
+
     let mut btree = BTree::new(&th, pri_cols.clone(), "", BTree::primary_ty());
 
     let mut duplicate = false;
@@ -831,12 +831,13 @@ pub fn check_add_constraint_foreign_key(tb_name: &String, fk_name: &String, colu
             return false;
         }
     }
+    th.close();
 
     let database = sm.current_database.as_ref().unwrap();
     let mut tree = QueryTree::new(&sm.root_dir, database, sm.rm.clone());
     tree.build(&vec![tb_name.clone()], &Selector::All, &None);
-
     let record_list = tree.query();
+
     for record in &record_list.record {
         let bucket = pri_btree.search_record(&RawIndex::from_record(record, &this_cols_index));
         if bucket.is_none() {

@@ -323,6 +323,7 @@ impl SystemManager {
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(table_list, selector, where_clause);
             let record_list = tree.query();
+
             let record_num = record_list.record.len();
             if record_num == 0 {
                 RuaResult::ok(None, format!("Empty set"))
@@ -521,13 +522,13 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+            let record_list = tree.query();
 
             let th = self.open_table(tb_name, false).unwrap();
             let index = th.get_column_numbers() as u32;
             let new_column = ColumnType::from_field(tb_name, index, field); 
             th.insert_column_type(&new_column);
 
-            let record_list = tree.query();
             for ptr in &record_list.ptrs {
                 th.insert_record_data_column(ptr, &new_column);
             }
@@ -554,6 +555,7 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+            let record_list = tree.query();
 
             let th = self.open_table(tb_name, false).unwrap();
             let index = th.get_column_types().cols.iter().position(|ct| &ct.name == col_name).unwrap();
@@ -583,7 +585,6 @@ impl SystemManager {
                 th.delete_btree_from_index(i);
             }
 
-            let record_list = tree.query();
             for ptr in &record_list.ptrs {
                 th.delete_record_data_column(ptr, index);
             }
@@ -680,12 +681,12 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+            let record_list = tree.query();
 
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let pri_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
 
-            let record_list = tree.query();
             let mut btree = BTree::new(&th, pri_cols.clone(), "", BTree::primary_ty());
 
             for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
@@ -748,12 +749,12 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+            let record_list = tree.query();
 
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let pri_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
 
-            let record_list = tree.query();
             let mut btree = BTree::new(&th, pri_cols.clone(), pk_name, BTree::primary_ty());
 
             for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
@@ -823,12 +824,12 @@ impl SystemManager {
             let database = self.current_database.as_ref().unwrap();
             let mut tree = QueryTree::new(&self.root_dir, database, self.rm.clone());
             tree.build(&vec![tb_name.clone()], &Selector::All, &None);
+            let record_list = tree.query();
 
             let th = self.open_table(tb_name, false).unwrap();
             let map = th.get_column_types_as_hashmap();
             let index_cols: Vec<u32> = column_list.iter().map(|name| map.get(name).unwrap().index).collect();
 
-            let record_list = tree.query();
             let mut btree = BTree::new(&th, index_cols.clone(), format!("{} {}", fk_name, foreign_tb_name).as_str(), BTree::foreign_ty());
 
             for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
