@@ -46,6 +46,7 @@ impl FileHandler {
     // get a specific page
     unsafe fn header_mut<'b>(&self) -> &'b mut FileHeader { self.page_mut(0, true) }
     unsafe fn header<'b>(&self) -> &'b FileHeader { self.page_mut(0, false) } 
+    unsafe fn lsp_mut<'b>(&self, page_id: u32) -> &'b mut LargeSlotPage { self.page_mut(page_id, true) }
     unsafe fn sp_mut<'b>(&self, page_id: u32) -> &'b mut StringPage { self.page_mut(page_id, true) }
     unsafe fn sp<'b>(&self, page_id: u32) -> &'b StringPage { self.page_mut(page_id, false) }
     unsafe fn ph_mut<'b>(&self, page_id: u32) -> &'b mut PageHeader { self.page_mut(page_id, false) }
@@ -76,6 +77,7 @@ impl FileHandler {
         let page_id = header.free_page;
         let ph = unsafe{self.ph_mut(page_id)};
         let fsi = get_free_index(ph.free_slot);
+        ph.is_large = false;
         assert!(fsi < max_number as u32);
         set_used(&mut ph.free_slot, fsi);
         if all_used(ph.free_slot, max_number) {
@@ -94,6 +96,7 @@ impl FileHandler {
         let page_id = header.free_large_page;
         let ph = unsafe{self.ph_mut(page_id)};
         let fsi = get_free_index(ph.free_slot);
+        ph.is_large = true;
         assert!(fsi < max_number as u32);
         set_used(&mut ph.free_slot, fsi);
         if all_used(ph.free_slot, max_number) {
@@ -127,20 +130,40 @@ impl FileHandler {
     fn free_slot(&self, strp: &StrPointer) -> StrPointer {
         let this_page = strp.page;
         let offset = strp.offset;
-        let sp = unsafe{self.sp_mut(this_page)};
-        assert!((strp.offset as usize) < SLOT_PER_PAGE);
-        assert!(is_used(sp.header.free_slot, strp.offset as usize));
-        set_free(&mut sp.header.free_slot, strp.offset as u32);
-        let next = sp.strs[offset as usize].next.clone();
-        sp.strs[offset as usize].len = 0;
-        sp.strs[offset as usize].next.set_null();
-        if free_num(sp.header.free_slot, SLOT_PER_PAGE) == 1 {
-            let header = unsafe{self.header_mut()};
-            let stack_top = header.free_page;
-            header.free_page = this_page;
-            unsafe{self.sp_mut(this_page)}.header.next_free_page = stack_top;
+
+        let ph = unsafe{self.ph(this_page)};
+        if ph.is_large {
+            let sp = unsafe{self.lsp_mut(this_page)};
+            assert!((strp.offset as usize) < LARGE_SLOT_PER_PAGE);
+            assert!(is_used(sp.header.free_slot, strp.offset as usize));
+            set_free(&mut sp.header.free_slot, strp.offset as u32);
+            let next = sp.strs[offset as usize].next.clone();
+            sp.strs[offset as usize].len = 0;
+            sp.strs[offset as usize].next.set_null();
+            if free_num(sp.header.free_slot, LARGE_SLOT_PER_PAGE) == 1 {
+                let header = unsafe{self.header_mut()};
+                let stack_top = header.free_large_page;
+                header.free_large_page = this_page;
+                unsafe{self.sp_mut(this_page)}.header.next_free_page = stack_top;
+            }
+            next
         }
-        next
+        else {
+            let sp = unsafe{self.sp_mut(this_page)};
+            assert!((strp.offset as usize) < SLOT_PER_PAGE);
+            assert!(is_used(sp.header.free_slot, strp.offset as usize));
+            set_free(&mut sp.header.free_slot, strp.offset as u32);
+            let next = sp.strs[offset as usize].next.clone();
+            sp.strs[offset as usize].len = 0;
+            sp.strs[offset as usize].next.set_null();
+            if free_num(sp.header.free_slot, SLOT_PER_PAGE) == 1 {
+                let header = unsafe{self.header_mut()};
+                let stack_top = header.free_page;
+                header.free_page = this_page;
+                unsafe{self.sp_mut(this_page)}.header.next_free_page = stack_top;
+            }
+            next
+        }
     }
 
     // free a string in the file
@@ -177,7 +200,7 @@ impl FileHandler {
     }
 
     pub fn get_mut<T>(&self, ptr: &StrPointer) -> &mut T {
-        let sp = unsafe{self.sp_mut(ptr.page)};
+        let sp = unsafe{self.lsp_mut(ptr.page)};
         unsafe{transmute(sp.strs[ptr.offset as usize].bytes.as_mut_ptr())}
     }
 

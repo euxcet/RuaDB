@@ -283,7 +283,7 @@ impl Bucket {
     }
 }
 
-const BTREE_NODE_CAPACITY: usize = 10;
+const BTREE_NODE_CAPACITY: usize = 100;
 
 #[repr(C, packed)]
 pub struct BTreeNode {
