@@ -1,0 +1,11 @@
+create database sql_select;
+use sql_select;
+create table test(id int(4), fuck float);
+desc test;
+create index id_index on test (id, fuck);
+insert into test values (1, 1.23);
+insert into test values (3, 3.0);
+insert into test values (5, 42.12);
+insert into test values (4, -4.2);
+select * from test;
+drop database sql_select;

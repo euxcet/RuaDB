@@ -1,0 +1,43 @@
+CREATE DATABASE testDB;
+DROP DATABASE testDB;
+USE tpch;
+CREATE TABLE nationBack( n_nationkey INT NOT NULL, n_name CHAR(25) NOT NULL, n_regionkey INT NOT NULL, n_comment VARCHAR(152));
+SHOW TABLES;
+DROP TABLE nationBack;
+DESC nation;
+INSERT INTO nation VALUES (0,"America",0, "nothing left");
+INSERT INTO nation VALUES ("id86","America",0, "nothing left");
+INSERT INTO orders VALUES (127664,315000,"F",6.5,'2018-2-29',0,"Clerk101",1,"nice service");
+DELETE FROM customer WHERE c_custkey=5;
+UPDATE partsupp SET ps_availqty=8774 WHERE ps_partkey=12;
+SELECT * FROM customer WHERE c_nationkey<10;
+SELECT o_orderdate,o_totalprice FROM orders WHERE o_orderdate='1996-01-02';
+SELECT c_phone,o_orderstatus FROM customer,orders where c_custkey=o_custkey AND c_name="Customer#000000001";
+// UPDATE NATION SET N_REGIONKEY = 316001 WHERE N_NATIONKEY= 15;
+ALTER TABLE nation ADD column n_comment_2 varchar(32);
+ALTER TABLE nation drop column n_comment_2;
+ALTER TABLE nation RENAME TO province;
+// ALTER TABLE nation ADD PRIMARY KEY (n_nationkey);
+ALTER TABLE NATION ADD FOREIGN KEY NATION_FK1 (N_REGIONKEY) references REGION(R_REGIONKEY);
+ALTER TABLE nation DROP FOREIGN KEY NATION_FK1;
+ALTER TABLE customer ADD INDEX Idx_residual(c_acctbal);
+// ALTER TABLE customer DROP INDEX Idx_residual;
+SELECT MAX(p_size) FROM part;
+SELECT AVG(p_size) FROM part;
+SELECT MIN(p_size) FROM part;
+SELECT SUM(p_size) FROM part;
+SELECT o_totalprice FROM orders WHERE o_clerk like "clerk%";
+SELECT C_NAME, O_ORDERSTATUS, N_NATIONKEY FROM CUSTOMER,ORDERS,NATION  WHERE C_CUSTKEY=O_CUSTKEY AND C_NATIONKEY=N_NATIONKEY AND N_NAME="China";
+SELECT C_NAME,O_ORDERSTATUS,N_NATIONKEY FROM CUSTOMER,ORDERS,NATION,REGION WHERE C_CUSTKEY=O_CUSTKEY AND C_NATIONKEY=N_NATIONKEY AND N_REGIONKEY=R_REGIONKEY AND C_CUSTKEY < 4 AND O_ORDERKEY < 4 AND R_REGIONKEY < 4; 
+SELECT c_name,o_orderstatus,n_nationkey 
+FROM customer,orders,nation,region,lineitem 
+WHERE c_custkey=o_custkey AND c_nationkey=n_nationkey AND n_regionkey=r_regionkey AND o_orderkey=l_orderkey AND n_name="China";
+
+SELECT MIN(o_totalprice), o_orderkey FROM orders GROUP BY o_orderkey LIMIT 5;
+
+SELECT * FROM customer WHERE c_custkey IN (SELECT o_custkey FROM orders WHERE o_totalprice > 10);
+
+ALTER TABLE customer ADD UNIQUE uidx_id(c_custkey);
+
+ALTER TABLE nation ADD CONSTRAINT fk_nation_region FOREIGN KEY(n_regionkey) REFERENCES region(r_regionkey) ON UPDATE CASCADE;
+
