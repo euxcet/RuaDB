@@ -1,7 +1,7 @@
 [package]
 name = "rua_db"
 version = "0.1.0"
-authors = ["euxcet <zcc.qwer@gmail.com>"]
+authors = ["euxcet <zcc.qwer@gmail.com>", "thuliu-yt16 <lytlogic@gmail.com>"]
 build = "build.rs"
 edition = "2018"
 

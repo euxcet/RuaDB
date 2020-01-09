@@ -805,7 +805,7 @@ impl BTreeNode {
             }
             BTreeNodeType::Internal => {
                 let son_pos = self.upper_bound(th, key, len);
-                th.get_btree_node_(self.son[son_pos]).search(th, key)
+                th.get_btree_node_(self.son[son_pos]).search_with_op(th, key, is_less, can_be_equal)
             }
         }
     }
@@ -847,7 +847,7 @@ impl BTreeNode {
         match self.ty {
             BTreeNodeType::Leaf => {}
             BTreeNodeType::Internal => {
-                for i in 0..=len {
+                for i in 0..len {
                     th.get_btree_node_(self.son[i]).clear(th, self.son[i])
                 }
             }

@@ -432,6 +432,7 @@ pub fn check_delete(tb_name: &String, map: &HashMap<String, ColumnType>, where_c
 }
 
 pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_clause: &Vec<SetClause>, where_clause: &Option<Vec<WhereClause>>, sm: &SystemManager) -> bool {
+    println!("check update");
     let valid_qualified_col = |qualified_col: &Column| -> bool {
         if let Some(ref tb) = qualified_col.tb_name {
             tb == tb_name && map.contains_key(&qualified_col.col_name)
@@ -528,37 +529,42 @@ pub fn check_update(tb_name: &String, map: &HashMap<String, ColumnType>, set_cla
                 }
             }
         }
-        // affect foreign btree
-        let affected_foreign_btree: Vec<BTree> = th.get_btrees().into_iter().filter(
-            |t| 
-                t.is_foreign() &&
-                t.index_col.iter().fold(false, |affected, i| affected || affected_cols_index.contains(i))
-        ).collect();
+    }
+    // affect foreign btree
+    let affected_foreign_btree: Vec<BTree> = th.get_btrees().into_iter().filter(
+        |t| 
+            t.is_foreign() &&
+            t.index_col.iter().fold(false, |affected, i| affected || affected_cols_index.contains(i))
+    ).collect();
 
-        let (ptr, mut pri_btree) = th.get_primary_btree_with_ptr().unwrap();
-        let mut deleted = Vec::new();
-        let mut inserted = Vec::new();
+    // println!("{}", affected_foreign_btree.len());
 
-        let mut duplicate = false;
-        let mut foreign_incorrect = false;
+    let (ptr, mut pri_btree) = th.get_primary_btree_with_ptr().unwrap();
+    let mut deleted = Vec::new();
+    let mut inserted = Vec::new();
 
-        for btree in affected_foreign_btree {
-            let foreign_table = btree.get_foreign_table_name();
-            let fth = sm.open_table(foreign_table, false).unwrap();
-            defer!(fth.close());
-            let pri_btree = fth.get_primary_btree().unwrap();
+    let mut duplicate = false;
+    let mut foreign_incorrect = false;
 
-            for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
-                let mut new_record = record.clone();
-                new_record.set_(set_clause, &record_list.ty);
+    for btree in affected_foreign_btree {
+        // println!("{}", &btree.index_name);
+        let foreign_table = btree.get_foreign_table_name();
+        let fth = sm.open_table(foreign_table, false).unwrap();
+        defer!(fth.close());
+        let pri_btree = fth.get_primary_btree().unwrap();
 
-                let ri = RawIndex::from_record(record, &btree.index_col);
-                if pri_btree.search_record(&ri).is_none() {
-                    return false;
-                }
+        for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
+            let mut new_record = record.clone();
+            new_record.set_(set_clause, &record_list.ty);
+
+            let ri = RawIndex::from_record(&new_record, &btree.index_col);
+            // println!("{:?}", &ri);
+            if pri_btree.search_record(&ri).is_none() {
+                return false;
             }
         }
-
+    }
+    if pri_affected {
         for (ptr, record) in record_list.ptrs.iter().zip(record_list.record.iter()) {
             let mut new_record = record.clone();
             new_record.set_(set_clause, &record_list.ty);
